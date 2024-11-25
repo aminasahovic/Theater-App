@@ -1,0 +1,6 @@
+@eTheater.API_HostAddress = http://localhost:5259
+
+GET {{eTheater.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
