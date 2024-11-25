@@ -5,6 +5,10 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eTheater.API", "eTheater.API\eTheater.API.csproj", "{1B018431-4B7E-4464-B30D-9694AE873EC2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eTheater.Model", "eTheater.Model\eTheater.Model.csproj", "{C39594D2-7BE3-4160-A306-9819F88EF6AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eTheater.Services", "eTheater.Services\eTheater.Services.csproj", "{57A726D8-36E7-4D57-8E56-FB7E51782C42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{1B018431-4B7E-4464-B30D-9694AE873EC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B018431-4B7E-4464-B30D-9694AE873EC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B018431-4B7E-4464-B30D-9694AE873EC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C39594D2-7BE3-4160-A306-9819F88EF6AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C39594D2-7BE3-4160-A306-9819F88EF6AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C39594D2-7BE3-4160-A306-9819F88EF6AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C39594D2-7BE3-4160-A306-9819F88EF6AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57A726D8-36E7-4D57-8E56-FB7E51782C42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57A726D8-36E7-4D57-8E56-FB7E51782C42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57A726D8-36E7-4D57-8E56-FB7E51782C42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57A726D8-36E7-4D57-8E56-FB7E51782C42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
