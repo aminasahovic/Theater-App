@@ -10,5 +10,7 @@ namespace eTheater.Services
 {
     public interface IKorisnikService : ICRUDService<Model.Korisnik, KorisniciSearchObject, KorisnikInsertRequest, KorisnikUpdateRequest>
     {
+        Model.Korisnik Login(string username, string password);
+
     }
 }

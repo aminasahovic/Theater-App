@@ -98,5 +98,23 @@ namespace eTheater.Services
                 entity.Hash = GenerateHash(entity.Salt, request.Password);
             }
         }
+
+        public Model.Korisnik Login(string username, string password)
+        {
+            var entity = Context.Korisniks.Include(x => x.TipKorisnika).FirstOrDefault(x => x.Username == username);
+
+            if (entity == null)
+            {
+                return null;
+            }
+            var hash = GenerateHash(entity.Salt, password);
+
+            if (hash != entity.Hash)
+            {
+                return null;
+            }
+
+            return this.Mapper.Map<Model.Korisnik>(entity);
+        }
     }
 }

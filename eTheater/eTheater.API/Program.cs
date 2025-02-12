@@ -1,17 +1,19 @@
+using eTheater.API;
+using eTheater.API.Filters;
 using eTheater.Services;
 using eTheater.Services.Database;
 using Mapster;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 builder.Services.AddTransient<IZanrService, ZanrService>();
 builder.Services.AddTransient<ITipKorisnikService, TipKorisnikaService>();
 builder.Services.AddTransient<ISjedisteService, SjedisteService>();
@@ -31,11 +33,35 @@ builder.Services.AddTransient<IIzvedbaService, IzvedbaService>();
 builder.Services.AddTransient<IGlumacPredstavaService, GlumacPredstavaService>();
 builder.Services.AddTransient<IGlumacService, GlumacService>();
 
+builder.Services.AddControllers(x =>
+    x.Filters.Add<ExceptionFilter>());
+builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("basicAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "basic"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference{Type = ReferenceType.SecurityScheme, Id = "basicAuth"}
+            },
+            new string[]{}
+    } });
+
+});
 var connectionString = builder.Configuration.GetConnectionString("eTheaterConnection");
 builder.Services.AddDbContext<ETheaterContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddMapster();
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
 var app = builder.Build();
 

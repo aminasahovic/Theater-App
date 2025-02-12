@@ -14,6 +14,7 @@ namespace eTheater.Model
         public string Username { get; set; } = null!;
 
         public string? BrojTelefona { get; set; }
+        public virtual Model.TipKorisnika? TipKorisnika { get; set; }
 
     }
 }
