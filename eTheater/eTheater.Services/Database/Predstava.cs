@@ -23,6 +23,8 @@ public partial class Predstava
 
     public int? ReziserId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<GlumacPredstava> GlumacPredstavas { get; set; } = new List<GlumacPredstava>();
 
     public virtual ICollection<Izvedba> Izvedbas { get; set; } = new List<Izvedba>();

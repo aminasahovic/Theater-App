@@ -21,6 +21,8 @@ public partial class Obavijest
 
     public int? ModifyBy { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<KomentarObavijest> KomentarObavijests { get; set; } = new List<KomentarObavijest>();
 
     public virtual Korisnik? Korisnik { get; set; }

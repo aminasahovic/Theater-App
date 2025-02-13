@@ -25,5 +25,11 @@ namespace eTheater.API.Controllers
         {
             return _service.Update(id, request);
         }
+
+        [HttpDelete("{id}")]
+        public virtual Boolean Delete(int id)
+        {
+            return _service.Delete(id);
+        }
     }
 }

@@ -17,6 +17,8 @@ public partial class KomentarPrestava
 
     public string? Komentar { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Korisnik? Korisnik { get; set; }
 
     public virtual Predstava? Predstava { get; set; }

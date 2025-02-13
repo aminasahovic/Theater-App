@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using eTheater.Services.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace eTheater.Services
 {
@@ -25,6 +26,7 @@ namespace eTheater.Services
             List<TModel> result = new List<TModel>();
 
             var query = Context.Set<TDbEntity>().AsQueryable();
+            query = query.Where(e => EF.Property<bool>(e, "IsDeleted") == false);
 
             query = AddFilter(search, query);
 

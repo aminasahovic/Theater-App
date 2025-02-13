@@ -67,6 +67,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Ime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Prezime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -81,6 +82,7 @@ public partial class ETheaterContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.GlumacId).HasColumnName("GlumacID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.PredstavaId).HasColumnName("PredstavaID");
             entity.Property(e => e.Uloga)
                 .HasMaxLength(100)
@@ -104,6 +106,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CijenaKarte).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.DatumVrijeme).HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.PredstavaId).HasColumnName("PredstavaID");
             entity.Property(e => e.SalaId).HasColumnName("SalaID");
 
@@ -123,6 +126,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("IzvedbaSjediste");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IzvedbaId).HasColumnName("IzvedbaID");
             entity.Property(e => e.SjedisteId).HasColumnName("SjedisteID");
             entity.Property(e => e.Status)
@@ -149,6 +153,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Datum)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.KorisnikId).HasColumnName("KorisnikID");
             entity.Property(e => e.ObavijestId).HasColumnName("ObavijestID");
             entity.Property(e => e.Text).HasColumnType("text");
@@ -172,6 +177,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Datum)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Komentar).HasColumnType("text");
             entity.Property(e => e.KorisnikId).HasColumnName("KorisnikID");
             entity.Property(e => e.PredstavaId).HasColumnName("PredstavaID");
@@ -197,10 +203,12 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.BrojTelefona)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.Hash).HasMaxLength(255);
             entity.Property(e => e.Ime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Password)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -231,6 +239,7 @@ public partial class ETheaterContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.DatumUredjivanja).HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.KorisnikId).HasColumnName("KorisnikID");
             entity.Property(e => e.Naslov)
                 .HasMaxLength(100)
@@ -253,6 +262,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Datum)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.KomentariObavijestiId).HasColumnName("KomentariObavijestiID");
             entity.Property(e => e.KorisnikId).HasColumnName("KorisnikID");
             entity.Property(e => e.TextOdgovora).HasColumnType("text");
@@ -274,6 +284,7 @@ public partial class ETheaterContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Naziv)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -298,6 +309,9 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Repertoar");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+            entity.Property(e => e.KrajDatum).HasColumnType("datetime");
+            entity.Property(e => e.PocetakDatum).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<RepertoarIzvedba>(entity =>
@@ -307,6 +321,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("RepertoarIzvedba");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IzvedbaId).HasColumnName("IzvedbaID");
             entity.Property(e => e.RepertoarId).HasColumnName("RepertoarID");
 
@@ -326,6 +341,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Rezervacija");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IsKupljeno).HasDefaultValue(false);
             entity.Property(e => e.IsUsedTicket)
                 .HasDefaultValue(false)
@@ -356,6 +372,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Ime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Prezime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -368,6 +385,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Sala");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Naziv)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -380,6 +398,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Sjediste");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.SalaId).HasColumnName("SalaID");
 
             entity.HasOne(d => d.Sala).WithMany(p => p.Sjedistes)
@@ -394,6 +413,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("TipKorisnik");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Naziv)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -406,6 +426,7 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Zanr");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Naziv)
                 .HasMaxLength(50)
                 .IsUnicode(false);

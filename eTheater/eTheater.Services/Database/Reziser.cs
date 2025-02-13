@@ -11,5 +11,7 @@ public partial class Reziser
 
     public string Prezime { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Predstava> Predstavas { get; set; } = new List<Predstava>();
 }

@@ -13,6 +13,8 @@ public partial class GlumacPredstava
 
     public string? Uloga { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Glumac? Glumac { get; set; }
 
     public virtual Predstava? Predstava { get; set; }

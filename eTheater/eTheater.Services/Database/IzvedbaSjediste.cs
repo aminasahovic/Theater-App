@@ -13,6 +13,8 @@ public partial class IzvedbaSjediste
 
     public string? Status { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Izvedba? Izvedba { get; set; }
 
     public virtual Sjediste? Sjediste { get; set; }

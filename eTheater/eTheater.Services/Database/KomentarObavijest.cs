@@ -15,6 +15,8 @@ public partial class KomentarObavijest
 
     public DateTime? Datum { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Korisnik? Korisnik { get; set; }
 
     public virtual Obavijest? Obavijest { get; set; }

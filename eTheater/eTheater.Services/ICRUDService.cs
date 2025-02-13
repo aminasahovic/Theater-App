@@ -11,5 +11,7 @@ namespace eTheater.Services
     {
         TModel Insert(TInsert request);
         TModel Update(int id, TUpdate request);
+        Boolean Delete(int id);
+
     }
 }

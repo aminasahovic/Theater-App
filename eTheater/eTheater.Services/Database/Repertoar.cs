@@ -11,5 +11,7 @@ public partial class Repertoar
 
     public DateTime KrajDatum { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<RepertoarIzvedba> RepertoarIzvedbas { get; set; } = new List<RepertoarIzvedba>();
 }

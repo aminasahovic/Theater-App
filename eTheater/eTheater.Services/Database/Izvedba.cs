@@ -15,6 +15,8 @@ public partial class Izvedba
 
     public decimal CijenaKarte { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<IzvedbaSjediste> IzvedbaSjedistes { get; set; } = new List<IzvedbaSjediste>();
 
     public virtual Predstava? Predstava { get; set; }

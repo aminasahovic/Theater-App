@@ -13,5 +13,7 @@ public partial class Glumac
 
     public string? Slika { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<GlumacPredstava> GlumacPredstavas { get; set; } = new List<GlumacPredstava>();
 }

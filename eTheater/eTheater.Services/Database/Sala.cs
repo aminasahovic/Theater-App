@@ -9,6 +9,8 @@ public partial class Sala
 
     public string Naziv { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Izvedba> Izvedbas { get; set; } = new List<Izvedba>();
 
     public virtual ICollection<Sjediste> Sjedistes { get; set; } = new List<Sjediste>();

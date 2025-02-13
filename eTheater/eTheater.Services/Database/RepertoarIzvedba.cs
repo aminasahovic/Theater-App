@@ -11,6 +11,8 @@ public partial class RepertoarIzvedba
 
     public int? IzvedbaId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Izvedba? Izvedba { get; set; }
 
     public virtual Repertoar? Repertoar { get; set; }

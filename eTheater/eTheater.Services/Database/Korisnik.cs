@@ -16,13 +16,16 @@ public partial class Korisnik
     public string Password { get; set; } = null!;
 
     public string? Salt { get; set; }
-    public string? Hash { get; set; }
 
     public bool? IsActive { get; set; }
 
     public string? BrojTelefona { get; set; }
 
     public int? TipKorisnikaId { get; set; }
+
+    public string? Hash { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public virtual ICollection<KomentarObavijest> KomentarObavijests { get; set; } = new List<KomentarObavijest>();
 

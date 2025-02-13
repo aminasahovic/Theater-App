@@ -9,5 +9,7 @@ public partial class Zanr
 
     public string Naziv { get; set; } = null!;
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<Predstava> Predstavas { get; set; } = new List<Predstava>();
 }

@@ -1,6 +1,7 @@
 ﻿using eTheater.Model.SearchObjects;
 using eTheater.Services.Database;
 using MapsterMapper;
+using System.Text;
 
 namespace eTheater.Services
 {
@@ -37,6 +38,24 @@ namespace eTheater.Services
             Context.SaveChanges();
 
             return Mapper.Map<TModel>(entity);
+        }
+        public virtual Boolean Delete(int id)
+        {
+            var set=Context.Set<TDbEntity>();
+
+
+            var entity = set.Find(id);
+            if (entity == null)
+                return false;
+
+            if (entity.GetType().GetProperty("IsDeleted") != null)
+            {
+                entity.GetType().GetProperty("IsDeleted").SetValue(entity, true);
+                Context.SaveChanges();
+                return true;
+            }
+
+            return false; 
         }
 
         public virtual void BeforeUpdate(TUpdate request, TDbEntity entity) { }
