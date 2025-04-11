@@ -3,6 +3,7 @@ import 'package:etheater_admin/screens/predstava_list_screen.dart';
 import 'package:etheater_admin/screens/user_list_screen.dart';
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MasterScreen extends StatefulWidget {
   MasterScreen(this.title, this.child, {super.key});
   String title;
@@ -49,9 +50,7 @@ class _MasterScreenState extends State<MasterScreen> {
               title: Text("Proizvodi"),
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => PredstavaListScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => PredstaveScreen()),
                 );
               },
             ),
