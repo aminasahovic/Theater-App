@@ -7,8 +7,11 @@ namespace eTheater.Services
 {
     public abstract class BaseCRUDService<TModel, TSearch, TDbEntity, TInsert, TUpdate> : BaseService<TModel, TSearch, TDbEntity> where TModel : class where TSearch : BaseSearchObject where TDbEntity : class
     {
+        protected readonly ETheaterContext _context;
+
         protected BaseCRUDService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
+            _context = context;
         }
 
         public virtual TModel Insert(TInsert request)

@@ -106,3 +106,147 @@ class PredstavaInsert {
     'reziserId': reziserId,
   };
 }
+
+class Korisnik {
+  final int id;
+  final String ime;
+  final String prezime;
+  final String username;
+  final String brojTelefona;
+  final String? tipKorisnika;
+
+  Korisnik({
+    required this.id,
+    required this.ime,
+    required this.prezime,
+    required this.username,
+    required this.brojTelefona,
+    this.tipKorisnika,
+  });
+
+  factory Korisnik.fromJson(Map<String, dynamic> json) {
+    return Korisnik(
+      id: json['id'],
+      ime: json['ime'],
+      prezime: json['prezime'],
+      username: json['username'],
+      brojTelefona: json['brojTelefona'],
+      tipKorisnika:
+          json['tipKorisnika']?['naziv'], // ispravno ako je to objekat
+    );
+  }
+}
+
+class TipKorisnika {
+  final int id;
+  final String naziv;
+
+  TipKorisnika({required this.id, required this.naziv});
+
+  factory TipKorisnika.fromJson(Map<String, dynamic> json) {
+    return TipKorisnika(id: json['id'], naziv: json['naziv']);
+  }
+}
+
+class KorisniciInsert {
+  final String ime;
+  final String prezime;
+  final String username;
+  final String password;
+  final String passwordPotvrda;
+  final String brojTelefona;
+  final bool isActive;
+  final int? tipKorisnikaId;
+  final String? slika;
+
+  KorisniciInsert({
+    required this.ime,
+    required this.prezime,
+    required this.username,
+    required this.password,
+    required this.passwordPotvrda,
+    required this.brojTelefona,
+    required this.isActive,
+    required this.tipKorisnikaId,
+    this.slika,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'ime': ime,
+    'prezime': prezime,
+    'username': username,
+    'password': password,
+    'passwordPotvrda': passwordPotvrda,
+    'brojTelefona': brojTelefona,
+    'isActive': isActive,
+    'tipKorisnikaId': tipKorisnikaId,
+    if (slika != null) 'slika': slika,
+  };
+}
+
+class Glumac {
+  final int id;
+  final String ime;
+  final String prezime;
+  final String slika;
+
+  Glumac({
+    required this.id,
+    required this.ime,
+    required this.prezime,
+    required this.slika,
+  });
+
+  factory Glumac.fromJson(Map<String, dynamic> json) {
+    return Glumac(
+      id: json['id'],
+      ime: json['ime'],
+      prezime: json['prezime'],
+      slika: json['slika'],
+    );
+  }
+}
+
+class GlumacPredstavaInsert {
+  final int glumacId;
+  final int predstavaId;
+  final String uloga;
+
+  GlumacPredstavaInsert({
+    required this.glumacId,
+    required this.predstavaId,
+    required this.uloga,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'glumacId': glumacId,
+    'predstavaId': predstavaId,
+    'uloga': uloga,
+  };
+}
+
+class GlumacPredstava {
+  final int glumacId;
+  final String ime;
+  final String prezime;
+  final String uloga;
+  final String? slika;
+
+  GlumacPredstava({
+    required this.glumacId,
+    required this.ime,
+    required this.prezime,
+    required this.uloga,
+    this.slika,
+  });
+
+  factory GlumacPredstava.fromJson(Map<String, dynamic> json) {
+    return GlumacPredstava(
+      glumacId: json['glumacId'],
+      ime: json['ime'],
+      prezime: json['prezime'],
+      uloga: json['uloga'],
+      slika: json['slika'],
+    );
+  }
+}

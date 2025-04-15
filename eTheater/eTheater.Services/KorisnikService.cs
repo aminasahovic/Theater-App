@@ -42,10 +42,10 @@ namespace eTheater.Services
                 query = query.Where(x => x.Username == searchObject.KorisnickoIme);
             }
 
-            //if (searchObject.IsKorisniciUlogeIncluded == true)
-            //{
-            //    query = query.Include(x => x.KorisniciUloges).ThenInclude(x => x.Uloga);
-            //}
+            if (searchObject.IsTipKorisnika.HasValue)
+            {
+                query = query.Where(x=> x.TipKorisnika.Id == searchObject.IsTipKorisnika);
+            }
 
             return query;
         }

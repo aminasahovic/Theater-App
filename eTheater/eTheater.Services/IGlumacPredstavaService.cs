@@ -1,4 +1,5 @@
-﻿using eTheater.Model.Requests;
+﻿using eTheater.Model;
+using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
 using System;
 using System.Collections.Generic;
@@ -10,5 +11,7 @@ namespace eTheater.Services
 {
     public interface IGlumacPredstavaService:ICRUDService<Model.GlumacPredstava, GlumacPredstavaSearchObject, GlumacPredstavaInsertRequest, GlumacPredstavaUpdateRequest>
     {
+        Task<List<GlumacUlogaDto>> GetGlumciZaPredstavuAsync(int predstavaId);
+
     }
 }

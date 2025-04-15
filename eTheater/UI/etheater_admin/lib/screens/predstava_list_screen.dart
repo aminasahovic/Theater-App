@@ -4,6 +4,7 @@ import 'package:etheater_admin/layouts/master_screen.dart';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/delete_utils.dart';
 import 'package:etheater_admin/screens/dodaj_predstavu_dialog.dart';
+import 'package:etheater_admin/screens/predstava_details_screen.dart';
 import 'package:etheater_admin/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -160,22 +161,14 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                     children: [
                       TextButton.icon(
                         onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (_) => AlertDialog(
-                                  title: Text('Detalji'),
-                                  content: Text(
-                                    'Naziv: ${predstava.naziv}\nOpis: ${predstava.opis}\nTrajanje: ${predstava.trajanje} min\nGodina: ${predstava.godina}',
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => PredstavaDetailsScreen(
+                                    predstava: predstava,
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.of(context).pop(),
-                                      child: Text('Zatvori'),
-                                    ),
-                                  ],
-                                ),
+                            ),
                           );
                         },
                         icon: Icon(Icons.info_outline, color: Colors.blue),

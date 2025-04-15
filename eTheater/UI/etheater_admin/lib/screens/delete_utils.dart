@@ -42,3 +42,45 @@ Future<void> showDeleteConfirmationDialog({
     }
   }
 }
+
+Future<void> prikaziBrisanjeKorisnikaDialog(
+  BuildContext context,
+  int korisnikId,
+  VoidCallback onObrisan,
+) async {
+  final potvrda = await showDialog<bool>(
+    context: context,
+    builder:
+        (context) => AlertDialog(
+          title: const Text('Potvrda'),
+          content: const Text(
+            'Da li ste sigurni da želite obrisati korisnika?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Otkaži'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Obriši'),
+            ),
+          ],
+        ),
+  );
+
+  if (potvrda == true) {
+    try {
+      await ApiService.obrisiKorisnika(korisnikId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Korisnik uspješno obrisan')),
+      );
+      onObrisan(); // osvežavanje liste
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Greška pri brisanju: ${e.toString()}')),
+      );
+    }
+  }
+}

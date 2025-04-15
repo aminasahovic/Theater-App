@@ -2,6 +2,7 @@
 using eTheater.Model.SearchObjects;
 using eTheater.Services.Database;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,24 @@ namespace eTheater.Services
         public GlumacPredstavaService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
         }
+
+        public async Task<List<Model.GlumacUlogaDto>> GetGlumciZaPredstavuAsync(int predstavaId)
+        {
+            var glumci = await _context.GlumacPredstavas
+                .Where(gp => gp.PredstavaId == predstavaId)
+                .Include(gp => gp.Glumac) 
+                .Select(gp => new Model.GlumacUlogaDto
+                {
+                    GlumacId = gp.Glumac.Id,
+                    Ime = gp.Glumac.Ime,
+                    Prezime = gp.Glumac.Prezime,
+                    Uloga = gp.Uloga,
+                    Slika=gp.Glumac.Slika
+                })
+                .ToListAsync();
+
+            return glumci;
+        }
+
     }
 }

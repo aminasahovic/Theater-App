@@ -1,4 +1,3 @@
-import 'package:etheater_admin/screens/predstava_details_screen.dart';
 import 'package:etheater_admin/screens/predstava_list_screen.dart';
 import 'package:etheater_admin/screens/user_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -29,17 +28,7 @@ class _MasterScreenState extends State<MasterScreen> {
               },
             ),
             ListTile(
-              title: Text("Detalji"),
-              onTap: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => PredstavaDetailsScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              title: Text("Korisnici"),
+              title: Text("Administracija Korisnika"),
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => UserListScreen()),
@@ -47,7 +36,7 @@ class _MasterScreenState extends State<MasterScreen> {
               },
             ),
             ListTile(
-              title: Text("Proizvodi"),
+              title: Text("Predstave"),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => PredstaveScreen()),

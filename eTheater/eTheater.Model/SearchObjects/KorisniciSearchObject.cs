@@ -12,9 +12,7 @@ namespace eTheater.Model.SearchObjects
         public string? Email { get; set; }
 
         public string? KorisnickoIme { get; set; }
-
-        public int? Page { get; set; }
-        public int? PageSize { get; set; }
+        public int? IsTipKorisnika { get; set; }
 
         public string? OrderBy { get; set; }
     }
