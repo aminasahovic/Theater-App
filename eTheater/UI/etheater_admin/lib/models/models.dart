@@ -1,5 +1,3 @@
-// models.dart
-
 class Zanr {
   final int id;
   final String naziv;
@@ -80,7 +78,7 @@ class PredstavaInsert {
   final String opis;
   final int trajanje;
   final int godina;
-  final String plakat; // base64
+  final String plakat;
   final bool isActive;
   final int reziserId;
 
@@ -131,8 +129,7 @@ class Korisnik {
       prezime: json['prezime'],
       username: json['username'],
       brojTelefona: json['brojTelefona'],
-      tipKorisnika:
-          json['tipKorisnika']?['naziv'], // ispravno ako je to objekat
+      tipKorisnika: json['tipKorisnika']?['naziv'],
     );
   }
 }
@@ -249,4 +246,33 @@ class GlumacPredstava {
       slika: json['slika'],
     );
   }
+}
+
+class InsertGlumac {
+  final String ime;
+  final String prezime;
+  final String slika;
+
+  InsertGlumac({required this.ime, required this.prezime, required this.slika});
+
+  Map<String, dynamic> toJson() {
+    return {'ime': ime, 'prezime': prezime, 'slika': slika};
+  }
+
+  factory InsertGlumac.fromJson(Map<String, dynamic> json) {
+    return InsertGlumac(
+      ime: json['ime'],
+      prezime: json['prezime'],
+      slika: json['slika'],
+    );
+  }
+}
+
+class InsertReziser {
+  final String ime;
+  final String prezime;
+
+  InsertReziser({required this.ime, required this.prezime});
+
+  Map<String, dynamic> toJson() => {'ime': ime, 'prezime': prezime};
 }

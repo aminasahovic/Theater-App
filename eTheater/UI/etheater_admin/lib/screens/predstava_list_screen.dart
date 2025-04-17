@@ -258,7 +258,7 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
     );
 
     if (dodano == true) {
-      await _fetchData(); // refresh ako je dodano
+      await _fetchData();
     }
   }
 }

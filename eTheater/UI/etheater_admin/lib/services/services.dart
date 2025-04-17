@@ -5,6 +5,8 @@ import 'package:etheater_admin/models/models.dart'
         Glumac,
         GlumacPredstava,
         GlumacPredstavaInsert,
+        InsertGlumac,
+        InsertReziser,
         KorisniciInsert,
         Korisnik,
         Predstava,
@@ -59,7 +61,7 @@ class ApiService {
     }
 
     final decoded = json.decode(response.body);
-    return decoded['id']; // ili zamijeni sa stvarnim ključem ako se zove drugačije
+    return decoded['id'];
   }
 
   static Future<List<Zanr>> fetchZanrovi() async {
@@ -232,6 +234,110 @@ class ApiService {
       return data.map((e) => GlumacPredstava.fromJson(e)).toList();
     } else {
       throw Exception('Greška prilikom dohvaćanja glumaca za predstavu');
+    }
+  }
+
+  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 10}) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/Glumac?Page=$page&PageSize=$pageSize',
+    );
+    final response = await http.get(url, headers: _headers);
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      final List<dynamic> list = decoded['resultList'];
+      return list.map((e) => Glumac.fromJson(e)).toList();
+    } else {
+      throw Exception('Greška prilikom dohvaćanja glumaca.');
+    }
+  }
+
+  static Future<void> dodajGlumca(InsertGlumac glumac) async {
+    final response = await http.post(
+      Uri.parse('${ApiKonstante.baseUrl}/Glumac'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: json.encode(glumac.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška prilikom dodavanja glumca');
+    }
+  }
+
+  static Future<void> updateGlumac(int id, InsertGlumac glumac) async {
+    final response = await http.put(
+      Uri.parse('${ApiKonstante.baseUrl}/Glumac/$id'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: json.encode(glumac.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška prilikom ažuriranja glumca');
+    }
+  }
+
+  static Future<void> deleteGlumac(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/Glumac/$id'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška prilikom brisanja glumca');
+    }
+  }
+
+  Future<List<Reziser>> getReziseri({int page = 1, int pageSize = 10}) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiKonstante.baseUrl}/Reziser?Page=$page&PageSize=$pageSize',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final reziseri = List<Reziser>.from(
+        data['resultList'].map((r) => Reziser.fromJson(r)),
+      );
+      return reziseri;
+    } else {
+      throw Exception('Greška pri učitavanju režisera');
+    }
+  }
+
+  Future<void> dodajRezisera(InsertReziser reziser) async {
+    final response = await http.post(
+      Uri.parse('${ApiKonstante.baseUrl}/Reziser'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode(reziser.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri dodavanju režisera');
+    }
+  }
+
+  Future<void> updateReziser(int id, InsertReziser reziser) async {
+    final response = await http.put(
+      Uri.parse('${ApiKonstante.baseUrl}/Reziser/$id'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode(reziser.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri ažuriranju režisera');
+    }
+  }
+
+  Future<void> obrisiRezisera(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/Reziser/$id'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri brisanju režisera');
     }
   }
 }
