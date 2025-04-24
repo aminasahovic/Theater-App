@@ -1,4 +1,5 @@
 import 'package:etheater_admin/screens/glumci_screen.dart';
+import 'package:etheater_admin/screens/novosti_screen.dart';
 import 'package:etheater_admin/screens/reziseri_screen.dart';
 import 'package:etheater_admin/screens/predstava_list_screen.dart';
 import 'package:etheater_admin/screens/user_list_screen.dart';
@@ -25,7 +26,6 @@ class _MasterScreenState extends State<MasterScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Gornji logo dio sa centriranom slikom
             DrawerHeader(
               decoration: const BoxDecoration(color: Colors.white),
               child: Center(
@@ -36,8 +36,6 @@ class _MasterScreenState extends State<MasterScreen> {
                 ),
               ),
             ),
-
-            // Nazad
             ListTile(
               leading: const Icon(Icons.arrow_back),
               title: const Text("Nazad", style: TextStyle(color: Colors.black)),
@@ -46,8 +44,6 @@ class _MasterScreenState extends State<MasterScreen> {
                 Navigator.pop(context);
               },
             ),
-
-            // Korisnici
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text(
@@ -60,8 +56,6 @@ class _MasterScreenState extends State<MasterScreen> {
                 );
               },
             ),
-
-            // Predstave
             ListTile(
               leading: const Icon(Icons.theaters),
               title: const Text(
@@ -74,8 +68,20 @@ class _MasterScreenState extends State<MasterScreen> {
                 );
               },
             ),
-
-            // Expandable: Administracija Osoblja
+            ListTile(
+              leading: const Icon(Icons.newspaper),
+              title: const Text(
+                "Novosti",
+                style: TextStyle(color: Colors.black),
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const NovostiScreen(),
+                  ),
+                );
+              },
+            ),
             ExpansionTile(
               leading: const Icon(Icons.group, color: Colors.black),
               title: const Text(

@@ -123,6 +123,7 @@ class _UserListScreenState extends State<UserListScreen> {
                           _fetchKorisnici();
                         }
                       },
+
                       columns: const [
                         DataColumn(label: Text('Ime')),
                         DataColumn(label: Text('Prezime')),
@@ -135,6 +136,7 @@ class _UserListScreenState extends State<UserListScreen> {
                         _korisnici,
                         context,
                         _resetAndFetch,
+                        _totalCount,
                       ),
                     ),
                   ),
@@ -246,8 +248,14 @@ class _KorisniciDataSource extends DataTableSource {
   final List<Korisnik> korisnici;
   final BuildContext context;
   final VoidCallback onDelete;
+  final int totalCount;
 
-  _KorisniciDataSource(this.korisnici, this.context, this.onDelete);
+  _KorisniciDataSource(
+    this.korisnici,
+    this.context,
+    this.onDelete,
+    this.totalCount,
+  );
 
   @override
   DataRow? getRow(int index) {
@@ -304,7 +312,7 @@ class _KorisniciDataSource extends DataTableSource {
   @override
   bool get isRowCountApproximate => false;
   @override
-  int get rowCount => korisnici.length;
+  int get rowCount => totalCount;
   @override
   int get selectedRowCount => 0;
 }

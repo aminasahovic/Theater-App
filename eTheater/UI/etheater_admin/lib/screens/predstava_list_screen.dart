@@ -55,8 +55,8 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
   Widget _buildPlakat(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
       return Container(
-        width: 100,
-        height: 140,
+        width: 200,
+        height: 380,
         decoration: BoxDecoration(
           color: Colors.grey[300],
           borderRadius: BorderRadius.circular(12),
@@ -74,8 +74,8 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
         borderRadius: BorderRadius.circular(12),
         child: Image.memory(
           base64Decode(base64Image),
-          width: 100,
-          height: 140,
+          width: 200,
+          height: 350,
           fit: BoxFit.cover,
         ),
       );
@@ -106,7 +106,7 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPlakat(predstava.plakat),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -155,7 +155,7 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                       Text(predstava.isActive ? 'Aktivna' : 'Neaktivna'),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 180),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

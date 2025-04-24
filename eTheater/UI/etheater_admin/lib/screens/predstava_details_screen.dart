@@ -143,9 +143,10 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Detalji predstave')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,91 +182,82 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
               ],
             ),
             SizedBox(height: 30),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Glumačka postava',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+            Text(
+              'Glumačka postava',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             SizedBox(height: 10),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children:
-                      _glumci.map((glumac) {
-                        final slika = glumac.slika;
-                        Uint8List? slikaBytes;
-                        if (slika != null && slika.isNotEmpty) {
-                          try {
-                            slikaBytes = base64Decode(slika);
-                          } catch (_) {}
-                        }
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children:
+                  _glumci.map((glumac) {
+                    final slika = glumac.slika;
+                    Uint8List? slikaBytes;
+                    if (slika != null && slika.isNotEmpty) {
+                      try {
+                        slikaBytes = base64Decode(slika);
+                      } catch (_) {}
+                    }
 
-                        return Container(
-                          width: 150,
-                          child: Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                    return Container(
+                      width: 150,
+                      child: Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 150,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(8),
+                                ),
+                              ),
+                              child:
+                                  slikaBytes != null
+                                      ? ClipRRect(
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(8),
+                                        ),
+                                        child: Image.memory(
+                                          slikaBytes,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                      : Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      ),
                             ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 150,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(8),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '${glumac.ime} ${glumac.prezime}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  child:
-                                      slikaBytes != null
-                                          ? ClipRRect(
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(8),
-                                            ),
-                                            child: Image.memory(
-                                              slikaBytes,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                          : Icon(
-                                            Icons.person,
-                                            size: 50,
-                                            color: Colors.grey,
-                                          ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        '${glumac.ime} ${glumac.prezime}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        glumac.uloga,
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ],
+                                  SizedBox(height: 4),
+                                  Text(
+                                    glumac.uloga,
+                                    style: TextStyle(color: Colors.grey[700]),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                ),
-              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
             ),
           ],
         ),
@@ -332,8 +324,8 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
 
   Widget _buildPlakat() {
     return Container(
-      width: 120,
-      height: 160,
+      width: 320,
+      height: 450,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
         color: Colors.grey[200],

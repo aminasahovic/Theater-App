@@ -276,3 +276,88 @@ class InsertReziser {
 
   Map<String, dynamic> toJson() => {'ime': ime, 'prezime': prezime};
 }
+
+class Obavijest {
+  final int id;
+  final int korisnikId;
+  final String naslov;
+  final String sadrzaj;
+  final DateTime datumObjave;
+  final String? slika;
+
+  Obavijest({
+    required this.id,
+    required this.korisnikId,
+    required this.naslov,
+    required this.sadrzaj,
+    required this.datumObjave,
+    this.slika,
+  });
+
+  factory Obavijest.fromJson(Map<String, dynamic> json) {
+    return Obavijest(
+      id: json['id'],
+      korisnikId: json['korisnikId'],
+      naslov: json['naslov'],
+      sadrzaj: json['sadrzaj'],
+      datumObjave: DateTime.parse(json['datumObjave']),
+      slika: json['slika'],
+    );
+  }
+}
+
+class InsertNovosti {
+  int korisnikId;
+  String naslov;
+  String sadrzaj;
+  DateTime datumObjave;
+  String slika;
+
+  InsertNovosti({
+    required this.korisnikId,
+    required this.naslov,
+    required this.sadrzaj,
+    required this.datumObjave,
+    required this.slika,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'korisnikId': korisnikId,
+      'naslov': naslov,
+      'sadrzaj': sadrzaj,
+      'datumObjave': datumObjave.toIso8601String(),
+      'slika': slika ?? "", // ako je null, šalje se prazan string
+    };
+  }
+}
+
+class UpdateNovosti {
+  int korisnikId;
+  String naslov;
+  String sadrzaj;
+  DateTime datumObjave;
+  String slika;
+  DateTime datumUredjivanja;
+  int modifyBy;
+
+  UpdateNovosti({
+    required this.korisnikId,
+    required this.naslov,
+    required this.sadrzaj,
+    required this.datumObjave,
+    required this.slika,
+    required this.datumUredjivanja,
+    required this.modifyBy,
+  });
+
+  Map<String, dynamic> toJson() => {
+    "korisnikId": korisnikId,
+    "naslov": naslov,
+    "sadrzaj": sadrzaj,
+    "datumObjave": datumObjave.toIso8601String(),
+    "slika": slika,
+    "datumUredjivanja": datumUredjivanja.toIso8601String(),
+    "modifyBy": modifyBy,
+  };
+}
