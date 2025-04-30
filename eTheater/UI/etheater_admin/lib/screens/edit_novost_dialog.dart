@@ -48,22 +48,16 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
         height: 500,
         child: Row(
           children: [
-            // Sekcija za sliku
             Expanded(
               flex: 3,
               child: Column(
                 children: [
-                  // Prikaz slike u kvadratu
                   Container(
-                    height: 250, // Možeš prilagoditi visinu po želji
-                    width: 250, // Fiksna širina za sliku
+                    height: 250,
+                    width: 250,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        10,
-                      ), // Zaobljeni kutovi
-                      border: Border.all(
-                        color: Colors.grey,
-                      ), // Granica oko slike
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey),
                     ),
                     child:
                         _slikaBytes != null
@@ -71,9 +65,7 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
                               borderRadius: BorderRadius.circular(10),
                               child: Image.memory(
                                 _slikaBytes!,
-                                fit:
-                                    BoxFit
-                                        .cover, // Slika pokriva cijeli prostor
+                                fit: BoxFit.cover,
                               ),
                             )
                             : const Center(child: Text('Nema slike')),
@@ -101,7 +93,6 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
               ),
             ),
             const SizedBox(width: 24),
-            // Sekcija za unos podataka
             Expanded(
               flex: 7,
               child: Form(
@@ -155,10 +146,7 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
                 korisnikId: widget.novost.korisnikId,
                 naslov: naslov,
                 sadrzaj: sadrzaj,
-                datumObjave:
-                    widget
-                        .novost
-                        .datumObjave, // I dalje koristi originalni datum
+                datumObjave: widget.novost.datumObjave,
                 slika: base64Slika,
                 datumUredjivanja: DateTime.now(),
                 modifyBy: korisnikId,

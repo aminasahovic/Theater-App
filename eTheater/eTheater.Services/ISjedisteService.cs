@@ -1,4 +1,5 @@
-﻿using eTheater.Model.Requests;
+﻿using eTheater.Model;
+using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
 using System;
 using System.Collections.Generic;
@@ -10,5 +11,6 @@ namespace eTheater.Services
 {
     public interface ISjedisteService:ICRUDService<Model.Sjediste, SjedisteSearchObject, SjedisteInsertRequest, SjedisteUpdateRequest>
     {
+        Task<List<Sjediste>> GetAllBySalaAsync(int id);
     }
 }

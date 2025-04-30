@@ -15,6 +15,8 @@ public partial class IzvedbaSjediste
 
     public bool IsDeleted { get; set; }
 
+    public bool IsSlobodno { get; set; }
+
     public virtual Izvedba? Izvedba { get; set; }
 
     public virtual Sjediste? Sjediste { get; set; }

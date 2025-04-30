@@ -1,7 +1,9 @@
 ﻿using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
+using eTheater.Model.ViewModels;
 using eTheater.Services.Database;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +14,20 @@ namespace eTheater.Services
 {
     public class PredstavaService : BaseCRUDService<Model.Predstava, PredstavaSearchObject, Database.Predstava, PredstavaInsertRequest, PredstavaUpdateRequest>, IPredstavaService
     {
+        private readonly ETheaterContext _context;
         public PredstavaService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
+            _context = context;
+        }
+        public async Task<List<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync()
+        {
+            return await _context.Predstavas.Where(x=> x.IsActive==true && x.IsDeleted==false)
+                .Select(p => new PredstavaIdNazivDto
+                {
+                    Id = p.Id,
+                    Naziv = p.Naziv
+                })
+                .ToListAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 import 'package:etheater_admin/screens/glumci_screen.dart';
+import 'package:etheater_admin/screens/izvedba_screen.dart';
 import 'package:etheater_admin/screens/novosti_screen.dart';
 import 'package:etheater_admin/screens/reziseri_screen.dart';
 import 'package:etheater_admin/screens/predstava_list_screen.dart';
@@ -17,6 +18,7 @@ class MasterScreen extends StatefulWidget {
 
 class _MasterScreenState extends State<MasterScreen> {
   bool _osobljeExpanded = false;
+  bool _repertoarExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +117,41 @@ class _MasterScreenState extends State<MasterScreen> {
                         builder: (context) => const ReziseriScreen(),
                       ),
                     );
+                  },
+                ),
+              ],
+            ),
+            ExpansionTile(
+              leading: const Icon(Icons.event, color: Colors.black),
+              title: const Text(
+                "Repertoar",
+                style: TextStyle(color: Colors.black),
+              ),
+              initiallyExpanded: _repertoarExpanded,
+              onExpansionChanged: (expanded) {
+                setState(() {
+                  _repertoarExpanded = expanded;
+                });
+              },
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.event_available, size: 20),
+                  title: const Text("Izvedbe"),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const IzvedbaScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.library_music, size: 20),
+                  title: const Text("Repertoar"),
+                  onTap: () {
+                    // Navigator.of(context).push(
+                    //   MaterialPageRoute(builder: (context) => RepertoarScreen()),
+                    // );
                   },
                 ),
               ],

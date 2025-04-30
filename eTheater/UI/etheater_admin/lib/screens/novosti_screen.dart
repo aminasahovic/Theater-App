@@ -79,7 +79,7 @@ class _NovostiScreenState extends State<NovostiScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Novost uspješno obrisana')),
           );
-          _loadNovosti(); // Reload the news after deletion
+          _loadNovosti();
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -121,7 +121,7 @@ class _NovostiScreenState extends State<NovostiScreen> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () {
-                        _openAddDialog(context); // Fixed here
+                        _openAddDialog(context);
                       },
                       child: const Text("Dodaj novost"),
                     ),
@@ -260,16 +260,15 @@ class _NovostiScreenState extends State<NovostiScreen> {
     bool? result = await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return EditNovostDialog(novost: obavijest); // koristi pravi parametar
+        return EditNovostDialog(novost: obavijest);
       },
     );
 
     if (result == true) {
-      _loadNovosti(); // osvježi listu ako je novost uređena
+      _loadNovosti();
     }
   }
 
-  // Unutar NovostiScreen
   void _openAddDialog(BuildContext context) async {
     bool? result = await showDialog(
       context: context,
@@ -279,7 +278,6 @@ class _NovostiScreenState extends State<NovostiScreen> {
     );
 
     if (result == true) {
-      // Ako je novost uspešno dodana, reloaduj podatke
       _loadNovosti();
     }
   }

@@ -8,12 +8,18 @@ import 'package:etheater_admin/models/models.dart'
         InsertGlumac,
         InsertNovosti,
         InsertReziser,
+        Izvedba,
+        IzvedbaInsert,
+        IzvedbaUpdateRequest,
         KorisniciInsert,
         Korisnik,
         Obavijest,
+        PagedResult,
         Predstava,
         PredstavaInsert,
+        PredstavaLov,
         Reziser,
+        Sala,
         TipKorisnika,
         UpdateNovosti,
         Zanr;
@@ -48,7 +54,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['id']; // ili data["id"]
+      return data['id'];
     } else {
       print('Greška prilikom dohvata ID-a: ${response.statusCode}');
       return null;
@@ -406,10 +412,8 @@ class ApiService {
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
 
-      // Logiraj odgovor za provjeru
       print("API odgovor: ${decoded}");
 
-      // Provjerimo da li 'resultList' postoji
       final List<dynamic> list = decoded['resultList'] ?? [];
       final int count = decoded['count'] ?? 0;
 
@@ -464,7 +468,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return true; // Obavijest je uspješno obrisana
+      return true;
     } else {
       throw Exception('Greška pri brisanju obavijesti');
     }
@@ -479,6 +483,117 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Greška pri ažuriranju obavijesti');
+    }
+  }
+
+  Future<PagedResult<Izvedba>> getIzvedbe({
+    int? salaId,
+    String? nazivPredstave,
+    DateTime? datum,
+    int page = 1,
+    int pageSize = 5,
+  }) async {
+    final queryParams = {
+      'Page': page.toString(),
+      'PageSize': pageSize.toString(),
+      if (salaId != null) 'SalaId': salaId.toString(),
+      if (nazivPredstave != null && nazivPredstave.isNotEmpty)
+        'NazivPredstave': nazivPredstave,
+      if (datum != null) 'DatumIzvodjenja': datum.toIso8601String(),
+    };
+
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/getall',
+    ).replace(queryParameters: queryParams);
+
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> decoded = jsonDecode(response.body);
+      return PagedResult<Izvedba>.fromJson(
+        decoded,
+        (json) => Izvedba.fromJson(json),
+      );
+    } else {
+      throw Exception('Greška prilikom dohvaćanja izvedbi.');
+    }
+  }
+
+  Future<List<Sala>> getSale() async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Sala');
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> decoded = jsonDecode(response.body);
+      final List<dynamic> results = decoded['resultList'];
+      return results.map((e) => Sala.fromJson(e)).toList();
+    } else {
+      throw Exception('Greška prilikom dohvaćanja sala.');
+    }
+  }
+
+  static Future<int> dodajIzvedbu(IzvedbaInsert izvedba) async {
+    final response = await http.post(
+      Uri.parse('${ApiKonstante.baseUrl}/add'),
+      headers: {..._createHeaders(), 'Content-Type': 'application/json'},
+      body: json.encode(izvedba.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      return decoded['id'];
+    } else {
+      throw Exception('Greška pri dodavanju izvedbe');
+    }
+  }
+
+  Future<List<PredstavaLov>> getPredstaveLov() async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Predstava/GetAllIdNaziv');
+    final response = await http.get(url, headers: _createHeaders());
+
+    print('RESPONSE STATUS: ${response.statusCode}');
+    print('RESPONSE BODY: ${response.body}');
+
+    if (response.statusCode == 200) {
+      try {
+        final List<dynamic> decoded = json.decode(response.body);
+        return decoded.map((e) => PredstavaLov.fromJson(e)).toList();
+      } catch (e) {
+        print('GREŠKA pri parsiranju: $e');
+        throw Exception('Greška prilikom parsiranja podataka.');
+      }
+    } else {
+      throw Exception('Greška prilikom dohvaćanja predstava.');
+    }
+  }
+
+  static Future<bool> deleteIzvedba(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/Izvedba/$id'),
+      headers: ApiService._createHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Greška pri brisanju izvedbe');
+    }
+  }
+
+  static Future<void> updateIzvedba(
+    IzvedbaUpdateRequest izvedba,
+    int id,
+  ) async {
+    final body = json.encode(izvedba.toJson());
+
+    final response = await http.put(
+      Uri.parse('${ApiKonstante.baseUrl}/Izvedba/$id'),
+      headers: {..._createHeaders(), 'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri ažuriranju izvedbe');
     }
   }
 }

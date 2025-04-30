@@ -8,6 +8,6 @@ namespace eTheater.Model.Requests
     {
         public int? IzvedbaId { get; set; }
         public int? SjedisteId { get; set; }
-        public string? Status { get; set; }
+        public bool? IsSlobodno { get; set; }
     }
 }

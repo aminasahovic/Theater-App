@@ -327,7 +327,7 @@ class InsertNovosti {
       'naslov': naslov,
       'sadrzaj': sadrzaj,
       'datumObjave': datumObjave.toIso8601String(),
-      'slika': slika ?? "", // ako je null, šalje se prazan string
+      'slika': slika ?? "",
     };
   }
 }
@@ -360,4 +360,134 @@ class UpdateNovosti {
     "datumUredjivanja": datumUredjivanja.toIso8601String(),
     "modifyBy": modifyBy,
   };
+}
+
+class Izvedba {
+  final int id;
+  final String nazivPredstave;
+  final String predstavaSlika;
+  final String salaNaziv;
+  final double cijenaKarte;
+  final DateTime datumVrijeme;
+  final int salaId;
+  final int predstavaId;
+
+  Izvedba({
+    required this.id,
+    required this.nazivPredstave,
+    required this.predstavaSlika,
+    required this.salaNaziv,
+    required this.cijenaKarte,
+    required this.datumVrijeme,
+    required this.salaId,
+    required this.predstavaId,
+  });
+
+  factory Izvedba.fromJson(Map<String, dynamic> json) {
+    return Izvedba(
+      id: json['id'],
+      nazivPredstave: json['nazivPredstave'],
+      predstavaSlika: json['predstavaSlika'],
+      salaNaziv: json['salaNaziv'],
+      cijenaKarte: (json['cijenaKarte'] as num).toDouble(),
+      datumVrijeme: DateTime.parse(json['datumVrijeme']),
+      predstavaId: json['predstavaId'],
+      salaId: json['salaId'],
+    );
+  }
+}
+
+class Sala {
+  final int id;
+  final String naziv;
+
+  Sala({required this.id, required this.naziv});
+
+  factory Sala.fromJson(Map<String, dynamic> json) {
+    return Sala(id: json['id'], naziv: json['naziv']);
+  }
+}
+
+class PagedResult<T> {
+  final List<T> resultList;
+  final int count;
+
+  PagedResult({required this.resultList, required this.count});
+
+  factory PagedResult.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) fromJsonT,
+  ) {
+    return PagedResult(
+      resultList:
+          (json['resultList'] as List<dynamic>)
+              .map((item) => fromJsonT(item))
+              .toList(),
+      count: json['count'],
+    );
+  }
+}
+
+class IzvedbaInsert {
+  final int predstavaId;
+  final int salaId;
+  final String datumVrijeme;
+  final double cijenaKarte;
+
+  IzvedbaInsert({
+    required this.predstavaId,
+    required this.salaId,
+    required this.datumVrijeme,
+    required this.cijenaKarte,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'predstavaId': predstavaId,
+    'salaId': salaId,
+    'cijenaKarte': cijenaKarte,
+    'datumVrijeme': datumVrijeme,
+  };
+}
+
+class PredstavaLov {
+  final int id;
+  final String naziv;
+
+  PredstavaLov({required this.id, required this.naziv});
+
+  factory PredstavaLov.fromJson(Map<String, dynamic> json) {
+    return PredstavaLov(id: json['id'], naziv: json['naziv']);
+  }
+}
+
+class IzvedbaUpdateRequest {
+  int predstavaId;
+  int salaId;
+  DateTime datumVrijeme;
+  double cijenaKarte;
+
+  IzvedbaUpdateRequest({
+    required this.predstavaId,
+    required this.salaId,
+    required this.datumVrijeme,
+    required this.cijenaKarte,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'predstavaId': predstavaId,
+      'salaId': salaId,
+      'datumVrijeme': datumVrijeme.toIso8601String(),
+      'cijenaKarte': cijenaKarte,
+    };
+  }
+
+  factory IzvedbaUpdateRequest.fromJson(Map<String, dynamic> json) {
+    return IzvedbaUpdateRequest(
+      predstavaId: json['predstavaId'],
+      salaId: json['salaId'],
+      datumVrijeme: DateTime.parse(json['datumVrijeme']),
+      cijenaKarte: json['cijenaKarte'].toDouble(),
+    );
+  }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace eTheater.Model
@@ -9,6 +10,6 @@ namespace eTheater.Model
         public int Id { get; set; }
         public int? IzvedbaId { get; set; }
         public int? SjedisteId { get; set; }
-        public string? Status { get; set; }
+        public bool? IsSlobodno { get; set; }
     }
 }

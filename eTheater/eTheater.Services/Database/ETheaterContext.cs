@@ -127,6 +127,9 @@ public partial class ETheaterContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+            entity.Property(e => e.IsSlobodno)
+                .HasDefaultValue(true)
+                .HasColumnName("isSlobodno");
             entity.Property(e => e.IzvedbaId).HasColumnName("IzvedbaID");
             entity.Property(e => e.SjedisteId).HasColumnName("SjedisteID");
             entity.Property(e => e.Status)
