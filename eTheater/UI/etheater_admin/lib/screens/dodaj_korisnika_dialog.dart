@@ -4,6 +4,7 @@ import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/services/services.dart' show ApiService;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 
 class DodajKorisnikaDialog extends StatefulWidget {
   final VoidCallback onKorisnikDodan;
@@ -22,10 +23,10 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
   String password = '';
   String passwordPotvrda = '';
   String brojTelefona = '';
+  String email = ''; // Dodan email
   bool isActive = true;
   TipKorisnika? selectedTip;
   List<TipKorisnika> tipovi = [];
-  String? base64Slika;
 
   @override
   void initState() {
@@ -36,15 +37,6 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
   Future<void> _fetchTipove() async {
     tipovi = await ApiService().getTipoviKorisnika();
     setState(() {});
-  }
-
-  Future<void> _odaberiSliku() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      final bytes = File(result.files.single.path!).readAsBytesSync();
-      base64Slika = base64Encode(bytes);
-      setState(() {});
-    }
   }
 
   void _dodajKorisnika() async {
@@ -64,19 +56,21 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
       password: password,
       passwordPotvrda: passwordPotvrda,
       brojTelefona: brojTelefona,
+      email: email, // Dodan email
       isActive: isActive,
       tipKorisnikaId: selectedTip?.id,
-      slika: base64Slika,
     );
 
     try {
       await ApiService.dodajKorisnika(korisnik);
-      print(korisnik.tipKorisnikaId);
       widget.onKorisnikDodan();
       Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Korisnik uspješno dodat")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Korisnik uspješno dodan"),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Greška prilikom dodavanja: ${e.toString()}')),
@@ -101,7 +95,12 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                       child: TextFormField(
                         decoration: const InputDecoration(labelText: 'Ime'),
                         onChanged: (val) => ime = val,
-                        validator: (val) => val!.isEmpty ? 'Unesite ime' : null,
+                        validator: (val) {
+                          if (val!.isEmpty) return 'Unesite ime';
+                          if (!RegExp(r'^[A-ZŽ][a-zž]+$').hasMatch(val))
+                            return 'Ime mora početi velikim slovom i ne smije sadržavati brojeve';
+                          return null;
+                        },
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -109,8 +108,12 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                       child: TextFormField(
                         decoration: const InputDecoration(labelText: 'Prezime'),
                         onChanged: (val) => prezime = val,
-                        validator:
-                            (val) => val!.isEmpty ? 'Unesite prezime' : null,
+                        validator: (val) {
+                          if (val!.isEmpty) return 'Unesite prezime';
+                          if (!RegExp(r'^[A-ZŽ][a-zž]+$').hasMatch(val))
+                            return 'Prezime mora početi velikim slovom i ne smije sadržavati brojeve';
+                          return null;
+                        },
                       ),
                     ),
                   ],
@@ -139,8 +142,24 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                 ),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Broj telefona'),
+                  keyboardType: TextInputType.phone,
                   onChanged: (val) => brojTelefona = val,
-                  validator: (val) => val!.isEmpty ? 'Unesite broj' : null,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator:
+                      (val) => val!.isEmpty ? 'Unesite broj telefona' : null,
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  onChanged: (val) => email = val,
+                  validator: (val) {
+                    if (val!.isEmpty) return 'Unesite email';
+                    if (!RegExp(
+                      r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                    ).hasMatch(val)) {
+                      return 'Unesite validan email';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<TipKorisnika>(
@@ -164,21 +183,6 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                   value: isActive,
                   onChanged: (val) => setState(() => isActive = val),
                 ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  onPressed: _odaberiSliku,
-                  icon: const Icon(Icons.image),
-                  label: const Text("Dodaj sliku"),
-                ),
-                if (base64Slika != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Image.memory(
-                      base64Decode(base64Slika!),
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
               ],
             ),
           ),

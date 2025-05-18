@@ -1,6 +1,7 @@
 import 'package:etheater_admin/screens/glumci_screen.dart';
 import 'package:etheater_admin/screens/izvedba_screen.dart';
 import 'package:etheater_admin/screens/novosti_screen.dart';
+import 'package:etheater_admin/screens/repertoar_screen.dart';
 import 'package:etheater_admin/screens/reziseri_screen.dart';
 import 'package:etheater_admin/screens/predstava_list_screen.dart';
 import 'package:etheater_admin/screens/user_list_screen.dart';
@@ -42,8 +43,8 @@ class _MasterScreenState extends State<MasterScreen> {
               leading: const Icon(Icons.arrow_back),
               title: const Text("Nazad", style: TextStyle(color: Colors.black)),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
+                Navigator.pop(context, true);
+                Navigator.pop(context, true);
               },
             ),
             ListTile(
@@ -149,9 +150,11 @@ class _MasterScreenState extends State<MasterScreen> {
                   leading: const Icon(Icons.library_music, size: 20),
                   title: const Text("Repertoar"),
                   onTap: () {
-                    // Navigator.of(context).push(
-                    //   MaterialPageRoute(builder: (context) => RepertoarScreen()),
-                    // );
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => RepertoarScreen(),
+                      ),
+                    );
                   },
                 ),
               ],

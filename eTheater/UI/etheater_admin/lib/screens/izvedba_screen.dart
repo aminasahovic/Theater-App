@@ -16,7 +16,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
   Sala? _selectedSala;
   DateTime? _selectedDate;
   int _currentPage = 1;
-  int _pageSize = 5;
+  int _pageSize = 3;
   late Future<PagedResult<Izvedba>> _izvedbeFuture;
   List<Sala> _sale = [];
 
@@ -130,12 +130,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
           Expanded(
             child: TextField(
               controller: _nazivController,
-              decoration: InputDecoration(
-                labelText: 'Naziv predstave',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              decoration: InputDecoration(labelText: 'Naziv predstave'),
             ),
           ),
           const SizedBox(width: 8),
@@ -154,12 +149,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                       child: Text(sala.naziv),
                     );
                   }).toList(),
-              decoration: InputDecoration(
-                labelText: 'Sala',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              decoration: InputDecoration(labelText: 'Sala'),
             ),
           ),
           const SizedBox(width: 8),
@@ -186,21 +176,9 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: _search,
-            child: const Icon(Icons.search, color: Colors.white),
-          ),
+          IconButton(onPressed: _search, icon: const Icon(Icons.search)),
           const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: _clearFilters,
-            child: Row(
-              children: [
-                const Icon(Icons.clear, color: Colors.white),
-                const SizedBox(width: 4),
-                Text('Clear', style: const TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
+          IconButton(onPressed: _clearFilters, icon: const Icon(Icons.clear)),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: _openIzvedbaPopup,
@@ -276,8 +254,13 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        _openIzvedbaPopup(updateData: izvedba);
+                      onPressed: () async {
+                        _openIzvedbaPopup(
+                          updateData: izvedba,
+                        ); // ili bez parametra za dodavanje
+                        setState(() {
+                          _fetchIzvedbe(); // osvježi listu nakon zatvaranja popupa
+                        });
                       },
                     ),
                     IconButton(
@@ -508,35 +491,48 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                   onPressed: () async {
                     try {
                       if (updateData == null) {
+                        // Kreirajte novi objekt za dodavanje
                         final izvedba = IzvedbaInsert(
                           predstavaId: _selectedPredstava!.id,
                           salaId: _selectedSala!.id,
                           cijenaKarte: double.parse(_cijenaController.text),
                           datumVrijeme: _selectedDateTime!.toIso8601String(),
                         );
+
+                        // Pozovite API servis za dodavanje
                         await ApiService.dodajIzvedbu(izvedba);
+
+                        // Prikazivanje poruke o uspjehu
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Izvedba dodana!')),
                         );
                       } else {
+                        // Kreirajte objekt za ažuriranje postojeće izvedbe
                         final izvedba = IzvedbaUpdateRequest(
                           predstavaId: _selectedPredstava!.id,
                           salaId: _selectedSala!.id,
                           cijenaKarte: double.parse(_cijenaController.text),
                           datumVrijeme: _selectedDateTime!,
                         );
+
+                        // Pozovite API servis za ažuriranje
                         await ApiService.updateIzvedba(izvedba, updateData.id);
+
+                        // Prikazivanje poruke o uspjehu
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Izvedba ažurirana!')),
                         );
                       }
-                      Navigator.pop(context); // zatvori popup
 
-                      // Osvježi podatke
+                      // Zatvaranje popup prozora
+                      Navigator.pop(context);
+
+                      // Osvježavanje podataka nakon što su promjene spremljene
                       setState(() {
-                        _fetchIzvedbe();
+                        _fetchIzvedbe(); // Pozivanje funkcije za dohvat novih podataka
                       });
                     } catch (e) {
+                      // Prikazivanje greške ako nešto pođe po zlu
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(SnackBar(content: Text('Greška: $e')));

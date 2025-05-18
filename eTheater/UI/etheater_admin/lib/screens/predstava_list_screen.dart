@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:etheater_admin/layouts/master_screen.dart';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/delete_utils.dart';
@@ -7,7 +6,6 @@ import 'package:etheater_admin/screens/dodaj_predstavu_dialog.dart';
 import 'package:etheater_admin/screens/predstava_details_screen.dart';
 import 'package:etheater_admin/services/services.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 class PredstaveScreen extends StatefulWidget {
   const PredstaveScreen({super.key});
@@ -17,25 +15,53 @@ class PredstaveScreen extends StatefulWidget {
 }
 
 class _PredstaveScreenState extends State<PredstaveScreen> {
+  int _trenutnaStranica = 1;
+  int _pageSize = 5;
+  int _ukupnoRezultata = 0;
   final ApiService _apiService = ApiService();
   final TextEditingController _searchController = TextEditingController();
 
   List<Predstava> _svePredstave = [];
   List<Predstava> _filtriranePredstave = [];
+  List<Zanr> _zanrovi = [];
+  Zanr? _odabraniZanr;
 
+  List<Reziser> _reziseri = [];
+  Reziser? _odabraniReziser;
+
+  String? _odabranaGodina;
+  late TextEditingController _nazivController;
   @override
   void initState() {
     super.initState();
+    _nazivController = TextEditingController();
     _fetchData();
-    _searchController.addListener(_filterPredstave);
+    _ucitajFilterPodatke();
+  }
+
+  Future<void> _ucitajFilterPodatke() async {
+    final zanrovi = await ApiService.fetchZanrovi();
+    final reziseri = await ApiService.fetchReziseri();
+    setState(() {
+      _zanrovi = zanrovi;
+      _reziseri = reziseri;
+    });
   }
 
   Future<void> _fetchData() async {
     try {
-      final data = await _apiService.getPredstave();
+      final result = await _apiService.getPredstave(
+        naziv: _nazivController.text,
+        zanrId: _odabraniZanr?.id,
+        reziserId: _odabraniReziser?.id,
+        godina: _odabranaGodina != null ? int.tryParse(_odabranaGodina!) : null,
+        page: _trenutnaStranica,
+        pageSize: _pageSize,
+      );
+
       setState(() {
-        _svePredstave = data;
-        _filtriranePredstave = data;
+        _ukupnoRezultata = result.count;
+        _filtriranePredstave = result.resultList;
       });
     } catch (e) {
       print('Greška prilikom dohvaćanja predstava: $e');
@@ -50,6 +76,43 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
               .where((p) => p.naziv.toLowerCase().contains(query))
               .toList();
     });
+  }
+
+  Widget _buildPaginationControls() {
+    int ukupnoStranica = (_ukupnoRezultata / _pageSize).ceil();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed:
+              _trenutnaStranica > 1
+                  ? () {
+                    setState(() {
+                      _trenutnaStranica--;
+                    });
+                    _fetchData();
+                  }
+                  : null,
+          child: Text('Prethodna'),
+        ),
+        SizedBox(width: 16),
+        Text('Stranica $_trenutnaStranica od $ukupnoStranica'),
+        SizedBox(width: 16),
+        ElevatedButton(
+          onPressed:
+              _trenutnaStranica < ukupnoStranica
+                  ? () {
+                    setState(() {
+                      _trenutnaStranica++;
+                    });
+                    _fetchData();
+                  }
+                  : null,
+          child: Text('Sljedeća'),
+        ),
+      ],
+    );
   }
 
   Widget _buildPlakat(String? base64Image) {
@@ -160,17 +223,22 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
                                   (_) => PredstavaDetailsScreen(
-                                    predstava: predstava,
+                                    predstavaId: predstava.id,
                                   ),
                             ),
                           );
+
+                          if (result == true) {
+                            await _fetchData();
+                          }
                         },
+
                         icon: Icon(Icons.info_outline, color: Colors.blue),
                         label: Text('Detalji'),
                       ),
@@ -196,6 +264,13 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
     );
   }
 
+  void _primijeniFiltere() {
+    setState(() {
+      _trenutnaStranica = 1;
+    });
+    _fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -208,20 +283,142 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Pretraži predstave...',
-                      prefixIcon: Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: _nazivController,
+                              decoration: InputDecoration(
+                                hintText: 'Pretraži po nazivu...',
+                                prefixIcon: Icon(Icons.search),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onChanged: (_) => _primijeniFiltere(),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: DropdownButtonFormField<Zanr>(
+                              value: _odabraniZanr,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                hintText: 'Žanr',
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              items:
+                                  _zanrovi.map((zanr) {
+                                    return DropdownMenuItem(
+                                      value: zanr,
+                                      child: Text(zanr.naziv),
+                                    );
+                                  }).toList(),
+                              onChanged: (zanr) {
+                                setState(() => _odabraniZanr = zanr);
+                                _primijeniFiltere();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: DropdownButtonFormField<Reziser>(
+                              value: _odabraniReziser,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                hintText: 'Režiser',
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              items:
+                                  _reziseri.map((rez) {
+                                    return DropdownMenuItem(
+                                      value: rez,
+                                      child: Text('${rez.ime} ${rez.prezime}'),
+                                    );
+                                  }).toList(),
+                              onChanged: (rez) {
+                                setState(() => _odabraniReziser = rez);
+                                _primijeniFiltere();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 1,
+                            child: DropdownButtonFormField<String>(
+                              value: _odabranaGodina,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                hintText: 'Godina',
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              items: List.generate(50, (i) {
+                                final year =
+                                    (DateTime.now().year - i).toString();
+                                return DropdownMenuItem(
+                                  value: year,
+                                  child: Text(year),
+                                );
+                              }),
+                              onChanged: (value) {
+                                setState(() => _odabranaGodina = value);
+                                _primijeniFiltere();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: _primijeniFiltere,
+                                icon: Icon(Icons.search),
+                                tooltip: 'Pretrazi',
+                              ),
+                              const SizedBox(width: 10),
+                              IconButton(
+                                icon: Icon(Icons.refresh),
+                                tooltip: 'Resetuj filtere',
+                                onPressed: () {
+                                  setState(() {
+                                    _nazivController.clear();
+                                    _odabraniZanr = null;
+                                    _odabraniReziser = null;
+                                    _odabranaGodina = null;
+                                  });
+                                  _fetchData();
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                    onChanged: (value) => _filterPredstave(),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -245,6 +442,8 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                         },
                       ),
             ),
+            const SizedBox(height: 10),
+            _buildPaginationControls(),
           ],
         ),
       ),

@@ -75,7 +75,6 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
         height: 500,
         child: Row(
           children: [
-            // Lijeva sekcija - slika
             Expanded(
               flex: 3,
               child: Column(
@@ -274,37 +273,54 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
 
-              final nova = PredstavaInsert(
-                naziv: naziv,
-                opis: opis,
-                trajanje: trajanje,
-                godina: godina,
-                plakat: base64Slika,
-                isActive: isActive,
-                zanrId: odabraniZanr!.id,
-                reziserId: odabraniReziser!.id,
-              );
-
-              final predstavaId = await ApiService.dodajPredstavu(nova);
-
-              for (final glumac in odabraniGlumci) {
-                final uloga = ulogePoGlumcu[glumac.id] ?? '';
-                final glumacPredstava = GlumacPredstavaInsert(
-                  glumacId: glumac.id,
-                  predstavaId: predstavaId,
-                  uloga: uloga,
+              try {
+                final nova = PredstavaInsert(
+                  naziv: naziv,
+                  opis: opis,
+                  trajanje: trajanje,
+                  godina: godina,
+                  plakat: base64Slika,
+                  isActive: isActive,
+                  zanrId: odabraniZanr!.id,
+                  reziserId: odabraniReziser!.id,
                 );
-                await ApiService.dodajGlumcaPredstavi(glumacPredstava);
+
+                final predstavaId = await ApiService.dodajPredstavu(nova);
+
+                for (final glumac in odabraniGlumci) {
+                  final uloga = ulogePoGlumcu[glumac.id] ?? '';
+                  final glumacPredstava = GlumacPredstavaInsert(
+                    glumacId: glumac.id,
+                    predstavaId: predstavaId,
+                    uloga: uloga,
+                  );
+                  await ApiService.dodajGlumcaPredstavi(glumacPredstava);
+                }
+
+                if (mounted) {
+                  Navigator.pop(context, true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Predstava uspješno dodana!'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Greška pri dodavanju predstave: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
               }
-
-              setState(() {
-                _uspjesnoDodano = true;
-              });
-
-              await Future.delayed(const Duration(seconds: 2));
-              Navigator.pop(context, true);
             }
           },
+
           child: const Text('Spremi'),
         ),
       ],

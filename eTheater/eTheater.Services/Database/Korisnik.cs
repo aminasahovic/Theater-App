@@ -27,6 +27,8 @@ public partial class Korisnik
 
     public bool IsDeleted { get; set; }
 
+    public string? Email { get; set; }
+
     public virtual ICollection<KomentarObavijest> KomentarObavijests { get; set; } = new List<KomentarObavijest>();
 
     public virtual ICollection<KomentarPrestava> KomentarPrestavas { get; set; } = new List<KomentarPrestava>();

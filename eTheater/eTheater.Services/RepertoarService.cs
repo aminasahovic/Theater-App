@@ -15,5 +15,20 @@ namespace eTheater.Services
         public RepertoarService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
         }
+        public override IQueryable<Database.Repertoar> AddFilter(RepertoarSearchObject searchObject, IQueryable<Database.Repertoar> query)
+        {
+            query = base.AddFilter(searchObject, query);
+            if (!string.IsNullOrWhiteSpace(searchObject?.Naziv))
+            {
+                query = query.Where(x => x.Naziv.StartsWith(searchObject.Naziv));
+            }
+
+            if (searchObject.PocetakDatum.HasValue)
+            {
+                query = query.Where(x => x.PocetakDatum.Date.Equals(searchObject.PocetakDatum.Value.Date));
+            }
+
+            return query;
+        }
     }
 }

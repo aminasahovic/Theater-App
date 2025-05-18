@@ -39,7 +39,7 @@ namespace eTheater.Services
 
             if (!string.IsNullOrWhiteSpace(searchObject?.KorisnickoIme))
             {
-                query = query.Where(x => x.Username == searchObject.KorisnickoIme);
+                query = query.Where(x => x.Username.StartsWith(searchObject.KorisnickoIme));
             }
 
             if (searchObject.IsTipKorisnika.HasValue)

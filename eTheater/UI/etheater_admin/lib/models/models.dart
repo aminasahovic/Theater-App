@@ -152,9 +152,9 @@ class KorisniciInsert {
   final String password;
   final String passwordPotvrda;
   final String brojTelefona;
+  final String email;
   final bool isActive;
   final int? tipKorisnikaId;
-  final String? slika;
 
   KorisniciInsert({
     required this.ime,
@@ -163,9 +163,9 @@ class KorisniciInsert {
     required this.password,
     required this.passwordPotvrda,
     required this.brojTelefona,
+    required this.email,
     required this.isActive,
     required this.tipKorisnikaId,
-    this.slika,
   });
 
   Map<String, dynamic> toJson() => {
@@ -175,9 +175,9 @@ class KorisniciInsert {
     'password': password,
     'passwordPotvrda': passwordPotvrda,
     'brojTelefona': brojTelefona,
+    'email': email,
     'isActive': isActive,
     'tipKorisnikaId': tipKorisnikaId,
-    if (slika != null) 'slika': slika,
   };
 }
 
@@ -490,4 +490,221 @@ class IzvedbaUpdateRequest {
       cijenaKarte: json['cijenaKarte'].toDouble(),
     );
   }
+}
+
+class NovostById {
+  final int id;
+  final int korisnikId;
+  final String naslov;
+  final String sadrzaj;
+  final String? slika;
+  final DateTime datumObjave;
+  final DateTime? datumUredjivanja;
+  final int? modifyBy;
+
+  NovostById({
+    required this.id,
+    required this.korisnikId,
+    required this.naslov,
+    required this.sadrzaj,
+    this.slika,
+    required this.datumObjave,
+    this.datumUredjivanja,
+    this.modifyBy,
+  });
+
+  factory NovostById.fromJson(Map<String, dynamic> json) {
+    return NovostById(
+      id: json['id'],
+      korisnikId: json['korisnikId'],
+      naslov: json['naslov'],
+      sadrzaj: json['sadrzaj'],
+      slika: json['slika'],
+      datumObjave: DateTime.parse(json['datumObjave']),
+      datumUredjivanja:
+          json['datumUredjivanja'] != null
+              ? DateTime.parse(json['datumUredjivanja'])
+              : null,
+      modifyBy: json['modifyBy'],
+    );
+  }
+}
+
+class KorisnikById {
+  final int id;
+  final String ime;
+  final String prezime;
+
+  KorisnikById({required this.id, required this.ime, required this.prezime});
+
+  factory KorisnikById.fromJson(Map<String, dynamic> json) {
+    return KorisnikById(
+      id: json['id'],
+      ime: json['ime'],
+      prezime: json['prezime'],
+    );
+  }
+
+  String get punoIme => "$ime $prezime";
+}
+
+class KorisnikUpdateRequest {
+  String ime;
+  String prezime;
+  String telefon;
+  bool status;
+  String email;
+  String password;
+  String passwordPotvrda;
+  int tipKorisnikaId;
+
+  KorisnikUpdateRequest({
+    required this.ime,
+    required this.prezime,
+    required this.telefon,
+    required this.status,
+    required this.email,
+    required this.password,
+    required this.passwordPotvrda,
+    required this.tipKorisnikaId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ime': ime,
+      'prezime': prezime,
+      'telefon': telefon,
+      'status': status,
+      'email': email,
+      'password': password,
+      'passwordPotvrda': passwordPotvrda,
+      'tipKorisnikaId': tipKorisnikaId,
+    };
+  }
+}
+
+class Repertoar {
+  final int id;
+  final String naziv;
+  final DateTime pocetakDatum;
+  final DateTime krajDatum;
+
+  Repertoar({
+    required this.id,
+    required this.naziv,
+    required this.pocetakDatum,
+    required this.krajDatum,
+  });
+
+  factory Repertoar.fromJson(Map<String, dynamic> json) {
+    return Repertoar(
+      id: json['id'],
+      naziv: json['naziv'],
+      pocetakDatum: DateTime.parse(json['pocetakDatum']),
+      krajDatum: DateTime.parse(json['krajDatum']),
+    );
+  }
+}
+
+class RepertoarIzvedba {
+  final int repertoarIzvedbaId;
+  final int repertoarId;
+  final int predstavaId;
+  final int izvedbaId;
+  final String nazivPredstave;
+  final DateTime datumVrijemeIzvedbe;
+
+  RepertoarIzvedba({
+    required this.repertoarIzvedbaId,
+    required this.repertoarId,
+    required this.predstavaId,
+    required this.nazivPredstave,
+    required this.datumVrijemeIzvedbe,
+    required this.izvedbaId,
+  });
+
+  factory RepertoarIzvedba.fromJson(Map<String, dynamic> json) {
+    return RepertoarIzvedba(
+      repertoarIzvedbaId: json['repertoarIzvedbaId'],
+      repertoarId: json['repertoarId'],
+      predstavaId: json['predstavaId'],
+      izvedbaId: json['izvedbaId'],
+      nazivPredstave: json['nazivPredstave'],
+      datumVrijemeIzvedbe: DateTime.parse(json['datumVrijemeIzvedbe']),
+    );
+  }
+}
+
+class IzvedbaZaRepertoar {
+  final int izvedbaId;
+  final String nazivPredstave;
+  final DateTime datumVrijemeIzvodjenja;
+
+  IzvedbaZaRepertoar({
+    required this.izvedbaId,
+    required this.nazivPredstave,
+    required this.datumVrijemeIzvodjenja,
+  });
+
+  factory IzvedbaZaRepertoar.fromJson(Map<String, dynamic> json) {
+    return IzvedbaZaRepertoar(
+      izvedbaId: json['izvedbaId'],
+      nazivPredstave: json['nazivPredstave'],
+      datumVrijemeIzvodjenja: DateTime.parse(json['datumVrijemeIzvodjenja']),
+    );
+  }
+}
+
+class InsertRepertoar {
+  DateTime pocetakDatum;
+  DateTime krajDatum;
+  String naziv;
+
+  InsertRepertoar({
+    required this.pocetakDatum,
+    required this.krajDatum,
+    required this.naziv,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pocetakDatum': pocetakDatum.toIso8601String(),
+      'krajDatum': krajDatum.toIso8601String(),
+      'naziv': naziv,
+    };
+  }
+}
+
+class IzvedbaPeriodModel {
+  final int izvedbaId;
+  final String nazivPredstave;
+  final DateTime datumVrijemeIzvodjenja;
+
+  IzvedbaPeriodModel({
+    required this.izvedbaId,
+    required this.nazivPredstave,
+    required this.datumVrijemeIzvodjenja,
+  });
+
+  factory IzvedbaPeriodModel.fromJson(Map<String, dynamic> json) {
+    return IzvedbaPeriodModel(
+      izvedbaId: json['izvedbaId'],
+      nazivPredstave: json['nazivPredstave'],
+      datumVrijemeIzvodjenja: DateTime.parse(json['datumVrijemeIzvodjenja']),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IzvedbaPeriodModel &&
+          runtimeType == other.runtimeType &&
+          izvedbaId == other.izvedbaId;
+
+  @override
+  int get hashCode => izvedbaId.hashCode;
+
+  @override
+  String toString() =>
+      "$nazivPredstave (${datumVrijemeIzvodjenja.toLocal().toString().split(" ")[0]})";
 }

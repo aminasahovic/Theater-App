@@ -9,5 +9,7 @@ namespace eTheater.Model
         public int Id { get; set; }
         public DateTime PocetakDatum { get; set; }
         public DateTime KrajDatum { get; set; }
+        public string Naziv { get; set; }
+
     }
 }

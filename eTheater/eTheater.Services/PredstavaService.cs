@@ -29,5 +29,31 @@ namespace eTheater.Services
                 })
                 .ToListAsync();
         }
+        public override IQueryable<Database.Predstava> AddFilter(PredstavaSearchObject searchObject, IQueryable<Database.Predstava> query)
+        {
+            query = base.AddFilter(searchObject, query);
+            if (!string.IsNullOrWhiteSpace(searchObject?.Naziv))
+            {
+                query = query.Where(x => x.Naziv.StartsWith(searchObject.Naziv));
+            }
+
+            if (searchObject.ZanrId.HasValue)
+            {
+                query = query.Where(x => x.ZanrId.Equals(searchObject.ZanrId));
+            }
+
+
+            if (searchObject.ReziserId.HasValue)
+            {
+                query = query.Where(x => x.ZanrId.Equals(searchObject.ReziserId));
+            }
+
+            if (searchObject.Godina.HasValue)
+            {
+                query = query.Where(x => x.Godina == searchObject.Godina);
+            }
+
+            return query;
+        }
     }
 }

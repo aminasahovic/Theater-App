@@ -15,5 +15,22 @@ namespace eTheater.Services
         public ObavijestService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
         }
+        public override IQueryable<Database.Obavijest> AddFilter(ObavijestSearchObject searchObject, IQueryable<Database.Obavijest> query)
+        {
+            query = base.AddFilter(searchObject, query);
+            if (!string.IsNullOrWhiteSpace(searchObject?.Naslov))
+            {
+                query = query.Where(x => x.Naslov.StartsWith(searchObject.Naslov));
+            }
+
+            if (searchObject.DatumObjave.HasValue)
+            {
+                var datum = searchObject.DatumObjave.Value.Date;
+                query = query.Where(x => x.DatumObjave.Value.Date == datum);
+            }
+
+
+            return query;
+        }
     }
 }

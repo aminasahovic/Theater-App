@@ -45,89 +45,77 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
       title: const Text('Uredi novost'),
       content: SizedBox(
         width: 800,
-        height: 500,
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Container(
-                    height: 250,
-                    width: 250,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child:
-                        _slikaBytes != null
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.memory(
-                                _slikaBytes!,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                            : const Center(child: Text('Nema slike')),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final result = await FilePicker.platform.pickFiles(
-                        type: FileType.image,
-                      );
-                      if (result != null) {
-                        final file = result.files.first;
-                        final bytes =
-                            file.bytes ?? await File(file.path!).readAsBytes();
-                        setState(() {
-                          _slikaBytes = bytes;
-                          base64Slika = base64Encode(bytes);
-                        });
-                      }
-                    },
-                    icon: const Icon(Icons.image),
-                    label: const Text('Promijeni sliku'),
-                  ),
-                ],
+        height: 600,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  color: Colors.grey[200],
+                ),
+                child:
+                    _slikaBytes != null
+                        ? Image.memory(
+                          _slikaBytes!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
+                        : const Center(child: Text('Nema slike')),
               ),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              flex: 7,
-              child: Form(
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.image,
+                  );
+                  if (result != null) {
+                    final file = result.files.first;
+                    final bytes =
+                        file.bytes ?? await File(file.path!).readAsBytes();
+                    setState(() {
+                      _slikaBytes = bytes;
+                      base64Slika = base64Encode(bytes);
+                    });
+                  }
+                },
+                icon: const Icon(Icons.image),
+                label: const Text('Promijeni sliku'),
+              ),
+              const SizedBox(height: 24),
+              Form(
                 key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        initialValue: naslov,
-                        decoration: const InputDecoration(labelText: 'Naslov'),
-                        validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Unesite naslov'
-                                    : null,
-                        onSaved: (value) => naslov = value!,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        initialValue: sadrzaj,
-                        decoration: const InputDecoration(labelText: 'Sadržaj'),
-                        maxLines: 4,
-                        validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Unesite sadržaj'
-                                    : null,
-                        onSaved: (value) => sadrzaj = value!,
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      initialValue: naslov,
+                      decoration: const InputDecoration(labelText: 'Naslov'),
+                      validator:
+                          (value) =>
+                              value == null || value.isEmpty
+                                  ? 'Unesite naslov'
+                                  : null,
+                      onSaved: (value) => naslov = value!,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      initialValue: sadrzaj,
+                      decoration: const InputDecoration(labelText: 'Sadržaj'),
+                      maxLines: 4,
+                      validator:
+                          (value) =>
+                              value == null || value.isEmpty
+                                  ? 'Unesite sadržaj'
+                                  : null,
+                      onSaved: (value) => sadrzaj = value!,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
@@ -153,7 +141,16 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
               );
 
               try {
-                await ApiService.updateNovost(widget.novost.id!, updateModel);
+                await ApiService.updateNovost(widget.novost.id, updateModel);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Novost uspješno ažurirana!'),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
                 Navigator.pop(context, true);
               } catch (e) {
                 ScaffoldMessenger.of(

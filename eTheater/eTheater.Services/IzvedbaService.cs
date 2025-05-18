@@ -122,6 +122,26 @@ namespace eTheater.Services
                 ResultList = resultList
             };
         }
+        public async Task<List<IzvedbaDTO>> GetIzvedbeByPeriodAsync(IzvedbaDateRangeSearch search)
+        {
+            var query = _context.Izvedbas
+                .Include(x => x.Predstava)
+                .AsQueryable();
+
+            if (search.DatumOd.HasValue)
+                query = query.Where(x => x.DatumVrijeme >= search.DatumOd && x.IsDeleted==false);
+
+            if (search.DatumDo.HasValue)
+                query = query.Where(x => x.DatumVrijeme <= search.DatumDo && x.IsDeleted == false);
+
+            return await query.Select(x => new IzvedbaDTO
+            {
+                IzvedbaId = x.Id,
+                NazivPredstave = x.Predstava.Naziv,
+                DatumVrijemeIzvodjenja = x.DatumVrijeme
+            }).ToListAsync();
+        }
+
 
 
     }

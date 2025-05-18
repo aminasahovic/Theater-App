@@ -6,5 +6,7 @@ namespace eTheater.Model.SearchObjects
 {
     public class ReziserSearchObject : BaseSearchObject
     {
+        public String? ImePrezime { get; set; }
+
     }
 }

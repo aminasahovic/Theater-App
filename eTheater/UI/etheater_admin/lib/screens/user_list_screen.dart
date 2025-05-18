@@ -1,3 +1,4 @@
+import 'package:etheater_admin/layouts/master_screen.dart';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/delete_utils.dart';
 import 'package:etheater_admin/screens/dodaj_korisnika_dialog.dart';
@@ -17,7 +18,7 @@ class _UserListScreenState extends State<UserListScreen> {
   List<TipKorisnika> _tipoviKorisnika = [];
 
   int _currentPage = 0;
-  int _rowsPerPage = 5;
+  int _rowsPerPage = 4;
   int _totalCount = 0;
 
   final TextEditingController _imeController = TextEditingController();
@@ -86,153 +87,233 @@ class _UserListScreenState extends State<UserListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Administracija korisnika')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 20),
-            _buildFilters(),
-            const SizedBox(height: 16),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Expanded(
-                  child: SingleChildScrollView(
-                    child: PaginatedDataTable(
-                      header: const Text("Lista korisnika"),
-                      rowsPerPage: _rowsPerPage,
-                      availableRowsPerPage: const [5, 10, 20],
-                      onRowsPerPageChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _rowsPerPage = value;
-                            _currentPage = 0;
-                          });
-                          _fetchKorisnici();
-                        }
-                      },
-                      onPageChanged: (start) {
-                        final newPage = (start / _rowsPerPage).floor();
-                        if (newPage != _currentPage) {
-                          setState(() {
-                            _currentPage = newPage;
-                          });
-                          _fetchKorisnici();
-                        }
-                      },
-
-                      columns: const [
-                        DataColumn(label: Text('Ime')),
-                        DataColumn(label: Text('Prezime')),
-                        DataColumn(label: Text('Username')),
-                        DataColumn(label: Text('Telefon')),
-                        DataColumn(label: Text('Tip')),
-                        DataColumn(label: Text('Akcije')),
-                      ],
-                      source: _KorisniciDataSource(
-                        _korisnici,
-                        context,
-                        _resetAndFetch,
-                        _totalCount,
+    return MasterScreen(
+      "Administracija Kosinika",
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          _buildFilters(),
+          const SizedBox(height: 16),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Expanded(
+                child: Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _korisnici.length,
+                          itemBuilder: (context, index) {
+                            final korisnik = _korisnici[index];
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 12,
+                              ),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              color: Colors.white,
+                              // ignore: deprecated_member_use
+                              shadowColor: Colors.black.withOpacity(
+                                0.2,
+                              ), // Sjena sa većom transparentnošću
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(
+                                  16,
+                                ), // Povećan razmak oko sadržaja
+                                title: Text(
+                                  '${korisnik.ime} ${korisnik.prezime}',
+                                  style: TextStyle(
+                                    fontWeight:
+                                        FontWeight
+                                            .bold, // Bold za ime i prezime
+                                    fontSize: 16, // Povećan font
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Username: ${korisnik.username}'),
+                                    const SizedBox(height: 4),
+                                    Text('Telefon: ${korisnik.brojTelefona}'),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Tip: ${korisnik.tipKorisnika ?? '-'}',
+                                    ),
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color:
+                                            Colors
+                                                .black, // Prilagođena boja za edit ikonu
+                                      ),
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder:
+                                              (_) => EditKorisnikaDialog(
+                                                korisnik: korisnik,
+                                                tipovi: _tipoviKorisnika,
+                                                onUpdate: _resetAndFetch,
+                                              ),
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.black,
+                                      ),
+                                      onPressed: () {
+                                        prikaziBrisanjeKorisnikaDialog(
+                                          context,
+                                          korisnik.id,
+                                          _resetAndFetch,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed:
+                                _currentPage > 0
+                                    ? () {
+                                      setState(() => _currentPage--);
+                                      _fetchKorisnici();
+                                    }
+                                    : null,
+                            child: const Text("Prethodna"),
+                          ),
+                          const SizedBox(width: 20),
+                          Text('Stranica ${_currentPage + 1}'),
+                          const SizedBox(width: 20),
+                          ElevatedButton(
+                            onPressed:
+                                (_currentPage + 1) * _rowsPerPage < _totalCount
+                                    ? () {
+                                      setState(() => _currentPage++);
+                                      _fetchKorisnici();
+                                    }
+                                    : null,
+                            child: const Text("Sljedeća"),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-          ],
-        ),
+              ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Korisnici',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.add),
-          label: const Text("Dodaj korisnika"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF800020),
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () async {
-            await showDialog(
-              context: context,
-              builder:
-                  (_) => DodajKorisnikaDialog(onKorisnikDodan: _resetAndFetch),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildFilters() {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _buildFilterField(_imeController, 'Ime'),
-        _buildFilterField(_prezimeController, 'Prezime'),
-        _buildFilterField(_usernameController, 'Korisničko ime'),
-        SizedBox(
-          width: 250,
-          child: DropdownButtonFormField<TipKorisnika>(
-            decoration: const InputDecoration(
-              labelText: 'Tip korisnika',
-              border: OutlineInputBorder(),
-            ),
-            value: _odabraniTip,
-            items:
-                _tipoviKorisnika.map((tip) {
-                  return DropdownMenuItem(
-                    value: tip,
-                    child: Text(
-                      tip.naziv,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                _buildFilterField(_imeController, 'Ime'),
+                const SizedBox(width: 12),
+                _buildFilterField(_prezimeController, 'Prezime'),
+                const SizedBox(width: 12),
+                _buildFilterField(_usernameController, 'Korisničko ime'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<TipKorisnika>(
+                    decoration: InputDecoration(
+                      labelText: 'Tip korisnika',
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
                     ),
-                  );
-                }).toList(),
-            onChanged: (value) => setState(() => _odabraniTip = value),
+                    value: _odabraniTip,
+                    items:
+                        _tipoviKorisnika.map((tip) {
+                          return DropdownMenuItem(
+                            value: tip,
+                            child: Text(tip.naziv),
+                          );
+                        }).toList(),
+                    onChanged: (value) => setState(() => _odabraniTip = value),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Row(
-          children: [
-            ElevatedButton.icon(
-              onPressed: _applyFilters,
-              icon: const Icon(Icons.search),
-              label: const Text("Pretraži"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: _applyFilters,
+                color: Colors.blueGrey,
+              ),
+              IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: _resetFilters,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+
+          ElevatedButton.icon(
+            onPressed: () async {
+              await showDialog(
+                context: context,
+                builder:
+                    (_) =>
+                        DodajKorisnikaDialog(onKorisnikDodan: _resetAndFetch),
+              );
+            },
+            icon: const Icon(Icons.add),
+            label: const Text("Dodaj korisnika"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF800020),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
-            const SizedBox(width: 10),
-            ElevatedButton.icon(
-              onPressed: _resetFilters,
-              icon: const Icon(Icons.clear),
-              label: const Text("Resetuj filtere"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildFilterField(TextEditingController controller, String label) {
     return SizedBox(
-      width: 200,
+      width: 180,
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 12,
+          ),
         ),
       ),
     );
@@ -244,6 +325,7 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 }
 
+// ignore: unused_element
 class _KorisniciDataSource extends DataTableSource {
   final List<Korisnik> korisnici;
   final BuildContext context;
@@ -273,7 +355,7 @@ class _KorisniciDataSource extends DataTableSource {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue),
+                icon: const Icon(Icons.edit, color: Colors.black),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -380,6 +462,7 @@ class _EditKorisnikaDialogState extends State<EditKorisnikaDialog> {
       username: _usernameController.text,
       brojTelefona: _brojTelefonaController.text,
       password: 'dummy',
+      email: 'dumyy',
       passwordPotvrda: 'dummy',
       isActive: _isActive,
       tipKorisnikaId: _odabraniTip?.id,

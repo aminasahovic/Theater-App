@@ -11,6 +11,8 @@ namespace eTheater.Model.Requests
         public string Username { get; set; } = null!;
         public string Password { get; set; } = null!;
         public string PasswordPotvrda { get; set; } = null!;
+        public string? Email { get; set; }
+
         public bool? IsActive { get; set; }
         public string? BrojTelefona { get; set; }
         public int? TipKorisnikaId { get; set; }

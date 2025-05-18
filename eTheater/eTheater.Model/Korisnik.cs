@@ -12,9 +12,11 @@ namespace eTheater.Model
         public string Prezime { get; set; } = null!;
 
         public string Username { get; set; } = null!;
+        public int? TipKorisnikaId { get; set; }
+        public string? Email { get; set; }
 
         public string? BrojTelefona { get; set; }
-        public virtual Model.TipKorisnika? TipKorisnika { get; set; }
+        public virtual TipKorisnika? TipKorisnika { get; set; }
 
     }
 }

@@ -13,5 +13,7 @@ public partial class Repertoar
 
     public bool IsDeleted { get; set; }
 
+    public string? Naziv { get; set; }
+
     public virtual ICollection<RepertoarIzvedba> RepertoarIzvedbas { get; set; } = new List<RepertoarIzvedba>();
 }

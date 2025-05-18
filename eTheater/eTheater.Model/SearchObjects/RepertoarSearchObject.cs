@@ -6,6 +6,8 @@ namespace eTheater.Model.SearchObjects
 {
     public class RepertoarSearchObject:BaseSearchObject
     {
+        public string? Naziv { get; set; }
+        public DateTime? PocetakDatum { get; set; }
 
     }
 }

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:etheater_admin/services/services.dart'; // API servis za korisnike
-import 'package:etheater_admin/models/models.dart'; // Model Korisnik
+import 'package:etheater_admin/services/services.dart';
+import 'package:etheater_admin/models/models.dart';
 import 'package:file_picker/file_picker.dart';
 
 class DodajNovostDialog extends StatefulWidget {
@@ -148,11 +148,19 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
                 setState(() {
                   _uspjesnoDodano = true;
                 });
-                await Future.delayed(const Duration(seconds: 2));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Novost uspješno dodana.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 Navigator.pop(context, true);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Došlo je do greške: $e')),
+                  SnackBar(
+                    content: Text('Došlo je do greške: $e'),
+                    backgroundColor: Colors.black87,
+                  ),
                 );
               }
             }

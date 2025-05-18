@@ -206,6 +206,9 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.BrojTelefona)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.Hash).HasMaxLength(255);
             entity.Property(e => e.Ime)
                 .HasMaxLength(50)
@@ -314,6 +317,7 @@ public partial class ETheaterContext : DbContext
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.KrajDatum).HasColumnType("datetime");
+            entity.Property(e => e.Naziv).HasMaxLength(100);
             entity.Property(e => e.PocetakDatum).HasColumnType("datetime");
         });
 

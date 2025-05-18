@@ -15,5 +15,15 @@ namespace eTheater.Services
         public GlumacService(ETheaterContext context, IMapper mapper) : base(context, mapper)
         {
         }
+        public override IQueryable<Database.Glumac> AddFilter(GlumacSearchObject searchObject, IQueryable<Database.Glumac> query)
+        {
+            query = base.AddFilter(searchObject, query);
+            if (!string.IsNullOrWhiteSpace(searchObject?.ImePrezime))
+            {
+                query = query.Where(x => x.Ime.StartsWith(searchObject.ImePrezime) ||x.Prezime.StartsWith(searchObject.ImePrezime));
+            }
+
+            return query;
+        }
+        }
     }
-}

@@ -39,5 +39,18 @@ namespace eTheater.API.Controllers
             return await _service.GetAllAsync(searchObject);
         }
 
+        [HttpGet("period")]
+        public async Task<IActionResult> GetIzvedbeByPeriod([FromQuery] IzvedbaDateRangeSearch search)
+        {
+            if (search == null || (!search.DatumOd.HasValue && !search.DatumDo.HasValue))
+            {
+                return BadRequest("Morate unijeti barem jedan datum za filtriranje (DatumOd ili DatumDo).");
+            }
+
+            var izvedbe = await _service.GetIzvedbeByPeriodAsync(search);
+
+            return Ok(izvedbe);
+        }
+
     }
 }

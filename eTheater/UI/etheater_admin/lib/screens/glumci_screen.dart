@@ -18,6 +18,12 @@ class _GlumciScreenState extends State<GlumciScreen> {
   String _searchQuery = '';
   int _currentPage = 1;
 
+  final imeController = TextEditingController();
+  final prezimeController = TextEditingController();
+  String base64Slika = '';
+
+  bool isFormValid = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,98 +45,157 @@ class _GlumciScreenState extends State<GlumciScreen> {
     }
   }
 
+  bool _validateForm() {
+    final ime = imeController.text;
+    final prezime = prezimeController.text;
+
+    final isImeValid =
+        ime.isNotEmpty &&
+        ime[0].toUpperCase() == ime[0] &&
+        !RegExp(r'\d').hasMatch(ime);
+    final isPrezimeValid =
+        prezime.isNotEmpty &&
+        prezime[0].toUpperCase() == prezime[0] &&
+        !RegExp(r'\d').hasMatch(prezime);
+
+    bool formValid = isImeValid && isPrezimeValid;
+
+    setState(() {
+      isFormValid = formValid;
+    });
+
+    return formValid;
+  }
+
   Future<void> _showGlumacDialog({Glumac? glumac}) async {
     final isEditMode = glumac != null;
-    final imeController = TextEditingController(text: glumac?.ime ?? '');
-    final prezimeController = TextEditingController(
-      text: glumac?.prezime ?? '',
-    );
-    String base64Slika = glumac?.slika ?? '';
+    imeController.text = glumac?.ime ?? '';
+    prezimeController.text = glumac?.prezime ?? '';
+    base64Slika = glumac?.slika ?? '';
     final _imagePicker = ImagePicker();
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(isEditMode ? 'Uredi Glumca' : 'Dodaj Glumca'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    final pickedFile = await _imagePicker.pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (pickedFile != null) {
-                      final bytes = await pickedFile.readAsBytes();
-                      base64Slika = base64Encode(bytes);
-                      setState(() {});
-                    }
-                  },
-                  child: Container(
-                    height: 120,
-                    width: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            void _localValidateForm() {
+              final ime = imeController.text;
+              final prezime = prezimeController.text;
+
+              final isImeValid =
+                  ime.isNotEmpty &&
+                  ime[0] == ime[0].toUpperCase() &&
+                  !RegExp(r'\d').hasMatch(ime);
+
+              final isPrezimeValid =
+                  prezime.isNotEmpty &&
+                  prezime[0] == prezime[0].toUpperCase() &&
+                  !RegExp(r'\d').hasMatch(prezime);
+
+              final formValid = isImeValid && isPrezimeValid;
+
+              setDialogState(() {
+                isFormValid = formValid;
+              });
+            }
+
+            return AlertDialog(
+              title: Text(isEditMode ? 'Uredi Glumca' : 'Dodaj Glumca'),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final pickedFile = await _imagePicker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (pickedFile != null) {
+                          final bytes = await pickedFile.readAsBytes();
+                          base64Slika = base64Encode(bytes);
+                          setDialogState(() {});
+                        }
+                      },
+                      child: Container(
+                        height: 120,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child:
+                            base64Slika.isNotEmpty
+                                ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    base64Decode(base64Slika),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                                : const Center(
+                                  child: Icon(Icons.person_add, size: 50),
+                                ),
+                      ),
                     ),
-                    child:
-                        base64Slika.isNotEmpty
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.memory(
-                                base64Decode(base64Slika),
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                            : const Center(
-                              child: Icon(Icons.person_add, size: 50),
-                            ),
-                  ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: imeController,
+                      decoration: const InputDecoration(labelText: 'Ime'),
+                      onChanged: (_) => _localValidateForm(),
+                    ),
+                    TextField(
+                      controller: prezimeController,
+                      decoration: const InputDecoration(labelText: 'Prezime'),
+                      onChanged: (_) => _localValidateForm(),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: imeController,
-                  decoration: const InputDecoration(labelText: 'Ime'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Odustani'),
                 ),
-                TextField(
-                  controller: prezimeController,
-                  decoration: const InputDecoration(labelText: 'Prezime'),
+                TextButton(
+                  onPressed:
+                      isFormValid
+                          ? () async {
+                            final glumacData = InsertGlumac(
+                              ime: imeController.text,
+                              prezime: prezimeController.text,
+                              slika: base64Slika,
+                            );
+                            if (isEditMode) {
+                              await ApiService.updateGlumac(
+                                glumac!.id!,
+                                glumacData,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Glumac uspješno ažuriran!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              await ApiService.dodajGlumca(glumacData);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Glumac uspješno dodan!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                            Navigator.pop(context);
+                            _fetchGlumci();
+                          }
+                          : null,
+                  child: Text(isEditMode ? 'Spremi' : 'Dodaj'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Odustani'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final glumacData = InsertGlumac(
-                  ime: imeController.text,
-                  prezime: prezimeController.text,
-                  slika: base64Slika,
-                );
-                if (isEditMode) {
-                  await ApiService.updateGlumac(glumac!.id!, glumacData);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Glumac uspješno ažuriran!')),
-                  );
-                } else {
-                  await ApiService.dodajGlumca(glumacData);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Glumac uspješno dodan!')),
-                  );
-                }
-                Navigator.pop(context);
-                _fetchGlumci();
-              },
-              child: Text(isEditMode ? 'Spremi' : 'Dodaj'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -188,7 +253,6 @@ class _GlumciScreenState extends State<GlumciScreen> {
                     decoration: const InputDecoration(
                       hintText: 'Pretraži po imenu ili prezimenu...',
                       prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -241,9 +305,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
                               color: Colors.grey[200],
                             ),
                             child:
-                                glumac.slika != null &&
-                                        glumac.slika!.isNotEmpty &&
-                                        glumac.slika != "string"
+                                glumac.slika != null && glumac.slika!.isNotEmpty
                                     ? ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.memory(
@@ -271,7 +333,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
                                 icon: const Icon(
                                   Icons.edit,
                                   size: 20,
-                                  color: Colors.blue,
+                                  color: Colors.black,
                                 ),
                                 onPressed: () {
                                   _showGlumacDialog(glumac: glumac);
@@ -281,10 +343,10 @@ class _GlumciScreenState extends State<GlumciScreen> {
                                 icon: const Icon(
                                   Icons.delete,
                                   size: 20,
-                                  color: Colors.red,
+                                  color: Colors.black,
                                 ),
                                 onPressed: () {
-                                  _deleteGlumac(glumac.id!);
+                                  _deleteGlumac(glumac.id);
                                 },
                               ),
                             ],

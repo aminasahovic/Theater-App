@@ -8,5 +8,7 @@ namespace eTheater.Model.Requests
     {
         public DateTime PocetakDatum { get; set; }
         public DateTime KrajDatum { get; set; }
+        public string? Naziv { get; set; }
+
     }
 }

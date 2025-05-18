@@ -7,17 +7,24 @@ import 'package:etheater_admin/models/models.dart'
         GlumacPredstavaInsert,
         InsertGlumac,
         InsertNovosti,
+        InsertRepertoar,
         InsertReziser,
         Izvedba,
         IzvedbaInsert,
+        IzvedbaPeriodModel,
         IzvedbaUpdateRequest,
+        IzvedbaZaRepertoar,
         KorisniciInsert,
         Korisnik,
+        KorisnikById,
+        NovostById,
         Obavijest,
         PagedResult,
         Predstava,
         PredstavaInsert,
         PredstavaLov,
+        Repertoar,
+        RepertoarIzvedba,
         Reziser,
         Sala,
         TipKorisnika,
@@ -61,16 +68,39 @@ class ApiService {
     }
   }
 
-  Future<List<Predstava>> getPredstave() async {
-    final url = Uri.parse('${ApiKonstante.baseUrl}/Predstava');
-    final response = await http.get(url, headers: {'accept': 'text/plain'});
+  Future<PagedResult<Predstava>> getPredstave({
+    String? naziv,
+    int? zanrId,
+    int? reziserId,
+    int? godina,
+    int page = 1,
+    int pageSize = 5,
+  }) async {
+    final queryParams = {
+      if (naziv != null && naziv.isNotEmpty) 'Naziv': naziv,
+      if (zanrId != null) 'ZanrId': zanrId.toString(),
+      if (reziserId != null) 'ReziserId': reziserId.toString(),
+      if (godina != null) 'Godina': godina.toString(),
+      'Page': page.toString(),
+      'PageSize': pageSize.toString(),
+    };
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Predstava',
+    ).replace(queryParameters: queryParams);
+
+    final response = await http.get(uri, headers: ApiService._createHeaders());
 
     if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      final List<dynamic> list = decoded['resultList'];
-      return list.map((e) => Predstava.fromJson(e)).toList();
+      final jsonData = json.decode(response.body);
+      return PagedResult<Predstava>.fromJson(
+        jsonData,
+        (json) => Predstava.fromJson(json),
+      );
     } else {
-      throw Exception('Greška prilikom dohvaćanja podataka.');
+      throw Exception(
+        'Neuspješno dohvaćanje predstava: ${response.statusCode}',
+      );
     }
   }
 
@@ -199,7 +229,7 @@ class ApiService {
     final queryParams = {
       if (ime != null && ime.isNotEmpty) 'ImeGTE': ime,
       if (prezime != null && prezime.isNotEmpty) 'PrezimeGTE': prezime,
-      if (username != null && username.isNotEmpty) 'UsernameGTE': username,
+      if (username != null && username.isNotEmpty) 'KorisnickoIme': username,
       if (tipKorisnikaId != null) 'IsTipKorisnika': tipKorisnikaId.toString(),
       'Page': page.toString(),
       'PageSize': pageSize.toString(),
@@ -224,6 +254,7 @@ class ApiService {
   }
 
   Future<void> updateKorisnik(int id, KorisniciInsert korisnik) async {
+    print(korisnik);
     final response = await http.put(
       Uri.parse('${ApiKonstante.baseUrl}/Korisnici/$id'),
       headers: {'Content-Type': 'application/json'},
@@ -283,7 +314,7 @@ class ApiService {
     }
   }
 
-  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 10}) async {
+  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 2}) async {
     final url = Uri.parse(
       '${ApiKonstante.baseUrl}/Glumac?Page=$page&PageSize=$pageSize',
     );
@@ -339,13 +370,22 @@ class ApiService {
     }
   }
 
-  Future<List<Reziser>> getReziseri({int page = 1, int pageSize = 10}) async {
-    final response = await http.get(
-      Uri.parse(
-        '${ApiKonstante.baseUrl}/Reziser?Page=$page&PageSize=$pageSize',
-      ),
-      headers: ApiService._createHeaders(),
-    );
+  Future<List<Reziser>> getReziseri({
+    int page = 1,
+    int pageSize = 10,
+    String? search,
+  }) async {
+    final queryParameters = {
+      'Page': '$page',
+      'PageSize': '$pageSize',
+      if (search != null && search.isNotEmpty) 'ImePrezime': search,
+    };
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Reziser',
+    ).replace(queryParameters: queryParameters);
+
+    final response = await http.get(uri, headers: _createHeaders());
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -402,21 +442,25 @@ class ApiService {
   Future<Map<String, dynamic>> getObavijesti({
     int page = 1,
     int pageSize = 6,
-    required String search,
+    String? naslov,
+    DateTime? datumObjave,
   }) async {
-    final url = Uri.parse(
-      '${ApiKonstante.baseUrl}/Obavijest?Page=$page&PageSize=$pageSize',
-    );
-    final response = await http.get(url, headers: ApiService._createHeaders());
+    final queryParams = {
+      'Page': '$page',
+      'PageSize': '$pageSize',
+      if (naslov != null && naslov.isNotEmpty) 'Naslov': naslov,
+      if (datumObjave != null) 'DatumObjave': datumObjave.toIso8601String(),
+    };
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Obavijest',
+    ).replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _createHeaders());
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
-
-      print("API odgovor: ${decoded}");
-
       final List<dynamic> list = decoded['resultList'] ?? [];
       final int count = decoded['count'] ?? 0;
-
       final obavijesti = list.map((e) => Obavijest.fromJson(e)).toList();
       return {'data': obavijesti, 'count': count};
     } else {
@@ -551,15 +595,11 @@ class ApiService {
     final url = Uri.parse('${ApiKonstante.baseUrl}/Predstava/GetAllIdNaziv');
     final response = await http.get(url, headers: _createHeaders());
 
-    print('RESPONSE STATUS: ${response.statusCode}');
-    print('RESPONSE BODY: ${response.body}');
-
     if (response.statusCode == 200) {
       try {
         final List<dynamic> decoded = json.decode(response.body);
         return decoded.map((e) => PredstavaLov.fromJson(e)).toList();
       } catch (e) {
-        print('GREŠKA pri parsiranju: $e');
         throw Exception('Greška prilikom parsiranja podataka.');
       }
     } else {
@@ -594,6 +634,169 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Greška pri ažuriranju izvedbe');
+    }
+  }
+
+  Future<NovostById> getNovostById(int id) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Obavijest/$id');
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      return NovostById.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Greška pri dohvaćanju novosti.");
+    }
+  }
+
+  Future<KorisnikById> getKorisnikById(int id) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Korisnik/$id');
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      return KorisnikById.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Greška pri dohvaćanju korisnika.");
+    }
+  }
+
+  Future<Map<String, dynamic>> getRepertoar({
+    int page = 1,
+    int pageSize = 6,
+    String? naziv,
+    DateTime? pocetakDatum,
+  }) async {
+    final queryParams = {
+      'Page': '$page',
+      'PageSize': '$pageSize',
+      if (naziv != null && naziv.isNotEmpty) 'Naziv': naziv,
+      if (pocetakDatum != null) 'PocetakDatum': pocetakDatum.toIso8601String(),
+    };
+    print(pocetakDatum);
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Repertoar',
+    ).replace(queryParameters: queryParams);
+
+    final response = await http.get(uri, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      final List<dynamic> list = decoded['resultList'] ?? [];
+      final int count = decoded['count'] ?? 0;
+      final repertoari = list.map((e) => Repertoar.fromJson(e)).toList();
+      return {'data': repertoari, 'count': count};
+    } else {
+      throw Exception('Greška prilikom dohvaćanja repertoara.');
+    }
+  }
+
+  Future<List<RepertoarIzvedba>> getRepertoarIzvedbe(int repertoarId) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/RepertoarIzvedba/Izvedbe/$repertoarId',
+    );
+    final response = await http.get(url, headers: _createHeaders());
+    print(json.decode(response.body));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((e) => RepertoarIzvedba.fromJson(e)).toList();
+    } else {
+      throw Exception("Greška pri dohvaćanju izvedbi.");
+    }
+  }
+
+  Future<Predstava> getPredstavaById(int id) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Predstava/$id');
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      return Predstava.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Greška pri dohvaćanju predstave.");
+    }
+  }
+
+  static Future<void> deleteRepertoar(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/Repertoar/$id'),
+      headers: ApiService._createHeaders(),
+    );
+
+    if (response.statusCode >= 400) {
+      throw Exception('Greška pri brisanju repertoara');
+    }
+  }
+
+  Future<int?> dodajRepertoar({
+    required String naziv,
+    required DateTime pocetakDatum,
+    required DateTime krajDatum,
+  }) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Repertoar');
+    final response = await http.post(
+      url,
+      headers: _createHeaders(),
+      body: jsonEncode({
+        'naziv': naziv,
+        'pocetakDatum': pocetakDatum.toIso8601String(),
+        'krajDatum': krajDatum.toIso8601String(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['id'];
+    } else {
+      return null;
+    }
+  }
+
+  Future<List<IzvedbaPeriodModel>> getIzvedbeByDatum({
+    required DateTime datumOd,
+    required DateTime datumDo,
+  }) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/Izvedba/period?DatumOd=${datumOd.toIso8601String()}&DatumDo=${datumDo.toIso8601String()}',
+    );
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => IzvedbaPeriodModel.fromJson(e)).toList();
+    } else {
+      return [];
+    }
+  }
+
+  Future<void> dodajRepertoarIzvedba({
+    required int repertoarId,
+    required int izvedbaId,
+  }) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/RepertoarIzvedba');
+    await http.post(
+      url,
+      headers: _createHeaders(),
+      body: jsonEncode({'repertoarId': repertoarId, 'izvedbaId': izvedbaId}),
+    );
+  }
+
+  Future<void> updateRepertoar(int id, Map<String, dynamic> body) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Repertoar/$id');
+    final response = await http.put(
+      url,
+      headers: _createHeaders(),
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri ažuriranju repertoara.');
+    }
+  }
+
+  Future<void> deleteRepertoarIzvedba(int id) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/RepertoarIzvedba/$id');
+    final response = await http.delete(url, headers: _createHeaders());
+
+    if (response.statusCode != 200) {
+      throw Exception('Greška pri brisanju izvedbe.');
     }
   }
 }

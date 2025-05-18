@@ -15,6 +15,7 @@ namespace eTheater.Services
         Task<Izvedba> AddIzvedbaAsync(IzvedbaInsertRequest izvedbaInsert);
 
         Task<PagedResult<IzvedbaViewModel>> GetAllAsync(IzvedbaSearchObject searchObject);
+        Task<List<IzvedbaDTO>> GetIzvedbeByPeriodAsync(IzvedbaDateRangeSearch search);
 
     }
 }
