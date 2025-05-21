@@ -19,7 +19,6 @@ class PredstavaDetailsScreen extends StatefulWidget {
 }
 
 class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
-  bool _isLoading = true;
   Predstava? _predstava;
   late TextEditingController _nazivController;
   late TextEditingController _opisController;
@@ -78,9 +77,7 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
           reziserId: fetchedPredstava.reziserId,
         );
 
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() {});
       });
 
       await _fetchZanrovi();
@@ -114,7 +111,7 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
 
   Future<void> _fetchGlumci() async {
     if (_predstava == null) return;
-    _glumci = await ApiService.fetchGlumciZaPredstavu(_predstava!.id!);
+    _glumci = await ApiService.fetchGlumciZaPredstavu(_predstava!.id);
     setState(() {});
   }
 

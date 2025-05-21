@@ -8,7 +8,17 @@ namespace eTheater.API.Controllers
 {
     public class KomentarPredstavaController : BaseCRUDController<Model.KomentarPrestava, KomentarPrestavaSearchObject, KomentarPrestavaInsertRequest, KomentarPrestavaUpdateRequest>
     {
+        private readonly IKomentarPrestavaService _service;
+
         public KomentarPredstavaController(IKomentarPrestavaService service)
-           : base(service) { }
+           : base(service) {
+            _service = service;
+        }
+        [HttpGet("ByPredstava")]
+        public async Task<IActionResult> GetByPredstavaId([FromQuery] KomentarPrestavaSearchObject searchObject)
+        {
+            var result = await _service.GetByPredstavaIdAsync(searchObject);
+            return Ok(result);
+        }
     }
 }

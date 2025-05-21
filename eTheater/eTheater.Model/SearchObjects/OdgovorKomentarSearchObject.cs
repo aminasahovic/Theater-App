@@ -6,5 +6,7 @@ namespace eTheater.Model.SearchObjects
 {
     public class OdgovorKomentarSearchObject:BaseSearchObject
     {
+        public int? KomentariObavijestiId { get; set; }
+
     }
 }

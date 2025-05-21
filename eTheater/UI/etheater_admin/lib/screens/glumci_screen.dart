@@ -45,28 +45,6 @@ class _GlumciScreenState extends State<GlumciScreen> {
     }
   }
 
-  bool _validateForm() {
-    final ime = imeController.text;
-    final prezime = prezimeController.text;
-
-    final isImeValid =
-        ime.isNotEmpty &&
-        ime[0].toUpperCase() == ime[0] &&
-        !RegExp(r'\d').hasMatch(ime);
-    final isPrezimeValid =
-        prezime.isNotEmpty &&
-        prezime[0].toUpperCase() == prezime[0] &&
-        !RegExp(r'\d').hasMatch(prezime);
-
-    bool formValid = isImeValid && isPrezimeValid;
-
-    setState(() {
-      isFormValid = formValid;
-    });
-
-    return formValid;
-  }
-
   Future<void> _showGlumacDialog({Glumac? glumac}) async {
     final isEditMode = glumac != null;
     imeController.text = glumac?.ime ?? '';
@@ -169,7 +147,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
                             );
                             if (isEditMode) {
                               await ApiService.updateGlumac(
-                                glumac!.id!,
+                                glumac.id,
                                 glumacData,
                               );
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -305,11 +283,11 @@ class _GlumciScreenState extends State<GlumciScreen> {
                               color: Colors.grey[200],
                             ),
                             child:
-                                glumac.slika != null && glumac.slika!.isNotEmpty
+                                glumac.slika.isNotEmpty
                                     ? ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.memory(
-                                        base64Decode(glumac.slika!),
+                                        base64Decode(glumac.slika),
                                         fit: BoxFit.cover,
                                       ),
                                     )

@@ -327,7 +327,7 @@ class InsertNovosti {
       'naslov': naslov,
       'sadrzaj': sadrzaj,
       'datumObjave': datumObjave.toIso8601String(),
-      'slika': slika ?? "",
+      'slika': slika,
     };
   }
 }
@@ -707,4 +707,103 @@ class IzvedbaPeriodModel {
   @override
   String toString() =>
       "$nazivPredstave (${datumVrijemeIzvodjenja.toLocal().toString().split(" ")[0]})";
+}
+
+class KomentarPredstavaDTO {
+  final int id;
+  final int korisnikId;
+  final int predstavaId;
+  final int ocjena;
+  final DateTime datum;
+  final String komentar;
+  final String imeKorisnika;
+  final String prezimeKorisnika;
+
+  KomentarPredstavaDTO({
+    required this.id,
+    required this.korisnikId,
+    required this.predstavaId,
+    required this.ocjena,
+    required this.datum,
+    required this.komentar,
+    required this.imeKorisnika,
+    required this.prezimeKorisnika,
+  });
+
+  factory KomentarPredstavaDTO.fromJson(Map<String, dynamic> json) {
+    return KomentarPredstavaDTO(
+      id: json['id'],
+      korisnikId: json['korisnikId'],
+      predstavaId: json['predstavaId'],
+      ocjena: json['ocjena'],
+      datum: DateTime.parse(json['datum']),
+      komentar: json['komentar'],
+      imeKorisnika: json['imeKorisnika'],
+      prezimeKorisnika: json['prezimeKorisnika'],
+    );
+  }
+}
+
+class KomentarObavijest {
+  final int id;
+  final int obavijestId;
+  final int korisnikId;
+  final String text;
+  final DateTime datum;
+  final String imeKorisnika;
+  final String prezimeKorisnika;
+
+  KomentarObavijest({
+    required this.id,
+    required this.obavijestId,
+    required this.korisnikId,
+    required this.text,
+    required this.datum,
+    required this.imeKorisnika,
+    required this.prezimeKorisnika,
+  });
+
+  factory KomentarObavijest.fromJson(Map<String, dynamic> json) {
+    return KomentarObavijest(
+      id: json['id'],
+      obavijestId: json['obavijestId'],
+      korisnikId: json['korisnikId'],
+      text: json['text'],
+      datum: DateTime.parse(json['datum']),
+      imeKorisnika: json['imeKorisnika'],
+      prezimeKorisnika: json['prezimeKorisnika'],
+    );
+  }
+}
+
+class OdgovorKomentar {
+  final int id;
+  final int komentariObavijestiId;
+  final int korisnikId;
+  final String textOdgovora;
+  final DateTime datum;
+  final String imeKorisnika;
+  final String prezimeKorisnika;
+
+  OdgovorKomentar({
+    required this.id,
+    required this.komentariObavijestiId,
+    required this.korisnikId,
+    required this.textOdgovora,
+    required this.datum,
+    required this.imeKorisnika,
+    required this.prezimeKorisnika,
+  });
+
+  factory OdgovorKomentar.fromJson(Map<String, dynamic> json) {
+    return OdgovorKomentar(
+      id: json['id'],
+      komentariObavijestiId: json['komentariObavijestiId'],
+      korisnikId: json['korisnikId'],
+      textOdgovora: json['textOdgovora'],
+      datum: DateTime.parse(json['datum']),
+      imeKorisnika: json['imeKorisnika'],
+      prezimeKorisnika: json['prezimeKorisnika'],
+    );
+  }
 }

@@ -1,5 +1,7 @@
 import 'package:etheater_admin/screens/glumci_screen.dart';
 import 'package:etheater_admin/screens/izvedba_screen.dart';
+import 'package:etheater_admin/screens/komentari_novosti_screen.dart';
+import 'package:etheater_admin/screens/komentari_predstave_screen.dart';
 import 'package:etheater_admin/screens/novosti_screen.dart';
 import 'package:etheater_admin/screens/repertoar_screen.dart';
 import 'package:etheater_admin/screens/reziseri_screen.dart';
@@ -20,6 +22,7 @@ class MasterScreen extends StatefulWidget {
 class _MasterScreenState extends State<MasterScreen> {
   bool _osobljeExpanded = false;
   bool _repertoarExpanded = false;
+  bool _komentariExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +156,43 @@ class _MasterScreenState extends State<MasterScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => RepertoarScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            ExpansionTile(
+              leading: const Icon(Icons.comment, color: Colors.black),
+              title: const Text(
+                "Upravljanje komentarima",
+                style: TextStyle(color: Colors.black),
+              ),
+              initiallyExpanded: _komentariExpanded,
+              onExpansionChanged: (expanded) {
+                setState(() {
+                  _komentariExpanded = expanded;
+                });
+              },
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.theater_comedy, size: 20),
+                  title: const Text("Komentari na predstave"),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => KomentariPredstaveScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.announcement, size: 20),
+                  title: const Text("Komentari na obavijesti"),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => KomentariNovostiScreen(),
                       ),
                     );
                   },

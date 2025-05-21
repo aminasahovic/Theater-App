@@ -7,18 +7,19 @@ import 'package:etheater_admin/models/models.dart'
         GlumacPredstavaInsert,
         InsertGlumac,
         InsertNovosti,
-        InsertRepertoar,
         InsertReziser,
         Izvedba,
         IzvedbaInsert,
         IzvedbaPeriodModel,
         IzvedbaUpdateRequest,
-        IzvedbaZaRepertoar,
+        KomentarObavijest,
+        KomentarPredstavaDTO,
         KorisniciInsert,
         Korisnik,
         KorisnikById,
         NovostById,
         Obavijest,
+        OdgovorKomentar,
         PagedResult,
         Predstava,
         PredstavaInsert,
@@ -797,6 +798,116 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Greška pri brisanju izvedbe.');
+    }
+  }
+
+  static Future<PagedResult<KomentarPredstavaDTO>> getKomentariByPredstava(
+    int predstavaId, {
+    int page = 1,
+    int pageSize = 3,
+  }) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/KomentarPredstava/ByPredstava?PredstavaId=$predstavaId&Page=$page&PageSize=$pageSize',
+    );
+    print(page);
+    print(pageSize);
+    final response = await http.get(url, headers: _createHeaders());
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      try {
+        final jsonData = json.decode(response.body);
+        final List<dynamic> list = jsonData['resultList'];
+        final int count = jsonData['count'];
+        final items =
+            list.map((e) => KomentarPredstavaDTO.fromJson(e)).toList();
+        return PagedResult(count: count, resultList: items);
+      } catch (e) {
+        throw Exception('Greška prilikom parsiranja komentara.');
+      }
+    } else {
+      throw Exception('Greška prilikom dohvaćanja komentara.');
+    }
+  }
+
+  static Future<void> deleteKomentarPredstava(int komentarId) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/KomentarPredstava/$komentarId'),
+      headers: _createHeaders(),
+    );
+
+    if (response.statusCode >= 400) {
+      throw Exception('Greška pri brisanju komentara');
+    }
+  }
+
+  Future<Map<String, dynamic>> getKomentariByObavijest({
+    required int obavijestId,
+    int page = 1,
+    int pageSize = 6,
+  }) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/KomentarObavijest/GetByObavijest?ObavijestiId=$obavijestId&Page=$page&PageSize=$pageSize',
+    );
+
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<KomentarObavijest> komentari =
+          (data['resultList'] as List)
+              .map((json) => KomentarObavijest.fromJson(json))
+              .toList();
+
+      return {'data': komentari, 'count': data['count']};
+    } else {
+      throw Exception('Greška pri dohvatu komentara');
+    }
+  }
+
+  Future<Map<String, dynamic>> getOdgovoriNaKomentar({
+    required int komentariObavijestiId,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/OdgovorKomentar/GetByKomentarId?KomentariObavijestiId=$komentariObavijestiId&Page=$page&PageSize=$pageSize',
+    );
+
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final List<OdgovorKomentar> odgovori =
+          (jsonData['resultList'] as List)
+              .map((o) => OdgovorKomentar.fromJson(o))
+              .toList();
+      return {"count": jsonData['count'], "data": odgovori};
+    } else {
+      throw Exception("Greška pri dohvatu odgovora.");
+    }
+  }
+
+  static Future<void> deleteKomentar(int id) async {
+    print(id);
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/KomentarObavijest/$id'),
+      headers: ApiService._createHeaders(),
+    );
+
+    if (response.statusCode >= 400) {
+      throw Exception('Greška pri brisanju komentara');
+    }
+  }
+
+  static Future<void> deleteOdgovorKomentar(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiKonstante.baseUrl}/OdgovorKomentar/$id'),
+      headers: ApiService._createHeaders(),
+    );
+
+    if (response.statusCode >= 400) {
+      throw Exception('Greška pri brisanju odgovora');
     }
   }
 }

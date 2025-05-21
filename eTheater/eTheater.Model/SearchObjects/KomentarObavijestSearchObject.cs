@@ -6,5 +6,6 @@ namespace eTheater.Model.SearchObjects
 {
     public class KomentarObavijestSearchObject:BaseSearchObject
     {
+        
     }
 }

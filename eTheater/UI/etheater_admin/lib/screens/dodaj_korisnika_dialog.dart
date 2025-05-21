@@ -1,9 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/services/services.dart' show ApiService;
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 
 class DodajKorisnikaDialog extends StatefulWidget {
@@ -23,7 +20,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
   String password = '';
   String passwordPotvrda = '';
   String brojTelefona = '';
-  String email = ''; // Dodan email
+  String email = '';
   bool isActive = true;
   TipKorisnika? selectedTip;
   List<TipKorisnika> tipovi = [];
@@ -56,7 +53,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
       password: password,
       passwordPotvrda: passwordPotvrda,
       brojTelefona: brojTelefona,
-      email: email, // Dodan email
+      email: email,
       isActive: isActive,
       tipKorisnikaId: selectedTip?.id,
     );

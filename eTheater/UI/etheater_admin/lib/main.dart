@@ -1,4 +1,3 @@
-import 'package:etheater_admin/core/theme.dart';
 import 'package:etheater_admin/providers/auth_providers.dart';
 import 'package:etheater_admin/providers/predstava_provider.dart';
 import 'package:etheater_admin/screens/login_screen.dart';

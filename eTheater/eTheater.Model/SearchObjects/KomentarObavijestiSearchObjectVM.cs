@@ -4,9 +4,9 @@ using System.Text;
 
 namespace eTheater.Model.SearchObjects
 {
-    public class KomentarPrestavaSearchObject:BaseSearchObject
+    public class KomentarObavijestiSearchObjectVM:BaseSearchObject
     {
-        public int? PredstavaId { get; set; }
+        public string? ObavijestiId { get; set; } = null!;
 
     }
 }
