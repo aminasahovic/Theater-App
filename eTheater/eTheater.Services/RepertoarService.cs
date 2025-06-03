@@ -27,6 +27,10 @@ namespace eTheater.Services
             {
                 query = query.Where(x => x.PocetakDatum.Date.Equals(searchObject.PocetakDatum.Value.Date));
             }
+            if (searchObject.IsActive == true)
+            {
+                query = query.Where(x => x.KrajDatum > DateTime.Now).OrderBy(x => x.PocetakDatum);
+            }
 
             return query;
         }

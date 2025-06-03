@@ -13,8 +13,6 @@ public partial class Korisnik
 
     public string Username { get; set; } = null!;
 
-    public string Password { get; set; } = null!;
-
     public string? Salt { get; set; }
 
     public bool? IsActive { get; set; }

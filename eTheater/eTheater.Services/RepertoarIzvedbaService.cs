@@ -25,7 +25,8 @@ namespace eTheater.Services
             var query = from ri in context.RepertoarIzvedbas
                         join i in context.Izvedbas on ri.IzvedbaId equals i.Id
                         join p in context.Predstavas on i.Predstava.Id equals p.Id
-                        where ri.RepertoarId == repertoarId && ri.IsDeleted== false
+                        where ri.RepertoarId == repertoarId && ri.IsDeleted == false && i.IsDeleted==false && p.IsDeleted==false
+                        orderby ri.Izvedba.DatumVrijeme
                         select new RepertoarIzvedbaDTO
                         {
                             RepertoarIzvedbaId = ri.Id,
@@ -33,8 +34,10 @@ namespace eTheater.Services
                             NazivPredstave = p.Naziv,
                             DatumVrijemeIzvedbe = ri.Izvedba.DatumVrijeme,
                             PredstavaId=p.Id,
-                            IzvedbaId= i.Id
+                            IzvedbaId= i.Id,
+                            Plakat=p.Plakat
                         };
+       
 
             return await query.ToListAsync();
         }

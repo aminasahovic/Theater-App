@@ -12,9 +12,12 @@ namespace eTheater.API
     public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         IKorisnikService _korisnikService;
-        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IKorisnikService korisniciService) : base(options, logger, encoder, clock)
+        ITipKorisnikService _korisnikServiceTip;
+
+        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IKorisnikService korisniciService, ITipKorisnikService tipKorisnikService) : base(options, logger, encoder, clock)
         {
             _korisnikService = korisniciService;
+            _korisnikServiceTip = tipKorisnikService;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -44,7 +47,8 @@ namespace eTheater.API
                     new Claim(ClaimTypes.Name, user.Ime),
                     new Claim(ClaimTypes.NameIdentifier, user.Username)
                 };
-                claims.Add(new Claim(ClaimTypes.Role, user.TipKorisnika.Naziv));
+                var tip = _korisnikServiceTip.GetById((int)user.TipKorisnikaId).Naziv.ToString();
+                claims.Add(new Claim(ClaimTypes.Role, tip));
                 
                 var identity = new ClaimsIdentity(claims, Scheme.Name);
 

@@ -17,6 +17,8 @@ public partial class IzvedbaSjediste
 
     public bool IsSlobodno { get; set; }
 
+    public int? RezervacijaId { get; set; }
+
     public virtual Izvedba? Izvedba { get; set; }
 
     public virtual Sjediste? Sjediste { get; set; }

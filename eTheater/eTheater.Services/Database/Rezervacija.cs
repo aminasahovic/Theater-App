@@ -21,6 +21,8 @@ public partial class Rezervacija
 
     public bool IsDeleted { get; set; }
 
+    public DateTime DatumVrijemeKupovine { get; set; }
+
     public virtual Izvedba? Izvedba { get; set; }
 
     public virtual Korisnik? Korisnik { get; set; }

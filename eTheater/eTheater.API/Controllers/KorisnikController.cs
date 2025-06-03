@@ -22,5 +22,11 @@ namespace eTheater.API.Controllers
         {
             return (_service as IKorisnikService).Login(username, password);
         }
+        [HttpPost]
+        [AllowAnonymous]
+        public override Model.Korisnik Insert([FromBody] KorisnikInsertRequest request)
+        {
+            return base.Insert(request);
+        }
     }
 }

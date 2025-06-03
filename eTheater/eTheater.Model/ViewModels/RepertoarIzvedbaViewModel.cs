@@ -12,6 +12,8 @@ namespace eTheater.Model.ViewModels
         public int IzvedbaId { get; set; }
         public string NazivPredstave { get; set; }
         public DateTime DatumVrijemeIzvedbe { get; set; }
+        public string? Plakat { get; set; }
+
     }
 
 }

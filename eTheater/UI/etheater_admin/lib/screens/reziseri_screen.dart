@@ -227,7 +227,7 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                   crossAxisCount: 3,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 3, // široke kartice
+                  childAspectRatio: 3,
                 ),
                 itemBuilder: (context, index) {
                   final reziser = _reziseri[index];

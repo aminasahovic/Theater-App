@@ -97,6 +97,19 @@ namespace eTheater.Services
                 entity.Salt = GenerateSalt();
                 entity.Hash = GenerateHash(entity.Salt, request.Password);
             }
+            else
+            {
+                var existingUser = Context.Korisniks.AsNoTracking().FirstOrDefault(x => x.Id == entity.Id);
+                if (existingUser != null)
+                {
+                    entity.Salt = existingUser.Salt;
+                    entity.Hash = existingUser.Hash;
+                }
+                else
+                {
+                    throw new Exception("Korisnik nije pronađen u bazi podataka.");
+                }
+            }
         }
 
         public Model.Korisnik Login(string username, string password)

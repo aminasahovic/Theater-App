@@ -774,3 +774,8 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+eTheater/UI/etheater_mobile/linux/flutter/generated_plugin_registrant.cc
+eTheater/UI/etheater_mobile/linux/flutter/generated_plugins.cmake
+eTheater/UI/etheater_mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+eTheater/UI/etheater_mobile/windows/flutter/generated_plugin_registrant.cc
+eTheater/UI/etheater_mobile/windows/flutter/generated_plugins.cmake

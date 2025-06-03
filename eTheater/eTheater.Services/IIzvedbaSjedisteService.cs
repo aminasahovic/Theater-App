@@ -10,5 +10,7 @@ namespace eTheater.Services
 {
     public interface IIzvedbaSjedisteService:ICRUDService<Model.IzvedbaSjediste, IzvedbaSjedisteSearchObject, IzvedbaSjedisteInsertRequest, IzvedbaSjedisteUpdateRequest>
     {
+        Task<List<Model.IzvedbaSjediste>> GetByIzvedbaIdAsync(int izvedbaId);
+
     }
 }

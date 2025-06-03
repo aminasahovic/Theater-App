@@ -315,7 +315,7 @@ class ApiService {
     }
   }
 
-  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 2}) async {
+  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 4}) async {
     final url = Uri.parse(
       '${ApiKonstante.baseUrl}/Glumac?Page=$page&PageSize=$pageSize',
     );

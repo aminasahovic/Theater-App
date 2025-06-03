@@ -215,9 +215,6 @@ public partial class ETheaterContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
-            entity.Property(e => e.Password)
-                .HasMaxLength(255)
-                .IsUnicode(false);
             entity.Property(e => e.Prezime)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -348,6 +345,9 @@ public partial class ETheaterContext : DbContext
             entity.ToTable("Rezervacija");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.DatumVrijemeKupovine)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IsKupljeno).HasDefaultValue(false);
             entity.Property(e => e.IsUsedTicket)
