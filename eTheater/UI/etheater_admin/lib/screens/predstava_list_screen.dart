@@ -16,12 +16,10 @@ class PredstaveScreen extends StatefulWidget {
 
 class _PredstaveScreenState extends State<PredstaveScreen> {
   int _trenutnaStranica = 1;
-  int _pageSize = 5;
+  final int _pageSize = 5;
   int _ukupnoRezultata = 0;
   final ApiService _apiService = ApiService();
-  final TextEditingController _searchController = TextEditingController();
-
-  List<Predstava> _svePredstave = [];
+  bool? _isActiveFilter;
   List<Predstava> _filtriranePredstave = [];
   List<Zanr> _zanrovi = [];
   Zanr? _odabraniZanr;
@@ -55,6 +53,7 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
         zanrId: _odabraniZanr?.id,
         reziserId: _odabraniReziser?.id,
         godina: _odabranaGodina != null ? int.tryParse(_odabranaGodina!) : null,
+        isActive: _isActiveFilter,
         page: _trenutnaStranica,
         pageSize: _pageSize,
       );
@@ -66,16 +65,6 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
     } catch (e) {
       print('Greška prilikom dohvaćanja predstava: $e');
     }
-  }
-
-  void _filterPredstave() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filtriranePredstave =
-          _svePredstave
-              .where((p) => p.naziv.toLowerCase().contains(query))
-              .toList();
-    });
   }
 
   Widget _buildPaginationControls() {
@@ -116,151 +105,175 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
   }
 
   Widget _buildPlakat(String? base64Image) {
-    if (base64Image == null || base64Image.isEmpty) {
-      return Container(
-        width: 200,
-        height: 380,
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          Icons.image_not_supported,
-          size: 40,
-          color: Colors.grey[700],
-        ),
-      );
-    }
-
-    try {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.memory(
-          base64Decode(base64Image),
-          width: 200,
-          height: 350,
-          fit: BoxFit.cover,
-        ),
-      );
-    } catch (_) {
-      return Container(
-        width: 100,
-        height: 140,
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(Icons.broken_image, size: 40, color: Colors.grey[700]),
-      );
-    }
-  }
-
-  Widget _buildPredstavaCard(Predstava predstava) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      width: 140,
+      height: 200,
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        color: Colors.grey[200],
         boxShadow: [
           BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPlakat(predstava.plakat),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12.0,
-                horizontal: 4,
+      child:
+          base64Image == null || base64Image.isEmpty
+              ? Center(
+                child: Icon(
+                  Icons.image_not_supported,
+                  size: 40,
+                  color: Colors.grey[600],
+                ),
+              )
+              : ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.memory(
+                  base64Decode(base64Image),
+                  fit: BoxFit.cover,
+                  width: 140,
+                  height: 200,
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    predstava.naziv,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.brown[800],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    predstava.opis,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, size: 16, color: Colors.brown),
-                      const SizedBox(width: 4),
-                      Text('${predstava.trajanje} min'),
-                      const SizedBox(width: 16),
-                      Icon(Icons.calendar_today, size: 16, color: Colors.brown),
-                      const SizedBox(width: 4),
-                      Text('${predstava.godina}'),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        predstava.isActive ? Icons.check_circle : Icons.cancel,
-                        size: 16,
-                        color: predstava.isActive ? Colors.green : Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(predstava.isActive ? 'Aktivna' : 'Neaktivna'),
-                    ],
-                  ),
-                  const SizedBox(height: 180),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => PredstavaDetailsScreen(
-                                    predstavaId: predstava.id,
-                                  ),
-                            ),
-                          );
+    );
+  }
 
-                          if (result == true) {
-                            await _fetchData();
-                          }
-                        },
-
-                        icon: Icon(Icons.info_outline, color: Colors.blue),
-                        label: Text('Detalji'),
-                      ),
-                      const SizedBox(width: 10),
-                      TextButton.icon(
-                        onPressed:
-                            () => showDeleteConfirmationDialog(
-                              context: context,
-                              predstavaId: predstava.id!,
-                              onDeleted: _fetchData,
-                            ),
-                        icon: Icon(Icons.delete_outline, color: Colors.red),
-                        label: Text('Obriši'),
-                      ),
-                    ],
-                  ),
-                ],
+  Widget _buildPredstavaCard(Predstava predstava) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return InkWell(
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) => PredstavaDetailsScreen(predstavaId: predstava.id),
               ),
+            );
+            if (result == true) {
+              await _fetchData();
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPlakat(predstava.plakat),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        predstava.naziv,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.brown[900],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              predstava.isActive
+                                  ? Colors.green[100]
+                                  : Colors.red[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          predstava.isActive ? 'Aktivna' : 'Neaktivna',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                predstava.isActive
+                                    ? Colors.green[800]
+                                    : Colors.red[800],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 18,
+                                color: Colors.brown,
+                              ),
+                              const SizedBox(width: 4),
+                              Text('${predstava.trajanje} min'),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 18,
+                                color: Colors.brown,
+                              ),
+                              const SizedBox(width: 4),
+                              Text('${predstava.godina}'),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        predstava.opis,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            onPressed:
+                                () => showDeleteConfirmationDialog(
+                                  context: context,
+                                  predstavaId: predstava.id,
+                                  onDeleted: _fetchData,
+                                ),
+                            icon: Icon(Icons.delete_outline),
+                            label: Text('Obriši'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -393,13 +406,43 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                             ),
                           ),
                           const SizedBox(width: 10),
+                          Expanded(
+                            flex: 1,
+                            child: DropdownButtonFormField<bool>(
+                              value: _isActiveFilter,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                hintText: 'Status',
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: null,
+                                  child: Text('Sve'),
+                                ),
+                                DropdownMenuItem(
+                                  value: true,
+                                  child: Text('Aktivne'),
+                                ),
+                                DropdownMenuItem(
+                                  value: false,
+                                  child: Text('Neaktivne'),
+                                ),
+                              ],
+                              onChanged: (bool? value) {
+                                setState(() => _isActiveFilter = value);
+                                _primijeniFiltere();
+                              },
+                            ),
+                          ),
+
                           Row(
                             children: [
-                              IconButton(
-                                onPressed: _primijeniFiltere,
-                                icon: Icon(Icons.search),
-                                tooltip: 'Pretrazi',
-                              ),
                               const SizedBox(width: 10),
                               IconButton(
                                 icon: Icon(Icons.refresh),
@@ -410,6 +453,7 @@ class _PredstaveScreenState extends State<PredstaveScreen> {
                                     _odabraniZanr = null;
                                     _odabraniReziser = null;
                                     _odabranaGodina = null;
+                                    _isActiveFilter = null;
                                   });
                                   _fetchData();
                                 },

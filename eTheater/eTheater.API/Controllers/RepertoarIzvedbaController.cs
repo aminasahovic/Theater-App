@@ -15,9 +15,9 @@ namespace eTheater.API.Controllers
         }
 
         [HttpGet("Izvedbe/{repertoarId}")]
-        public async Task<IActionResult> GetRepertoarIzvedbeWithDetails(int repertoarId)
+        public async Task<IActionResult> GetRepertoarIzvedbeWithDetails(int repertoarId, [FromQuery] RepertoarIzvedbaSearchObject repertoarIzvedbaSearch)
         {
-            var result = await service.GetRepertoarIzvedbeWithDetails(repertoarId);
+            var result = await service.GetRepertoarIzvedbeWithDetails(repertoarId, repertoarIzvedbaSearch);
             if (result == null)
             {
                 return NotFound("No data found for the provided Repertoar ID.");

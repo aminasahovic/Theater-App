@@ -16,7 +16,7 @@ namespace eTheater.Model
         public string? Email { get; set; }
 
         public string? BrojTelefona { get; set; }
-        
+        public bool? IsActive { get; set; }
 
     }
 }

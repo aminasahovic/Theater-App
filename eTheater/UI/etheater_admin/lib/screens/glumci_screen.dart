@@ -17,11 +17,12 @@ class _GlumciScreenState extends State<GlumciScreen> {
   List<Glumac> _glumci = [];
   String _searchQuery = '';
   int _currentPage = 1;
+  int _pageSize = 5;
+  int _totalCount = 0;
 
   final imeController = TextEditingController();
   final prezimeController = TextEditingController();
   String base64Slika = '';
-
   bool isFormValid = false;
 
   @override
@@ -32,16 +33,18 @@ class _GlumciScreenState extends State<GlumciScreen> {
 
   void _fetchGlumci() async {
     try {
-      final glumci = await _apiService.getGlumci(page: _currentPage);
+      final result = await _apiService.getGlumci(
+        page: _currentPage,
+        pageSize: _pageSize,
+        imePrezime: _searchQuery,
+      );
+
       setState(() {
-        _glumci =
-            glumci.where((g) {
-              final imePrezime = '${g.ime} ${g.prezime}'.toLowerCase();
-              return imePrezime.contains(_searchQuery.toLowerCase());
-            }).toList();
+        _glumci = result.resultList; // Uzmi listu glumaca
+        _totalCount = result.count; // Ukupan broj glumaca
       });
     } catch (e) {
-      print('Error fetching glumci: $e');
+      print('Greška prilikom dohvaćanja glumaca: $e');
     }
   }
 
@@ -131,9 +134,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('Odustani'),
                 ),
                 TextButton(
@@ -190,9 +191,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Otkaži'),
             ),
             TextButton(
@@ -209,11 +208,41 @@ class _GlumciScreenState extends State<GlumciScreen> {
     );
   }
 
-  void _changePage(int page) {
-    setState(() {
-      _currentPage = page;
-    });
-    _fetchGlumci();
+  Widget _buildPaginationControls() {
+    int ukupnoStranica = (_totalCount / _pageSize).ceil();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed:
+              _currentPage > 1
+                  ? () {
+                    setState(() {
+                      _currentPage--;
+                    });
+                    _fetchGlumci();
+                  }
+                  : null,
+          child: const Text('Prethodna'),
+        ),
+        const SizedBox(width: 16),
+        Text('Stranica $_currentPage od $ukupnoStranica'),
+        const SizedBox(width: 16),
+        ElevatedButton(
+          onPressed:
+              _currentPage < ukupnoStranica
+                  ? () {
+                    setState(() {
+                      _currentPage++;
+                    });
+                    _fetchGlumci();
+                  }
+                  : null,
+          child: const Text('Sljedeća'),
+        ),
+      ],
+    );
   }
 
   @override
@@ -235,6 +264,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
                     onChanged: (value) {
                       setState(() {
                         _searchQuery = value;
+                        _currentPage = 1;
                       });
                       _fetchGlumci();
                     },
@@ -242,9 +272,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    _showGlumacDialog();
-                  },
+                  onPressed: () => _showGlumacDialog(),
                   icon: const Icon(Icons.add),
                   label: const Text("Dodaj glumca"),
                   style: ElevatedButton.styleFrom(
@@ -255,104 +283,90 @@ class _GlumciScreenState extends State<GlumciScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: GridView.builder(
-                itemCount: _glumci.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.8,
-                ),
-                itemBuilder: (context, index) {
-                  final glumac = _glumci[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 6,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            height: 350,
-                            width: 320,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.grey[200],
-                            ),
-                            child:
-                                glumac.slika.isNotEmpty
-                                    ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.memory(
-                                        base64Decode(glumac.slika),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                    : const Center(
-                                      child: Icon(Icons.person_off, size: 40),
-                                    ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${glumac.ime} ${glumac.prezime}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  size: 20,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () {
-                                  _showGlumacDialog(glumac: glumac);
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  size: 20,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () {
-                                  _deleteGlumac(glumac.id);
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+              child: Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return GridView.builder(
+                      itemCount: _glumci.length,
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 300, // prilagodi prema potrebi
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.65, // možeš mijenjati po potrebi
                       ),
-                    ),
-                  );
-                },
+                      itemBuilder: (context, index) {
+                        final glumac = _glumci[index];
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.grey[200],
+                                    ),
+                                    child:
+                                        glumac.slika.isNotEmpty
+                                            ? ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Image.memory(
+                                                base64Decode(glumac.slika),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                            : const Center(
+                                              child: Icon(
+                                                Icons.person_off,
+                                                size: 40,
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${glumac.ime} ${glumac.prezime}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 20),
+                                      onPressed:
+                                          () =>
+                                              _showGlumacDialog(glumac: glumac),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, size: 20),
+                                      onPressed: () => _deleteGlumac(glumac.id),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed:
-                      _currentPage > 1
-                          ? () => _changePage(_currentPage - 1)
-                          : null,
-                ),
-                Text('Stranica $_currentPage'),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: () => _changePage(_currentPage + 1),
-                ),
-              ],
-            ),
+            const SizedBox(height: 10),
+            _buildPaginationControls(),
           ],
         ),
       ),

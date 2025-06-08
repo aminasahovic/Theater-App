@@ -94,7 +94,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                         onChanged: (val) => ime = val,
                         validator: (val) {
                           if (val!.isEmpty) return 'Unesite ime';
-                          if (!RegExp(r'^[A-ZŽ][a-zž]+$').hasMatch(val))
+                          if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(val))
                             return 'Ime mora početi velikim slovom i ne smije sadržavati brojeve';
                           return null;
                         },
@@ -107,7 +107,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                         onChanged: (val) => prezime = val,
                         validator: (val) {
                           if (val!.isEmpty) return 'Unesite prezime';
-                          if (!RegExp(r'^[A-ZŽ][a-zž]+$').hasMatch(val))
+                          if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(val))
                             return 'Prezime mora početi velikim slovom i ne smije sadržavati brojeve';
                           return null;
                         },

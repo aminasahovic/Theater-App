@@ -17,6 +17,8 @@ import 'package:etheater_admin/models/models.dart'
         KorisniciInsert,
         Korisnik,
         KorisnikById,
+        KorisnikUpdateRequest,
+        KorisnikVM,
         NovostById,
         Obavijest,
         OdgovorKomentar,
@@ -74,10 +76,12 @@ class ApiService {
     int? zanrId,
     int? reziserId,
     int? godina,
+    bool? isActive,
     int page = 1,
     int pageSize = 5,
   }) async {
     final queryParams = {
+      if (isActive != null) 'isActive': isActive.toString(),
       if (naziv != null && naziv.isNotEmpty) 'Naziv': naziv,
       if (zanrId != null) 'ZanrId': zanrId.toString(),
       if (reziserId != null) 'ReziserId': reziserId.toString(),
@@ -110,9 +114,9 @@ class ApiService {
       '${ApiKonstante.baseUrl}/Korisnik?Page=$page&PageSize=$pageSize',
     );
     final response = await http.get(url, headers: _createHeaders());
-
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
+
       final List<dynamic> list = decoded['resultList'];
       return list.map((e) => Korisnik.fromJson(e)).toList();
     } else {
@@ -224,6 +228,7 @@ class ApiService {
     String? prezime,
     String? username,
     int? tipKorisnikaId,
+    bool? isActive,
     int page = 1,
     int pageSize = 10,
   }) async {
@@ -232,6 +237,7 @@ class ApiService {
       if (prezime != null && prezime.isNotEmpty) 'PrezimeGTE': prezime,
       if (username != null && username.isNotEmpty) 'KorisnickoIme': username,
       if (tipKorisnikaId != null) 'IsTipKorisnika': tipKorisnikaId.toString(),
+      if (isActive != null) 'IsActive': isActive.toString(),
       'Page': page.toString(),
       'PageSize': pageSize.toString(),
     };
@@ -254,14 +260,12 @@ class ApiService {
     }
   }
 
-  Future<void> updateKorisnik(int id, KorisniciInsert korisnik) async {
-    print(korisnik);
+  Future<void> updateKorisnik(int id, KorisnikUpdateRequest korisnik) async {
     final response = await http.put(
-      Uri.parse('${ApiKonstante.baseUrl}/Korisnici/$id'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${ApiKonstante.baseUrl}/Korisnik/$id'),
+      headers: ApiService._createHeaders(),
       body: jsonEncode(korisnik.toJson()),
     );
-
     if (response.statusCode != 200) {
       throw Exception('Greška prilikom ažuriranja korisnika');
     }
@@ -315,16 +319,29 @@ class ApiService {
     }
   }
 
-  Future<List<Glumac>> getGlumci({int page = 1, int pageSize = 4}) async {
-    final url = Uri.parse(
-      '${ApiKonstante.baseUrl}/Glumac?Page=$page&PageSize=$pageSize',
-    );
-    final response = await http.get(url, headers: ApiService._createHeaders());
+  Future<PagedResult<Glumac>> getGlumci({
+    int page = 1,
+    int pageSize = 4,
+    String? imePrezime,
+  }) async {
+    final query = <String, String>{
+      'Page': page.toString(),
+      'PageSize': pageSize.toString(),
+      if (imePrezime != null && imePrezime.isNotEmpty) 'ImePrezime': imePrezime,
+    };
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Glumac',
+    ).replace(queryParameters: query);
+
+    final response = await http.get(uri, headers: ApiService._createHeaders());
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
-      final List<dynamic> list = decoded['resultList'];
-      return list.map((e) => Glumac.fromJson(e)).toList();
+      return PagedResult<Glumac>.fromJson(
+        decoded,
+        (json) => Glumac.fromJson(json),
+      );
     } else {
       throw Exception('Greška prilikom dohvaćanja glumaca.');
     }
@@ -470,7 +487,6 @@ class ApiService {
   }
 
   static Future<void> dodajNovost(InsertNovosti novost) async {
-    print("Slanje novosti: ${json.encode(novost.toJson())}");
     final response = await http.post(
       Uri.parse('${ApiKonstante.baseUrl}/Obavijest'),
       headers: _createHeaders(),
@@ -588,7 +604,11 @@ class ApiService {
       final decoded = json.decode(response.body);
       return decoded['id'];
     } else {
-      throw Exception('Greška pri dodavanju izvedbe');
+      final error = json.decode(response.body);
+      print(error);
+      final message = error['message'] ?? 'Greška pri dodavanju izvedbe.';
+      print(message);
+      throw Exception(message);
     }
   }
 
@@ -672,7 +692,6 @@ class ApiService {
       if (naziv != null && naziv.isNotEmpty) 'Naziv': naziv,
       if (pocetakDatum != null) 'PocetakDatum': pocetakDatum.toIso8601String(),
     };
-    print(pocetakDatum);
 
     final uri = Uri.parse(
       '${ApiKonstante.baseUrl}/Repertoar',
@@ -696,10 +715,14 @@ class ApiService {
       '${ApiKonstante.baseUrl}/RepertoarIzvedba/Izvedbe/$repertoarId',
     );
     final response = await http.get(url, headers: _createHeaders());
-    print(json.decode(response.body));
+
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((e) => RepertoarIzvedba.fromJson(e)).toList();
+      final data = json.decode(response.body);
+      final pagedResult = PagedResult<RepertoarIzvedba>.fromJson(
+        data,
+        (json) => RepertoarIzvedba.fromJson(json),
+      );
+      return pagedResult.resultList;
     } else {
       throw Exception("Greška pri dohvaćanju izvedbi.");
     }
@@ -809,10 +832,8 @@ class ApiService {
     final url = Uri.parse(
       '${ApiKonstante.baseUrl}/KomentarPredstava/ByPredstava?PredstavaId=$predstavaId&Page=$page&PageSize=$pageSize',
     );
-    print(page);
-    print(pageSize);
+
     final response = await http.get(url, headers: _createHeaders());
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       try {
@@ -889,7 +910,6 @@ class ApiService {
   }
 
   static Future<void> deleteKomentar(int id) async {
-    print(id);
     final response = await http.delete(
       Uri.parse('${ApiKonstante.baseUrl}/KomentarObavijest/$id'),
       headers: ApiService._createHeaders(),
@@ -908,6 +928,17 @@ class ApiService {
 
     if (response.statusCode >= 400) {
       throw Exception('Greška pri brisanju odgovora');
+    }
+  }
+
+  Future<KorisnikVM> getByIdKorisnik(int id) async {
+    final url = Uri.parse('${ApiKonstante.baseUrl}/Korisnik/$id');
+    final response = await http.get(url, headers: _createHeaders());
+
+    if (response.statusCode == 200) {
+      return KorisnikVM.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Greška pri dohvaćanju korisnika.");
     }
   }
 }

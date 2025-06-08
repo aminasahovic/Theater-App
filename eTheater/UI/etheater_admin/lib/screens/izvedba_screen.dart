@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:etheater_admin/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:etheater_admin/layouts/master_screen.dart';
 import 'package:etheater_admin/models/models.dart';
@@ -16,7 +17,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
   Sala? _selectedSala;
   DateTime? _selectedDate;
   int _currentPage = 1;
-  int _pageSize = 3;
+  int _pageSize = 10;
   late Future<PagedResult<Izvedba>> _izvedbeFuture;
   List<Sala> _sale = [];
 
@@ -181,7 +182,12 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
           IconButton(onPressed: _clearFilters, icon: const Icon(Icons.clear)),
           const SizedBox(width: 8),
           ElevatedButton(
-            onPressed: _openIzvedbaPopup,
+            onPressed: () async {
+              _openIzvedbaPopup();
+              setState(() {
+                _fetchIzvedbe();
+              });
+            },
             child: const Text('Dodaj izvedbu'),
           ),
         ],
@@ -210,12 +216,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                       ),
                     )
                     : Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.grey,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                      ),
+                      decoration: const BoxDecoration(color: Colors.grey),
                       child: const Center(
                         child: Icon(Icons.image, size: 50, color: Colors.white),
                       ),
@@ -255,18 +256,55 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () async {
-                        _openIzvedbaPopup(
-                          updateData: izvedba,
-                        ); // ili bez parametra za dodavanje
+                        _openIzvedbaPopup(updateData: izvedba);
                         setState(() {
-                          _fetchIzvedbe(); // osvježi listu nakon zatvaranja popupa
+                          _fetchIzvedbe();
                         });
                       },
                     ),
+
                     IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
-                        _deleteIzvedba(izvedba.id);
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Potvrda"),
+                              content: const Text(
+                                "Da li ste sigurni da želite obrisati ovu izvedbu?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Otkaži"),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.of(context).pop();
+                                    await ApiService.deleteIzvedba(izvedba.id);
+                                    setState(() {
+                                      _fetchIzvedbe();
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Izvedba uspješno obrisana.",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Obriši",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                     ),
                   ],
@@ -280,25 +318,27 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
   }
 
   Widget _buildPagination(int totalPages) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Wrap(
-        spacing: 8,
-        children: List.generate(totalPages, (index) {
-          final pageIndex = index + 1;
-          return ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  _currentPage == pageIndex ? Colors.blue : Colors.grey[300],
-              foregroundColor:
-                  _currentPage == pageIndex ? Colors.white : Colors.black,
-              minimumSize: const Size(40, 40),
-            ),
-            onPressed: () => _goToPage(pageIndex),
-            child: Text(pageIndex.toString()),
-          );
-        }),
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed:
+              _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
+          style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+          child: const Text('Prethodna'),
+        ),
+        const SizedBox(width: 16),
+        Text('$_currentPage od $totalPages'),
+        const SizedBox(width: 16),
+        TextButton(
+          onPressed:
+              _currentPage < totalPages
+                  ? () => _goToPage(_currentPage + 1)
+                  : null,
+          style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+          child: const Text('Sljedeća'),
+        ),
+      ],
     );
   }
 
@@ -371,12 +411,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                               );
                             }).toList(),
 
-                        decoration: InputDecoration(
-                          labelText: 'Predstava',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                        decoration: InputDecoration(labelText: 'Predstava'),
                         validator:
                             (value) =>
                                 value == null ? 'Odaberite predstavu' : null,
@@ -396,34 +431,33 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                                   ),
                                 )
                                 .toList(),
-                        decoration: InputDecoration(
-                          labelText: 'Sala',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                        decoration: InputDecoration(labelText: 'Sala'),
                         validator:
                             (value) => value == null ? 'Odaberite salu' : null,
                       ),
                       const SizedBox(height: 8),
-
                       TextFormField(
                         controller: _cijenaController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Cijena karte',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          labelText: 'Cijena karte (KM)',
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Unesite cijenu';
-                          if (double.tryParse(value) == null)
-                            return 'Neispravan broj';
+                          }
+                          final number = double.tryParse(value);
+                          if (number == null) {
+                            return 'Unesite validan broj';
+                          }
+                          if (number < 0) {
+                            return 'Cijena ne može biti negativna';
+                          }
                           return null;
                         },
                       ),
+
                       const SizedBox(height: 8),
 
                       TextButton(
@@ -491,7 +525,6 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                   onPressed: () async {
                     try {
                       if (updateData == null) {
-                        // Kreirajte novi objekt za dodavanje
                         final izvedba = IzvedbaInsert(
                           predstavaId: _selectedPredstava!.id,
                           salaId: _selectedSala!.id,
@@ -499,15 +532,12 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                           datumVrijeme: _selectedDateTime!.toIso8601String(),
                         );
 
-                        // Pozovite API servis za dodavanje
                         await ApiService.dodajIzvedbu(izvedba);
 
-                        // Prikazivanje poruke o uspjehu
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Izvedba dodana!')),
                         );
                       } else {
-                        // Kreirajte objekt za ažuriranje postojeće izvedbe
                         final izvedba = IzvedbaUpdateRequest(
                           predstavaId: _selectedPredstava!.id,
                           salaId: _selectedSala!.id,
@@ -515,24 +545,15 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                           datumVrijeme: _selectedDateTime!,
                         );
 
-                        // Pozovite API servis za ažuriranje
                         await ApiService.updateIzvedba(izvedba, updateData.id);
 
-                        // Prikazivanje poruke o uspjehu
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Izvedba ažurirana!')),
                         );
                       }
-
-                      // Zatvaranje popup prozora
                       Navigator.pop(context);
-
-                      // Osvježavanje podataka nakon što su promjene spremljene
-                      setState(() {
-                        _fetchIzvedbe(); // Pozivanje funkcije za dohvat novih podataka
-                      });
+                      setState(() => _fetchIzvedbe());
                     } catch (e) {
-                      // Prikazivanje greške ako nešto pođe po zlu
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(SnackBar(content: Text('Greška: $e')));
@@ -546,21 +567,5 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
         );
       },
     );
-  }
-
-  void _deleteIzvedba(int id) async {
-    final result = await ApiService.deleteIzvedba(id);
-    if (result) {
-      setState(() {
-        _fetchIzvedbe();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Izvedba uspješno obrisana.")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Došlo je do greške pri brisanju.")),
-      );
-    }
   }
 }

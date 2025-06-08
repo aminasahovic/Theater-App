@@ -20,7 +20,7 @@ class _NovostiScreenState extends State<NovostiScreen> {
   bool _isLoading = true;
   int _totalCount = 0;
   int _currentPage = 1;
-  final int _pageSize = 6;
+  final int _pageSize = 10;
   final DateFormat formatter = DateFormat('dd.MM.yyyy.');
 
   final TextEditingController _searchController = TextEditingController();
@@ -30,6 +30,17 @@ class _NovostiScreenState extends State<NovostiScreen> {
   void initState() {
     super.initState();
     _loadNovosti();
+  }
+
+  bool isValidBase64(String? str) {
+    if (str == null || str.isEmpty) return false;
+    if (str.trim().toLowerCase() == 'string') return false;
+    try {
+      base64Decode(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<void> _loadNovosti() async {
@@ -93,12 +104,13 @@ class _NovostiScreenState extends State<NovostiScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return MasterScreen(
       "Novosti",
       _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+          : Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,144 +184,205 @@ class _NovostiScreenState extends State<NovostiScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                for (var obavijest in _novosti)
-                  Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    NovostiDetailsScreen(obavijest: obavijest),
-                          ),
-                        );
-                      },
-                      hoverColor: Colors.grey.shade100,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Slika
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child:
-                                  obavijest.slika != "string" &&
-                                          obavijest.slika != null
-                                      ? Image.memory(
-                                        base64Decode(obavijest.slika!),
-                                        height: 100,
-                                        width: 100,
-                                        fit: BoxFit.cover,
-                                      )
-                                      : Container(
-                                        height: 100,
-                                        width: 100,
-                                        color: Colors.grey.shade200,
-                                        child: const Icon(
-                                          Icons.image,
-                                          size: 40,
-                                        ),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      int crossAxisCount = constraints.maxWidth ~/ 300;
+                      return SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children:
+                              _novosti.map((obavijest) {
+                                return SizedBox(
+                                  width:
+                                      constraints.maxWidth / crossAxisCount -
+                                      12,
+                                  child: Card(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 4,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    NovostiDetailsScreen(
+                                                      obavijest: obavijest,
+                                                    ),
+                                          ),
+                                        );
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(12),
+                                                  topRight: Radius.circular(12),
+                                                ),
+                                            child:
+                                                isValidBase64(obavijest.slika)
+                                                    ? Image.memory(
+                                                      base64Decode(
+                                                        obavijest.slika!,
+                                                      ),
+                                                      height: 140,
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                    : Container(
+                                                      height: 140,
+                                                      width: double.infinity,
+                                                      color:
+                                                          Colors.grey.shade200,
+                                                      child: Center(
+                                                        child: Icon(
+                                                          Icons
+                                                              .image_not_supported,
+                                                          size: 60,
+                                                          color:
+                                                              Colors
+                                                                  .grey
+                                                                  .shade500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                          ),
+
+                                          Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Column(
+                                              children: [
+                                                Text(
+                                                  obavijest.naslov,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  "Datum: ${formatter.format(obavijest.datumObjave.toLocal())}",
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(
+                                                  obavijest.sadrzaj,
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      IconButton(
+                                                        onPressed:
+                                                            () =>
+                                                                _openEditDialog(
+                                                                  context,
+                                                                  obavijest,
+                                                                ),
+                                                        icon: const Icon(
+                                                          Icons.edit,
+                                                          size: 20,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        onPressed:
+                                                            () =>
+                                                                _confirmDelete(
+                                                                  obavijest.id,
+                                                                ),
+                                                        icon: const Icon(
+                                                          Icons.delete,
+                                                          size: 20,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Tekstualni dio
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    obavijest.naslov,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    "Datum objave: ${formatter.format(obavijest.datumObjave.toLocal())}",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    obavijest.sadrzaj,
-                                    maxLines: 4,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          _openEditDialog(context, obavijest);
-                                        },
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          _confirmDelete(obavijest.id);
-                                        },
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                                );
+                              }).toList(),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
+                ),
                 if (_totalPages > 1)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_totalPages, (index) {
-                        int pageNumber = index + 1;
-                        bool isSelected = _currentPage == pageNumber;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  isSelected ? Colors.blue : Colors.grey[300],
-                              foregroundColor:
-                                  isSelected ? Colors.white : Colors.black,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
+                      children: [
+                        ElevatedButton(
+                          onPressed:
+                              _currentPage > 1
+                                  ? () {
+                                    setState(() {
+                                      _currentPage--;
+                                    });
+                                    _loadNovosti();
+                                  }
+                                  : null,
+                          child: const Text("Prethodna"),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _currentPage = pageNumber;
-                              });
-                              _loadNovosti();
-                            },
-                            child: Text(pageNumber.toString()),
                           ),
-                        );
-                      }),
+                        ),
+                        const SizedBox(width: 16),
+                        Text("Stranica $_currentPage od $_totalPages"),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed:
+                              _currentPage < _totalPages
+                                  ? () {
+                                    setState(() {
+                                      _currentPage++;
+                                    });
+                                    _loadNovosti();
+                                  }
+                                  : null,
+                          child: const Text("Sljedeća"),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],

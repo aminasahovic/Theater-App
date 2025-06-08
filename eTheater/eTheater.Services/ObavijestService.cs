@@ -28,7 +28,7 @@ namespace eTheater.Services
                 var datum = searchObject.DatumObjave.Value.Date;
                 query = query.Where(x => x.DatumObjave.Value.Date == datum);
             }
-
+            query = query.OrderByDescending(x => x.Id);
 
             return query;
         }

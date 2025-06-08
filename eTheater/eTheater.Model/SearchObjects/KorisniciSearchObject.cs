@@ -14,6 +14,7 @@ namespace eTheater.Model.SearchObjects
         public string? KorisnickoIme { get; set; }
         public int? IsTipKorisnika { get; set; }
 
-        public string? OrderBy { get; set; }
+        public bool? IsActive { get; set; }
+
     }
 }

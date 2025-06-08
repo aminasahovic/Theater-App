@@ -59,34 +59,47 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
       loading || novost == null || autor == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+            ), // padding za sav sadržaj osim slike
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child:
-                      novost!.slika != null &&
-                              novost!.slika!.isNotEmpty &&
-                              novost!.slika != "string"
-                          ? Image.memory(
-                            base64Decode(novost!.slika!),
-                            height: 350,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                          : Container(
-                            height: 250,
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: Icon(Icons.image_not_supported, size: 64),
+                // Slika "izvucena" iz paddinga
+                Container(
+                  margin: const EdgeInsets.only(
+                    left: -24,
+                    right: -24,
+                  ), // uklanjamo padding
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child:
+                        novost!.slika != null &&
+                                novost!.slika!.isNotEmpty &&
+                                novost!.slika != "string"
+                            ? Image.memory(
+                              base64Decode(novost!.slika!),
+                              height: 400, // viša slika
+                              width: MediaQuery.of(context).size.width,
+                              fit: BoxFit.cover,
+                            )
+                            : Container(
+                              height: 300,
+                              width: MediaQuery.of(context).size.width,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 64,
+                                ),
+                              ),
                             ),
-                          ),
+                  ),
                 ),
+
                 const SizedBox(height: 24),
 
-                // Naslov
+                // Ostatak sadržaja ide sa paddingom od 24
                 Text(
                   novost!.naslov,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(

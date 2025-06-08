@@ -687,3 +687,14 @@ class RezervacijaRequest {
     return data;
   }
 }
+
+class Zanr {
+  final int id;
+  final String naziv;
+
+  Zanr({required this.id, required this.naziv});
+
+  factory Zanr.fromJson(Map<String, dynamic> json) {
+    return Zanr(id: json['id'], naziv: json['naziv']);
+  }
+}

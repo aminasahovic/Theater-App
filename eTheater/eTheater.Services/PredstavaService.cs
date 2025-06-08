@@ -45,13 +45,20 @@ namespace eTheater.Services
 
             if (searchObject.ReziserId.HasValue)
             {
-                query = query.Where(x => x.ZanrId.Equals(searchObject.ReziserId));
+                query = query.Where(x => x.ReziserId.Equals(searchObject.ReziserId));
             }
 
             if (searchObject.Godina.HasValue)
             {
                 query = query.Where(x => x.Godina == searchObject.Godina);
             }
+
+            if (searchObject.IsActive != null)
+            {
+                query = query.Where(x => x.IsActive == searchObject.IsActive);
+
+            }
+            query = query.OrderByDescending(x => x.Id);
 
             return query;
         }

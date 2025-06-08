@@ -257,6 +257,14 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                                       repertoar.id,
                                     );
                                     _loadData();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Repertoar je uspješno obrisan.',
+                                        ),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
                                   }
                                 },
                               ),

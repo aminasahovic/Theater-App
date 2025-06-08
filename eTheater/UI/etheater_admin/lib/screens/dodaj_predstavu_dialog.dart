@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:etheater_admin/core/theme.dart';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/services/services.dart';
 import 'package:file_picker/file_picker.dart';
@@ -79,27 +80,42 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
               flex: 3,
               child: Column(
                 children: [
-                  if (_slikaBytes != null)
-                    Container(
-                      height: 300,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: Image.memory(
-                        _slikaBytes!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                    )
-                  else
-                    Container(
-                      height: 300,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        color: Colors.grey[200],
-                      ),
-                      child: const Center(child: Text('Nema slike')),
+                  Container(
+                    height: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.blueGrey.shade50,
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child:
+                          _slikaBytes != null
+                              ? Image.memory(
+                                _slikaBytes!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              )
+                              : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(
+                                      Icons.image_not_supported,
+                                      size: 60,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      'Nema dodane slike',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                    ),
+                  ),
+
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () async {
@@ -115,16 +131,24 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
                         });
                       }
                     },
-                    icon: const Icon(Icons.image),
-                    label: const Text('Odaberi sliku'),
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Dodaj sliku'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(width: 24),
-
-            // Desna sekcija - forma
             Expanded(
               flex: 7,
               child: SingleChildScrollView(
@@ -271,6 +295,37 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
         ElevatedButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
+              if (odabraniGlumci.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Dodajte barem jednog glumca s unesenom ulogom.',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              bool sveUlogePopunjene = true;
+              for (final glumac in odabraniGlumci) {
+                final uloga = ulogePoGlumcu[glumac.id];
+                if (uloga == null || uloga.trim().isEmpty) {
+                  sveUlogePopunjene = false;
+                  break;
+                }
+              }
+
+              if (!sveUlogePopunjene) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Unesite ulogu za svakog dodanog glumca.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
               _formKey.currentState!.save();
 
               try {
@@ -288,7 +343,7 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
                 final predstavaId = await ApiService.dodajPredstavu(nova);
 
                 for (final glumac in odabraniGlumci) {
-                  final uloga = ulogePoGlumcu[glumac.id] ?? '';
+                  final uloga = ulogePoGlumcu[glumac.id]!;
                   final glumacPredstava = GlumacPredstavaInsert(
                     glumacId: glumac.id,
                     predstavaId: predstavaId,
@@ -313,7 +368,6 @@ class _DodajPredstavuDialogState extends State<DodajPredstavuDialog> {
                     SnackBar(
                       content: Text('Greška pri dodavanju predstave: $e'),
                       backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 3),
                     ),
                   );
                 }

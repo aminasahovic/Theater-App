@@ -11,6 +11,8 @@ namespace eTheater.Model.SearchObjects
         public int? ZanrId { get; set; }
         public int? ReziserId { get; set; }
         public int? Godina { get; set; }
+        public bool? IsActive { get; set; }
+
 
     }
 }

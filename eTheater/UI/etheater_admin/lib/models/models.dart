@@ -111,6 +111,7 @@ class Korisnik {
   final String prezime;
   final String username;
   final String brojTelefona;
+  final int tipKorisnikaId;
   final String? tipKorisnika;
 
   Korisnik({
@@ -120,6 +121,7 @@ class Korisnik {
     required this.username,
     required this.brojTelefona,
     this.tipKorisnika,
+    required this.tipKorisnikaId,
   });
 
   factory Korisnik.fromJson(Map<String, dynamic> json) {
@@ -130,6 +132,7 @@ class Korisnik {
       username: json['username'],
       brojTelefona: json['brojTelefona'],
       tipKorisnika: json['tipKorisnika']?['naziv'],
+      tipKorisnikaId: json['tipKorisnikaId'],
     );
   }
 }
@@ -149,8 +152,8 @@ class KorisniciInsert {
   final String ime;
   final String prezime;
   final String username;
-  final String password;
-  final String passwordPotvrda;
+  final String? password;
+  final String? passwordPotvrda;
   final String brojTelefona;
   final String email;
   final bool isActive;
@@ -160,8 +163,8 @@ class KorisniciInsert {
     required this.ime,
     required this.prezime,
     required this.username,
-    required this.password,
-    required this.passwordPotvrda,
+    this.password,
+    this.passwordPotvrda,
     required this.brojTelefona,
     required this.email,
     required this.isActive,
@@ -548,41 +551,6 @@ class KorisnikById {
   String get punoIme => "$ime $prezime";
 }
 
-class KorisnikUpdateRequest {
-  String ime;
-  String prezime;
-  String telefon;
-  bool status;
-  String email;
-  String password;
-  String passwordPotvrda;
-  int tipKorisnikaId;
-
-  KorisnikUpdateRequest({
-    required this.ime,
-    required this.prezime,
-    required this.telefon,
-    required this.status,
-    required this.email,
-    required this.password,
-    required this.passwordPotvrda,
-    required this.tipKorisnikaId,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'ime': ime,
-      'prezime': prezime,
-      'telefon': telefon,
-      'status': status,
-      'email': email,
-      'password': password,
-      'passwordPotvrda': passwordPotvrda,
-      'tipKorisnikaId': tipKorisnikaId,
-    };
-  }
-}
-
 class Repertoar {
   final int id;
   final String naziv;
@@ -805,5 +773,87 @@ class OdgovorKomentar {
       imeKorisnika: json['imeKorisnika'],
       prezimeKorisnika: json['prezimeKorisnika'],
     );
+  }
+}
+
+class KorisnikVM {
+  int id;
+  String ime;
+  String prezime;
+  String username;
+  int tipKorisnikaId;
+  String email;
+  String brojTelefona;
+  bool? isActive;
+
+  KorisnikVM({
+    required this.id,
+    required this.ime,
+    required this.prezime,
+    required this.username,
+    required this.tipKorisnikaId,
+    required this.email,
+    required this.brojTelefona,
+    this.isActive,
+  });
+
+  factory KorisnikVM.fromJson(Map<String, dynamic> json) {
+    return KorisnikVM(
+      id: json['id'],
+      ime: json['ime'],
+      prezime: json['prezime'],
+      username: json['username'],
+      tipKorisnikaId: json['tipKorisnikaId'],
+      email: json['email'],
+      brojTelefona: json['brojTelefona'],
+      isActive: json['isActive'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'ime': ime,
+      'prezime': prezime,
+      'username': username,
+      'tipKorisnikaId': tipKorisnikaId,
+      'email': email,
+      'brojTelefona': brojTelefona,
+    };
+  }
+}
+
+class KorisnikUpdateRequest {
+  String? ime;
+  String? prezime;
+  String? brojTelefona;
+  bool? isActive;
+  String? email;
+  String? password;
+  String? passwordPotvrda;
+  int? tipKorisnikaId;
+
+  KorisnikUpdateRequest({
+    this.ime,
+    this.prezime,
+    this.brojTelefona,
+    this.isActive,
+    this.email,
+    this.password,
+    this.passwordPotvrda,
+    this.tipKorisnikaId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ime': ime,
+      'prezime': prezime,
+      'brojTelefona': brojTelefona,
+      'isActive': isActive,
+      'email': email,
+      'password': password,
+      'passwordPotvrda': passwordPotvrda,
+      'tipKorisnikaId': tipKorisnikaId,
+    };
   }
 }

@@ -22,7 +22,7 @@ namespace eTheater.Services
             {
                 query = query.Where(x => x.Ime.StartsWith(searchObject.ImePrezime) ||x.Prezime.StartsWith(searchObject.ImePrezime));
             }
-
+            query=query.OrderByDescending(x=> x.Id);
             return query;
         }
         }

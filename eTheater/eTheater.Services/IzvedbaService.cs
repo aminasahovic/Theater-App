@@ -102,6 +102,7 @@ namespace eTheater.Services
                     .Take(searchObject.PageSize.Value);
             }
 
+            query = query.OrderByDescending(x => x.Id);
             var list = await query.ToListAsync();
 
             var resultList = list.Select(item => new IzvedbaViewModel

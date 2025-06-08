@@ -32,11 +32,6 @@ namespace eTheater.Services
                 query = query.Where(x => x.Prezime.StartsWith(searchObject.PrezimeGTE));
             }
 
-            //if (!string.IsNullOrWhiteSpace(searchObject?.Email))
-            //{
-            //    query = query.Where(x => x.Email == searchObject.Email);
-            //}
-
             if (!string.IsNullOrWhiteSpace(searchObject?.KorisnickoIme))
             {
                 query = query.Where(x => x.Username.StartsWith(searchObject.KorisnickoIme));
@@ -46,7 +41,12 @@ namespace eTheater.Services
             {
                 query = query.Where(x=> x.TipKorisnika.Id == searchObject.IsTipKorisnika);
             }
+            if (searchObject.IsActive!=null)
+            {
+                query = query.Where(x => x.IsActive ==searchObject.IsActive);
 
+            }
+            query = query.OrderByDescending(x => x.Id);
             return query;
         }
 
