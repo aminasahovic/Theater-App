@@ -30,6 +30,7 @@ import 'package:etheater_admin/models/models.dart'
         RepertoarIzvedba,
         Reziser,
         Sala,
+        TicketSalesReportDTO,
         TipKorisnika,
         UpdateNovosti,
         Zanr;
@@ -939,6 +940,20 @@ class ApiService {
       return KorisnikVM.fromJson(json.decode(response.body));
     } else {
       throw Exception("Greška pri dohvaćanju korisnika.");
+    }
+  }
+
+  Future<TicketSalesReportDTO> getTicketSalesReport(int izvedbaId) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/Rezervacija/izvjestaj/prodaja/$izvedbaId',
+    );
+    final response = await http.get(url, headers: _createHeaders());
+    if (response.statusCode == 200) {
+      return TicketSalesReportDTO.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(
+        'Greška prilikom dohvata izveštaja: ${response.statusCode}',
+      );
     }
   }
 }

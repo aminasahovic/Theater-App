@@ -15,5 +15,7 @@ namespace eTheater.Services
       Task<PagedResult<RezervacijaViewModel>> GetRezervacijeByKorisnikAsync(KorisnikRezervacijaSearchObject search);
       Task<Boolean> KreirajRezervaciju(RezervacijaInsertRequest insertRequest);
       Task<bool> ObrisiRezervacijuAsync(int rezervacijaId);
+      Task<TicketSalesReportDTO> GetTicketSalesReportAsync(int izvedbaId);
+
     }
 }

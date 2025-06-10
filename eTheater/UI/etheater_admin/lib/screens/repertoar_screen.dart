@@ -1,11 +1,14 @@
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/predstava_details_screen.dart';
 import 'package:etheater_admin/services/services.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../../layouts/master_screen.dart';
 
 class RepertoarScreen extends StatefulWidget {
@@ -322,6 +325,18 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                                                                       .predstavaId,
                                                             ),
                                                       ),
+                                                    );
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.description,
+                                                    color: Color(0xFFB71C1C),
+                                                  ),
+                                                  tooltip: 'Prikaži izveštaj',
+                                                  onPressed: () {
+                                                    _showSalesReportDialog(
+                                                      izvedba,
                                                     );
                                                   },
                                                 ),
@@ -821,5 +836,200 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
         );
       },
     );
+  }
+
+  Future<void> _showSalesReportDialog(RepertoarIzvedba izvedba) async {
+    try {
+      final report = await _apiService.getTicketSalesReport(izvedba.izvedbaId);
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.description, color: Color(0xFFB71C1C)),
+                  SizedBox(width: 8),
+                  Text('Izveštaj za ${izvedba.nazivPredstave}'),
+                ],
+              ),
+              content: SizedBox(
+                width: 500,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Card(
+                        elevation: 2,
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: Icon(Icons.confirmation_number),
+                              title: Text('Izvedba ID'),
+                              subtitle: Text('${report.izvedbaId}'),
+                            ),
+                            Divider(),
+                            ListTile(
+                              leading: Icon(Icons.theater_comedy),
+                              title: Text('Naziv predstave'),
+                              subtitle: Text(report.nazivPredstave),
+                            ),
+                            Divider(),
+                            ListTile(
+                              leading: Icon(Icons.calendar_today),
+                              title: Text('Datum i vreme'),
+                              subtitle: Text(
+                                DateFormat(
+                                  'dd.MM.yyyy HH:mm',
+                                ).format(report.datumVrijeme),
+                              ),
+                            ),
+                            Divider(),
+                            ListTile(
+                              leading: Icon(Icons.people),
+                              title: Text('Ukupno rezervacija'),
+                              subtitle: Text('${report.ukupnoRezervacija}'),
+                            ),
+                            Divider(),
+                            ListTile(
+                              leading: Icon(Icons.attach_money),
+                              title: Text('Ukupni prihod'),
+                              subtitle: Text('${report.ukupniPrihod} BAM'),
+                            ),
+                            Divider(),
+                            ListTile(
+                              leading: Icon(Icons.event_seat),
+                              title: Text('Popunjenost sale'),
+                              subtitle: Text(
+                                '${report.zauzetaMjesta}/${report.ukupnoMjesta} mesta',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Popunjenost sale:',
+                        style: Theme.of(context).textTheme.titleMedium!
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      SizedBox(
+                        height: 250,
+                        child: PieChart(
+                          PieChartData(
+                            sections: [
+                              PieChartSectionData(
+                                value: report.zauzetaMjesta.toDouble(),
+                                color: Colors.blue,
+                                title: '${report.zauzetaMjesta}',
+                                radius: 70,
+                                titleStyle: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              PieChartSectionData(
+                                value:
+                                    (report.ukupnoMjesta - report.zauzetaMjesta)
+                                        .toDouble(),
+                                color: Colors.grey[300]!,
+                                title:
+                                    '${report.ukupnoMjesta - report.zauzetaMjesta}',
+                                radius: 70,
+                                titleStyle: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 50,
+                            borderData: FlBorderData(show: false),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildLegend(color: Colors.blue, label: 'Zauzeto'),
+                          SizedBox(width: 16),
+                          _buildLegend(
+                            color: Colors.grey[300]!,
+                            label: 'Slobodno',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Zatvori'),
+                ),
+                ElevatedButton.icon(
+                  icon: Icon(Icons.print),
+                  label: Text('Štampaj'),
+                  onPressed: () async {
+                    await _printSalesReport(report);
+                  },
+                ),
+              ],
+            ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Greška prilikom dohvata izveštaja: $e')),
+      );
+    }
+  }
+
+  Widget _buildLegend({required Color color, required String label}) {
+    return Row(
+      children: [
+        Container(width: 16, height: 16, color: color),
+        SizedBox(width: 4),
+        Text(label),
+      ],
+    );
+  }
+
+  Future<void> _printSalesReport(TicketSalesReportDTO report) async {
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        build:
+            (pw.Context context) => pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Izvestaj o prodaji karata',
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text('Izvedba ID: ${report.izvedbaId}'),
+                pw.Text('Naziv predstave: ${report.nazivPredstave}'),
+                pw.Text(
+                  'Datum i vreme: ${DateFormat('dd.MM.yyyy HH:mm').format(report.datumVrijeme)}',
+                ),
+                pw.Text('Ukupno rezervacija: ${report.ukupnoRezervacija}'),
+                pw.Text('Ukupni prihod: ${report.ukupniPrihod} BAM'),
+                pw.Text(
+                  'Popunjenost sale: ${report.zauzetaMjesta}/${report.ukupnoMjesta} mesta',
+                ),
+              ],
+            ),
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 }

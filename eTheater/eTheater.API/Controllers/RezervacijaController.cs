@@ -34,6 +34,12 @@ namespace eTheater.API.Controllers
             else
                 return NotFound(false);
         }
+        [HttpGet("izvjestaj/prodaja/{izvedbaId}")]
+        public async Task<IActionResult> GetTicketSalesReport(int izvedbaId)
+        {
+            var result = await ((IRezervacijaService)_service).GetTicketSalesReportAsync(izvedbaId);
+            return Ok(result);
+        }
 
     }
 }

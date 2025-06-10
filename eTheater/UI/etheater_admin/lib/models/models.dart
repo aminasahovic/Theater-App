@@ -857,3 +857,51 @@ class KorisnikUpdateRequest {
     };
   }
 }
+
+class TicketSalesReportDTO {
+  final int izvedbaId;
+  final int predstavaId;
+  final String nazivPredstave;
+  final DateTime datumVrijeme;
+  final int ukupnoRezervacija;
+  final double ukupniPrihod;
+  final int ukupnoMjesta;
+  final int zauzetaMjesta;
+
+  TicketSalesReportDTO({
+    required this.izvedbaId,
+    required this.predstavaId,
+    required this.nazivPredstave,
+    required this.datumVrijeme,
+    required this.ukupnoRezervacija,
+    required this.ukupniPrihod,
+    required this.ukupnoMjesta,
+    required this.zauzetaMjesta,
+  });
+
+  factory TicketSalesReportDTO.fromJson(Map<String, dynamic> json) {
+    return TicketSalesReportDTO(
+      izvedbaId: json['izvedbaId'] as int,
+      predstavaId: json['predstavaId'] as int,
+      nazivPredstave: json['nazivPredstave'] as String,
+      datumVrijeme: DateTime.parse(json['datumVrijeme'] as String),
+      ukupnoRezervacija: json['ukupnoRezervacija'] as int,
+      ukupniPrihod: (json['ukupniPrihod'] as num).toDouble(),
+      ukupnoMjesta: json['ukupnoMjesta'] as int,
+      zauzetaMjesta: json['zauzetaMjesta'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'izvedbaId': izvedbaId,
+      'predstavaId': predstavaId,
+      'nazivPredstave': nazivPredstave,
+      'datumVrijeme': datumVrijeme.toIso8601String(),
+      'ukupnoRezervacija': ukupnoRezervacija,
+      'ukupniPrihod': ukupniPrihod,
+      'ukupnoMjesta': ukupnoMjesta,
+      'zauzetaMjesta': zauzetaMjesta,
+    };
+  }
+}

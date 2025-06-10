@@ -159,8 +159,64 @@ namespace eTheater.Services
                 return false;
             }
         }
+        public async Task<TicketSalesReportDTO> GetTicketSalesReportAsync(int izvedbaId)
+        {
+            var izvedba = await _context.Izvedbas
+                .Include(i => i.Predstava)
+                .Include(i => i.Sala) // Dodajemo Sala za kapacitet
+                .Where(i => i.Id == izvedbaId && !i.IsDeleted)
+                .FirstOrDefaultAsync();
 
+            if (izvedba == null)
+            {
+                throw new Exception("Izvedba nije pronađena.");
+            }
 
+            var query = _context.Rezervacijas
+                .Include(r => r.Izvedba)
+                .ThenInclude(i => i.Predstava)
+                .Where(r => r.IzvedbaId == izvedbaId && !r.IsDeleted )
+                .AsQueryable();
+
+            var report = await query
+                .GroupBy(r => new
+                {
+                    IzvedbaId = r.IzvedbaId,
+                    PredstavaId = r.Izvedba.Predstava.Id,
+                    NazivPredstave = r.Izvedba.Predstava.Naziv,
+                    DatumVrijeme = r.Izvedba.DatumVrijeme,
+                    KapacitetSale = r.Izvedba.Sala.Sjedistes.Count() 
+                })
+                .Select(g => new TicketSalesReportDTO
+                {
+                    IzvedbaId = g.Key.IzvedbaId,
+                    PredstavaId = g.Key.PredstavaId,
+                    NazivPredstave = g.Key.NazivPredstave,
+                    DatumVrijeme = g.Key.DatumVrijeme,
+                    UkupnoRezervacija = g.Sum(r => r.BrojKarata),
+                    UkupniPrihod = g.Sum(r => r.BrojKarata * r.Izvedba.CijenaKarte),
+                    UkupnoMjesta = g.Key.KapacitetSale,
+                    ZauzetaMjesta = g.Sum(r => r.BrojKarata) 
+                })
+                .FirstOrDefaultAsync();
+
+            if (report == null)
+            {
+                return new TicketSalesReportDTO
+                {
+                    IzvedbaId = izvedba.Id,
+                    PredstavaId = izvedba.Predstava.Id,
+                    NazivPredstave = izvedba.Predstava.Naziv,
+                    DatumVrijeme = izvedba.DatumVrijeme,
+                    UkupnoRezervacija = 0,
+                    UkupniPrihod = 0,
+                    UkupnoMjesta = izvedba.Sala.Sjedistes.Count(),
+                    ZauzetaMjesta = 0
+                };
+            }
+
+            return report;
+        }
 
     }
 }
