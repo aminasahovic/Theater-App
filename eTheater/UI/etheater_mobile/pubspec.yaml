@@ -42,6 +42,7 @@ dependencies:
   flutter_paypal_payment: ^1.0.8
   flutter_paypal: ^0.2.1
   qr_flutter: ^4.1.0
+  qr_code_dart_scan: ^0.10.1
 
 dev_dependencies:
   flutter_test:
