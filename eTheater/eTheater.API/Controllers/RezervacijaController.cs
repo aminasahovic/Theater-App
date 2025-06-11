@@ -41,5 +41,18 @@ namespace eTheater.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("use-ticket/{rezervacijaId}")]
+        public async Task<ActionResult<bool>> UseTicketAsync(int rezervacijaId)
+        {
+            try
+            {
+                var result = await ((IRezervacijaService)_service).OznaciKaoIskoristenoAsync(rezervacijaId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { poruka = ex.Message });
+            }
+        }
     }
 }

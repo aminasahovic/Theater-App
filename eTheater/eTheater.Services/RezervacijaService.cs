@@ -217,6 +217,22 @@ namespace eTheater.Services
 
             return report;
         }
+        public async Task<bool> OznaciKaoIskoristenoAsync(int rezervacijaId)
+        {
+            var rezervacija = await _context.Rezervacijas.FindAsync(rezervacijaId);
+
+            if (rezervacija == null)
+                throw new Exception("Rezervacija nije pronađena.");
+
+            if (rezervacija.IsUsedTicket==true)
+                throw new Exception("Karta je već iskorištena.");
+
+            rezervacija.IsUsedTicket = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
 
     }
+
 }
