@@ -107,7 +107,7 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                               try {
                                 if (isEdit) {
                                   await _apiService.updateReziser(
-                                    reziser!.id,
+                                    reziser.id,
                                     novi,
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(

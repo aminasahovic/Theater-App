@@ -1,7 +1,6 @@
 import 'package:etheater_admin/providers/auth_providers.dart';
 import 'package:etheater_admin/screens/predstava_list_screen.dart';
 import 'package:flutter/material.dart';
-import '../providers/predstava_provider.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -14,111 +13,77 @@ class LoginScreen extends StatelessWidget {
     final password = _passwordController.text.trim();
 
     if (username.isEmpty || password.isEmpty) {
-      showDialog(
-        context: context,
-        builder:
-            (_) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 10,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.error_outline, color: Colors.red, size: 50),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Greška",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Obavezna su oba polja: username i password.",
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("OK"),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      _showDialog(
+        context,
+        title: "Greška",
+        message: "Obavezna su oba polja: username i password.",
+        icon: Icons.error_outline,
+        color: Colors.red,
       );
       return;
     }
 
-    AuthProvider.username = username;
-    AuthProvider.password = password;
-
-    final provider = PredstavaProvider();
-
     try {
-      final data = await provider.get();
-      print("Login success, data: $data");
+      await AuthProvider.login(username, password);
 
       Navigator.of(
         context,
-      ).push(MaterialPageRoute(builder: (_) => PredstaveScreen()));
+      ).pushReplacement(MaterialPageRoute(builder: (_) => PredstaveScreen()));
     } catch (e) {
-      showDialog(
-        context: context,
-        builder:
-            (_) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 10,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.warning, color: Colors.orange, size: 50),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Pogrešan username ili password",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Molimo provjerite svoje podatke i pokušajte ponovo.",
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Pokušaj ponovo"),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      _showDialog(
+        context,
+        title: "Login neuspješan",
+        message: e.toString().replaceAll("Exception: ", ""),
+        icon: Icons.warning,
+        color: Colors.orange,
       );
     }
+  }
+
+  void _showDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: color, size: 50),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    message,
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
   }
 
   @override

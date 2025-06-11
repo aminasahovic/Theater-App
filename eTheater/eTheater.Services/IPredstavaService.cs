@@ -1,4 +1,5 @@
-﻿using eTheater.Model.Requests;
+﻿using eTheater.Model;
+using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
 using eTheater.Model.ViewModels;
 using System;
@@ -11,7 +12,7 @@ namespace eTheater.Services
 {
     public interface IPredstavaService:ICRUDService<Model.Predstava, PredstavaSearchObject, PredstavaInsertRequest, PredstavaUpdateRequest>
     {
-        Task<List<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync();
+        Task<PagedResult<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync(PredstavaLovSearchObject predstavaLovSearchObject);
         Task<List<Model.Predstava>> GetPreprukuByKorisnikID(int korisnikId);
     }
 }

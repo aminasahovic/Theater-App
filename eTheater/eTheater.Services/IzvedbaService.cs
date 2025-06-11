@@ -80,7 +80,7 @@ namespace eTheater.Services
             {
                 query = query.Where(x => x.DatumVrijeme.Date == search.DatumIzvodjenja.Value.Date);
             }
-
+            query = query.OrderByDescending(x => x.Id);
             return query;
         }
         public async Task<PagedResult<IzvedbaViewModel>> GetAllAsync(IzvedbaSearchObject searchObject)

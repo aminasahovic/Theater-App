@@ -1,4 +1,5 @@
-﻿using eTheater.Model.Requests;
+﻿using eTheater.Model;
+using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
 using eTheater.Model.ViewModels;
 using eTheater.Services.Database;
@@ -21,16 +22,56 @@ namespace eTheater.Services
             _context = context;
             _mapper = mapper;
         }
-        public async Task<List<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync()
+        public async Task<PagedResult<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync(PredstavaLovSearchObject predstavaLovSearchObject)
         {
-            return await _context.Predstavas.Where(x=> x.IsActive==true && x.IsDeleted==false)
-                .Select(p => new PredstavaIdNazivDto
-                {
-                    Id = p.Id,
-                    Naziv = p.Naziv
-                })
-                .ToListAsync();
+            var query = _context.Predstavas
+                .Where(x => x.IsActive == true && x.IsDeleted == false);
+
+            if (!string.IsNullOrWhiteSpace(predstavaLovSearchObject.Naziv))
+            {
+                query = query.Where(p => p.Naziv.Contains(predstavaLovSearchObject.Naziv));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            List<PredstavaIdNazivDto> items;
+
+            if (predstavaLovSearchObject.Page.HasValue && predstavaLovSearchObject.PageSize.HasValue)
+            {
+                int page = predstavaLovSearchObject.Page.Value;
+                int pageSize = predstavaLovSearchObject.PageSize.Value;
+
+                items = await query
+                    .OrderBy(p => p.Naziv)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new PredstavaIdNazivDto
+                    {
+                        Id = p.Id,
+                        Naziv = p.Naziv
+                    })
+                    .ToListAsync();
+            }
+            else
+            {
+                items = await query
+                    .OrderBy(p => p.Naziv)
+                    .Select(p => new PredstavaIdNazivDto
+                    {
+                        Id = p.Id,
+                        Naziv = p.Naziv
+                    })
+                    .ToListAsync();
+            }
+
+            return new PagedResult<PredstavaIdNazivDto>
+            {
+                ResultList = items,
+                Count = totalCount,
+            };
         }
+
+
         public override IQueryable<Database.Predstava> AddFilter(PredstavaSearchObject searchObject, IQueryable<Database.Predstava> query)
         {
             query = base.AddFilter(searchObject, query);

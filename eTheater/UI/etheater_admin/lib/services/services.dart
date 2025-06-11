@@ -53,6 +53,33 @@ class ApiService {
     return headers;
   }
 
+  static Future<Korisnik> login(String username, String password) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/Korisnik/login?username=$username&password=$password',
+    );
+
+    final response = await http.post(
+      url,
+      headers: {'accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['tipKorisnikaId'] != 4) {
+        throw Exception(
+          "Pristup je dozvoljen samo ovlaštenim administratorima.",
+        );
+      }
+
+      return Korisnik.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception("Pogrešno korisničko ime ili lozinka.");
+    } else {
+      throw Exception("Greška prilikom logovanja: ${response.statusCode}");
+    }
+  }
+
   Future<int?> getKorisnikId() async {
     final username = AuthProvider.username!;
     final password = AuthProvider.password!;
@@ -613,14 +640,35 @@ class ApiService {
     }
   }
 
-  Future<List<PredstavaLov>> getPredstaveLov() async {
-    final url = Uri.parse('${ApiKonstante.baseUrl}/Predstava/GetAllIdNaziv');
-    final response = await http.get(url, headers: _createHeaders());
+  static Future<PagedResult<PredstavaLov>> getPredstaveLov({
+    String? naziv,
+    int page = 0,
+    int pageSize = 0,
+  }) async {
+    final queryParameters = <String, String>{};
+
+    if (naziv != null && naziv.isNotEmpty) {
+      queryParameters['Naziv'] = naziv;
+    }
+
+    if (pageSize > 0) {
+      queryParameters['Page'] = page.toString();
+      queryParameters['PageSize'] = pageSize.toString();
+    }
+
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Predstava/GetAllIdNaziv',
+    ).replace(queryParameters: queryParameters);
+
+    final response = await http.get(uri, headers: _createHeaders());
 
     if (response.statusCode == 200) {
       try {
-        final List<dynamic> decoded = json.decode(response.body);
-        return decoded.map((e) => PredstavaLov.fromJson(e)).toList();
+        final decoded = json.decode(response.body);
+        return PagedResult<PredstavaLov>.fromJson(
+          decoded,
+          (json) => PredstavaLov.fromJson(json),
+        );
       } catch (e) {
         throw Exception('Greška prilikom parsiranja podataka.');
       }

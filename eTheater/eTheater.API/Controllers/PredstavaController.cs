@@ -30,9 +30,9 @@ namespace eTheater.API.Controllers
 
         [AllowAnonymous]
         [HttpGet("GetAllIdNaziv")]
-        public async Task<ActionResult<List<PredstavaIdNazivDto>>> GetAllIdNaziv()
+        public async Task<ActionResult<List<PredstavaIdNazivDto>>> GetAllIdNaziv([FromQuery] PredstavaLovSearchObject predstavaLovSearchObject)
         {
-            var predstave = await _service.GetAllPredstaveIdNazivAsync();
+            var predstave = await _service.GetAllPredstaveIdNazivAsync(predstavaLovSearchObject);
             return Ok(predstave);
         }
 

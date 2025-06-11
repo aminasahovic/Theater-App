@@ -36,36 +36,33 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
   }
 
   void _fetchIzvedbe() {
-    _izvedbeFuture = ApiService().getIzvedbe(
-      salaId: _selectedSala?.id,
-      nazivPredstave: _nazivController.text,
-      datum: _selectedDate,
-      page: _currentPage,
-      pageSize: _pageSize,
-    );
+    setState(() {
+      _izvedbeFuture = ApiService().getIzvedbe(
+        salaId: _selectedSala?.id,
+        nazivPredstave: _nazivController.text,
+        datum: _selectedDate,
+        page: _currentPage,
+        pageSize: _pageSize,
+      );
+    });
   }
 
   void _search() {
-    setState(() {
-      _currentPage = 1;
-      _fetchIzvedbe();
-    });
+    _currentPage = 1;
+    _fetchIzvedbe();
   }
 
   void _clearFilters() {
-    setState(() {
-      _nazivController.clear();
-      _selectedSala = null;
-      _selectedDate = null;
-      _fetchIzvedbe();
-    });
+    _nazivController.clear();
+    _selectedSala = null;
+    _selectedDate = null;
+    _currentPage = 1;
+    _fetchIzvedbe();
   }
 
   void _goToPage(int page) {
-    setState(() {
-      _currentPage = page;
-      _fetchIzvedbe();
-    });
+    _currentPage = page;
+    _fetchIzvedbe();
   }
 
   @override
@@ -183,10 +180,12 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () async {
-              _openIzvedbaPopup();
-              setState(() {
-                _fetchIzvedbe();
-              });
+              final result = await _openIzvedbaPopup();
+              if (result == true) {
+                setState(() {
+                  _fetchIzvedbe();
+                });
+              }
             },
             child: const Text('Dodaj izvedbu'),
           ),
@@ -256,10 +255,14 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () async {
-                        _openIzvedbaPopup(updateData: izvedba);
-                        setState(() {
-                          _fetchIzvedbe();
-                        });
+                        final result = await _openIzvedbaPopup(
+                          updateData: izvedba,
+                        );
+                        if (result == true) {
+                          setState(() {
+                            _fetchIzvedbe();
+                          });
+                        }
                       },
                     ),
 
@@ -346,7 +349,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     return "${date.day}.${date.month}.${date.year}. ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
 
-  void _openIzvedbaPopup({Izvedba? updateData}) async {
+  Future<bool?> _openIzvedbaPopup({Izvedba? updateData}) async {
     final _formKey = GlobalKey<FormState>();
     PredstavaLov? _selectedPredstava;
     Sala? _selectedSala;
@@ -356,13 +359,14 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     List<Sala> _sale = [];
 
     try {
-      _predstave = await ApiService().getPredstaveLov();
+      final predstave = await ApiService.getPredstaveLov();
+      _predstave = predstave.resultList;
+      print(_predstave);
       _sale = await ApiService().getSale();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Greška prilikom učitavanja podataka: $e')),
       );
-      return;
     }
 
     if (updateData != null) {
@@ -378,7 +382,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
       _cijenaController.text = updateData.cijenaKarte.toString();
     }
 
-    showDialog(
+    return showDialog<bool>(
       context: context,
       builder: (context) {
         return StatefulBuilder(

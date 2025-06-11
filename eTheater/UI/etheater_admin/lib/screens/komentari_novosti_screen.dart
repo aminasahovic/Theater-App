@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:etheater_admin/layouts/master_screen.dart';
 import 'package:etheater_admin/screens/komentari_list_widget.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +16,12 @@ class KomentariNovostiScreen extends StatefulWidget {
 
 class _KomentariNovostiScreenState extends State<KomentariNovostiScreen> {
   final ApiService _apiService = ApiService();
+  Timer? _debounce;
   int _currentPage = 1;
   int _totalCount = 0;
   int _pageSize = 6;
   bool isExpanded = false;
+  final TextEditingController _naslovController = TextEditingController();
 
   List<Obavijest> _obavijesti = [];
   bool _isLoading = false;
@@ -34,6 +38,7 @@ class _KomentariNovostiScreenState extends State<KomentariNovostiScreen> {
       final result = await _apiService.getObavijesti(
         page: _currentPage,
         pageSize: _pageSize,
+        naslov: _naslovController.text,
       );
       setState(() {
         _obavijesti = result['data'];
@@ -66,6 +71,26 @@ class _KomentariNovostiScreenState extends State<KomentariNovostiScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _naslovController,
+                  decoration: const InputDecoration(
+                    labelText: 'Pretraga po naslovu',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) {
+                    if (_debounce?.isActive ?? false) _debounce!.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 500), () {
+                      setState(() {
+                        _currentPage = 1;
+                      });
+                      _fetchObavijesti();
+                    });
+                  },
+                ),
+              ),
+
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
