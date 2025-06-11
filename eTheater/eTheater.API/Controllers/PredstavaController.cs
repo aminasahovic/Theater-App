@@ -35,5 +35,19 @@ namespace eTheater.API.Controllers
             var predstave = await _service.GetAllPredstaveIdNazivAsync();
             return Ok(predstave);
         }
+
+        [HttpGet("GetPreporukuByKorisnikID/{korisnikId}")]
+        public async Task<ActionResult<List<Model.Predstava>>> GetPreporukuByKorisnikID(int korisnikId)
+        {
+            try
+            {
+                var result = await _service.GetPreprukuByKorisnikID(korisnikId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Greška prilikom dohvaćanja preporuka: {ex.Message}");
+            }
+        }
     }
 }

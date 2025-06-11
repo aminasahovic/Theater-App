@@ -17,6 +17,7 @@ class NovostiDetailsScreen extends StatefulWidget {
 class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
   final TextEditingController _komentarController = TextEditingController();
   Map<int, TextEditingController> odgovorKontroleri = {};
+  List<Predstava> preporucenePredstave = [];
 
   List<KomentarObavijest> komentari = [];
   int currentPage = 1;
@@ -40,6 +41,18 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
   final int odgovoriPageSize = 2;
 
   Map<int, bool> prikaziOdgovore = {};
+  Future<void> _loadPreporuke() async {
+    try {
+      final result = await ApiService.getPreporukeZaKorisnika(
+        AuthProvider.userId!,
+      );
+      setState(() {
+        preporucenePredstave = result;
+      });
+    } catch (e) {
+      debugPrint("Greška pri učitavanju preporuka: $e");
+    }
+  }
 
   Future<void> _loadKomentari() async {
     if (isLoading || !hasMore) return;
@@ -138,6 +151,7 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
   void initState() {
     super.initState();
     _loadKomentari();
+    _loadPreporuke();
   }
 
   @override
@@ -182,6 +196,89 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                     textAlign: TextAlign.left,
                   ),
                   const Divider(height: 32),
+                  if (preporucenePredstave.isNotEmpty) ...[
+                    const Text(
+                      'Preporuka za vas:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 260,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: preporucenePredstave.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final predstava = preporucenePredstave[index];
+                          return SizedBox(
+                            width: 180,
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (predstava.plakat != null &&
+                                      predstava.plakat!.isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(12),
+                                      ),
+                                      child: Image.memory(
+                                        base64Decode(predstava.plakat!),
+                                        height: 120,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          predstava.naziv,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${predstava.trajanje} min | ${predstava.godina}',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          predstava.opis,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  const Divider(height: 32),
+
                   const Text(
                     'Komentari',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

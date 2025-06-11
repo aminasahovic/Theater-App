@@ -35,6 +35,8 @@ public partial class ETheaterContext : DbContext
 
     public virtual DbSet<Predstava> Predstavas { get; set; }
 
+    public virtual DbSet<Recommender> Recommenders { get; set; }
+
     public virtual DbSet<Repertoar> Repertoars { get; set; }
 
     public virtual DbSet<RepertoarIzvedba> RepertoarIzvedbas { get; set; }
@@ -303,6 +305,11 @@ public partial class ETheaterContext : DbContext
             entity.HasOne(d => d.Zanr).WithMany(p => p.Predstavas)
                 .HasForeignKey(d => d.ZanrId)
                 .HasConstraintName("FK__Predstava__ZanrI__4316F928");
+        });
+
+        modelBuilder.Entity<Recommender>(entity =>
+        {
+            entity.ToTable("Recommender");
         });
 
         modelBuilder.Entity<Repertoar>(entity =>

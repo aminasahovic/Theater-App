@@ -453,15 +453,27 @@ class ApiService {
     final response = await http.post(url, headers: AuthProvider.authHeaders);
 
     if (response.statusCode == 200) {
-      // Uspješno iskorištena karta
       return;
     } else if (response.statusCode == 400) {
-      // Backend vraća {"poruka": "neka greška"}
       final data = jsonDecode(response.body);
       final poruka = data['poruka'] ?? 'Greška pri obradi zahtjeva.';
       throw Exception(poruka);
     } else {
       throw Exception('Došlo je do greške. Pokušajte ponovo.');
+    }
+  }
+
+  static Future<List<Predstava>> getPreporukeZaKorisnika(int korisnikId) async {
+    final uri = Uri.parse(
+      '${ApiKonstante.baseUrl}/Predstava/GetPreporukuByKorisnikID/$korisnikId',
+    );
+
+    final response = await http.get(uri, headers: AuthProvider.authHeaders);
+    if (response.statusCode == 200) {
+      final List<dynamic> decoded = json.decode(response.body);
+      return decoded.map((e) => Predstava.fromJson(e)).toList();
+    } else {
+      throw Exception('Greška prilikom dohvaćanja preporuka.');
     }
   }
 }

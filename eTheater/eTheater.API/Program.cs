@@ -5,8 +5,9 @@ using eTheater.Services.Database;
 using Mapster;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore.Storage;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ builder.Services.AddTransient<IIzvedbaSjedisteService, IzvedbaSjedisteService>()
 builder.Services.AddTransient<IIzvedbaService, IzvedbaService>();
 builder.Services.AddTransient<IGlumacPredstavaService, GlumacPredstavaService>();
 builder.Services.AddTransient<IGlumacService, GlumacService>();
+builder.Services.AddTransient<IRecommenderService, RecommenderService>();
 
 builder.Services.AddControllers(x =>
     x.Filters.Add<ExceptionFilter>());
@@ -78,4 +80,30 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+
+    Console.WriteLine("Ovdje 2");
+
+    var dataContext = scope.ServiceProvider.GetRequiredService<ETheaterContext>();
+    if (dataContext.Database.CanConnect())
+    {
+        Console.WriteLine("Ovdje 3");
+
+        dataContext.Database.Migrate();
+
+        var recommendResutService = scope.ServiceProvider.GetRequiredService<IRecommenderService>();
+        try
+        {
+            Console.WriteLine("Ovdje 4");
+            await recommendResutService.DeleteAllRecommendation();
+
+
+            await recommendResutService.TrainModelAsync();
+        }
+        catch (Exception e)
+        {
+        }
+    }
+}
 app.Run();
