@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
+import '../services/api_service.dart'; // Prilagodi putanju ako je drugačija
 
 class SalaKontrolaScreen extends StatefulWidget {
   const SalaKontrolaScreen({super.key});
@@ -10,6 +11,41 @@ class SalaKontrolaScreen extends StatefulWidget {
 
 class _SalaKontrolaScreenState extends State<SalaKontrolaScreen> {
   String _scanResult = 'Nema rezultata';
+  bool _isProcessing = false;
+
+  Future<void> _handleScan(String tekst) async {
+    setState(() {
+      _scanResult = tekst;
+      _isProcessing = true;
+    });
+
+    try {
+      final rezervacijaId = int.parse(tekst.trim());
+      await ApiService.useTicket(rezervacijaId);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Karta uspješno skenirana!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +59,10 @@ class _SalaKontrolaScreenState extends State<SalaKontrolaScreen> {
               scanInvertedQRCode: true,
               typeScan: TypeScan.live,
               onCapture: (result) {
-                setState(() {
-                  _scanResult = result.text ?? 'Nepoznat sadržaj';
-                });
+                if (!_isProcessing) {
+                  final tekst = result.text ?? 'Nepoznat sadržaj';
+                  _handleScan(tekst);
+                }
               },
               onCameraError: (error) {
                 debugPrint('Greška kamere: $error');

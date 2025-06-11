@@ -444,4 +444,24 @@ class ApiService {
     final data = json.decode(response.body);
     return (data['resultList'] as List).map((z) => Zanr.fromJson(z)).toList();
   }
+
+  static Future<void> useTicket(int rezervacijaId) async {
+    final url = Uri.parse(
+      '${ApiKonstante.baseUrl}/Rezervacija/use-ticket/$rezervacijaId',
+    );
+
+    final response = await http.post(url, headers: AuthProvider.authHeaders);
+
+    if (response.statusCode == 200) {
+      // Uspješno iskorištena karta
+      return;
+    } else if (response.statusCode == 400) {
+      // Backend vraća {"poruka": "neka greška"}
+      final data = jsonDecode(response.body);
+      final poruka = data['poruka'] ?? 'Greška pri obradi zahtjeva.';
+      throw Exception(poruka);
+    } else {
+      throw Exception('Došlo je do greške. Pokušajte ponovo.');
+    }
+  }
 }
