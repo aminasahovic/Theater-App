@@ -28,5 +28,19 @@ namespace eTheater.API.Controllers
         {
             return base.Insert(request);
         }
+        [HttpPost("posalji-potvrdu")]
+        public async Task<IActionResult> PosaljiPotvrdu(int korisnikID,string nazivPredstave,DateTime datumPrikazivanja,string sala,int brojKarata,decimal ukupnaCijena,bool isRezervacija)
+        {
+            try
+            {
+                await (_service as IKorisnikService).PosaljiPotvrdniEmailZaKupovinuAsync(korisnikID, nazivPredstave, datumPrikazivanja, sala, brojKarata, ukupnaCijena, isRezervacija);
+
+                return Ok(new { poruka = "Email je uspješno poslan." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { greska = "Greška prilikom slanja emaila.", detalji = ex.Message });
+            }
+        }
     }
 }

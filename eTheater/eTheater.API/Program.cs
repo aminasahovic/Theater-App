@@ -2,6 +2,7 @@ using eTheater.API;
 using eTheater.API.Filters;
 using eTheater.Services;
 using eTheater.Services.Database;
+using eTheater.Services.RabbitMQConsumer;
 using Mapster;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ builder.Services.AddTransient<IIzvedbaSjedisteService, IzvedbaSjedisteService>()
 builder.Services.AddTransient<IIzvedbaService, IzvedbaService>();
 builder.Services.AddTransient<IGlumacPredstavaService, GlumacPredstavaService>();
 builder.Services.AddTransient<IGlumacService, GlumacService>();
+builder.Services.AddTransient<IRabbitMQProducer, RabbitMQProducer>();
 builder.Services.AddTransient<IRecommenderService, RecommenderService>();
 
 builder.Services.AddControllers(x =>

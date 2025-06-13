@@ -1,7 +1,9 @@
 version: '3'
 services:
   etheater-sql:
-    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    build:
+      context: .
+      dockerfile: Dockerfile.sqlserver
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
@@ -12,22 +14,75 @@ services:
     expose:
       - 1433
     networks:
-      - etheater
+      - etheaternet
       
   etheater-api:
     restart: unless-stopped
     build:
       context: .
     environment:
-      - ConnectionStrings:eTheaterConnection=Server=etheater-sql,1433;Database=eTheater;User=sa;Password=QWElkj132!;ConnectRetryCount=0;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - ConnectionStrings__eTheaterConnection=Server=etheater-sql,1433;Database=eTheater;User=sa;Password=QWElkj132!;ConnectRetryCount=0;TrustServerCertificate=True;MultipleActiveResultSets=true
       - ASPNETCORE_ENVIRONMENT=Development
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=etheater.business@gmail.com
+      - SMTP_PASSWORD=mepwhcfscaulfykb
+      - API_HOST=localhost
+      - API_PORT=7125
     ports:
       - "7125:7125" 
     networks:
-      - etheater
+      - etheaternet
     depends_on:
-      - etheater-sql 
+      - etheater-sql
+      - rabbitmq  
       
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - etheaternet  
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    depends_on:
+      - etheater-sql  
+      
+  rabbitmq-service:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./RabbitMQConsumer/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=etheater.business@gmail.com
+      - SMTP_PASSWORD=mepwhcfscaulfykb
+      - API_HOST=localhost
+      - API_PORT=7125
+    depends_on:
+      - rabbitmq
+      - etheater-api
+      - etheater-sql
+    networks:
+      - etheaternet
+      
+volumes:
+  rabbitmq_data:
+  
 networks:
-  etheater:
+  etheaternet:
     driver: bridge
