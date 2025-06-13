@@ -11,6 +11,13 @@ namespace eTheater.Services
     public interface IKorisnikService : ICRUDService<Model.Korisnik, KorisniciSearchObject, KorisnikInsertRequest, KorisnikUpdateRequest>
     {
         Model.Korisnik Login(string username, string password);
-
+        Task PosaljiPotvrdniEmailZaKupovinuAsync(
+        int korisnikID,
+        string nazivPredstave,
+        DateTime datumPrikazivanja,
+        string sala,
+        int brojKarata,
+        decimal ukupnaCijena,
+        bool isRezervacija);
     }
 }

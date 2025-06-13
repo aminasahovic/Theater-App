@@ -2,6 +2,7 @@
 using eTheater.Model.Requests;
 using eTheater.Model.SearchObjects;
 using eTheater.Services.Database;
+using eTheater.Services.RabbitMQConsumer;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,8 +17,12 @@ namespace eTheater.Services
 {
     public class KorisnikService : BaseCRUDService<Model.Korisnik, KorisniciSearchObject, Database.Korisnik, KorisnikInsertRequest, KorisnikUpdateRequest>,IKorisnikService
     {
-        public KorisnikService(ETheaterContext context, IMapper mapper) : base(context, mapper)
+        private readonly IRabbitMQProducer _rabbitMQProducer;
+
+        public KorisnikService(ETheaterContext context, IMapper mapper, IRabbitMQProducer rabbitMQProducer) : base(context, mapper)
         {
+            _rabbitMQProducer = rabbitMQProducer;
+
         }
         public override IQueryable<Database.Korisnik> AddFilter(KorisniciSearchObject searchObject, IQueryable<Database.Korisnik> query)
         {
@@ -128,6 +133,49 @@ namespace eTheater.Services
             }
 
             return this.Mapper.Map<Model.Korisnik>(entity);
+        }
+        public async Task PosaljiPotvrdniEmailZaKupovinuAsync(int korisnikID, string nazivPredstave, DateTime datumPrikazivanja, string sala, int brojKarata, decimal ukupnaCijena, bool isRezervacija)
+        {
+            var korisnik = _context.Korisniks.FirstOrDefault(x => x.Id == korisnikID);
+            if (korisnik == null)
+            {
+                return;
+            }
+            var objektMail = new EmailModel();
+            objektMail.Recipient = korisnik.Email;
+
+            objektMail.Subject = isRezervacija
+                 ? "Potvrda o rezervaciji ulaznica - eTheater"
+                : "Potvrda o kupovini ulaznica - eTheater";
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Poštovani {korisnik.Ime},\n");
+
+            if (isRezervacija)
+            {
+                sb.AppendLine($"Uspješno ste **rezervisali** ulaznice za predstavu \"{nazivPredstave}\" koja će se održati dana {datumPrikazivanja:dd.MM.yyyy}. u sali \"{sala}\".\n");
+                sb.AppendLine($"Broj rezervisanih ulaznica: {brojKarata}\n");
+                sb.AppendLine("Rezervisane ulaznice možete preuzeti na blagajni pozorišta svakim radnim danom ili najkasnije pola sata prije početka predstave.\n");
+            }
+            else
+            {
+                sb.AppendLine($"Ovo je potvrda da ste uspješno **kupili** ulaznice za predstavu \"{nazivPredstave}\" koja će se održati dana {datumPrikazivanja:dd.MM.yyyy}. u sali \"{sala}\".\n");
+                sb.AppendLine($"Broj kupljenih ulaznica: {brojKarata}");
+                sb.AppendLine($"Ukupna cijena: {ukupnaCijena:0.00} KM\n");
+            }
+
+            sb.AppendLine("Hvala vam što koristite eTheater i što podržavate naš rad.\n");
+            sb.AppendLine("Srdačan pozdrav,\nVaš eTheater tim");
+
+            objektMail.Content = sb.ToString();
+            try
+            {
+                _rabbitMQProducer.SendMessage(objektMail);
+                Thread.Sleep(TimeSpan.FromSeconds(15));
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 }
