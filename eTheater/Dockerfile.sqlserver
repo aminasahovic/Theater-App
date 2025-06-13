@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+
+RUN mkdir -p /Data
+
+COPY ./Data/data.sql /Data
+
+ENTRYPOINT /opt/mssql/bin/sqlservr & sleep 40s && /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U sa -P QWElkj132! -d master -i /Data/data.sql && tail -f /dev/null
