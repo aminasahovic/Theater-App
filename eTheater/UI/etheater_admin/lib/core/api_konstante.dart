@@ -8,7 +8,7 @@ class ApiKonstante {
     );
     const String port = String.fromEnvironment(
       'API_PORT',
-      defaultValue: '5241',
+      defaultValue: '7125',
     );
     return 'http://$host:$port';
   }

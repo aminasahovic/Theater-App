@@ -4,11 +4,11 @@ class ApiKonstante {
   static String _getBaseUrl() {
     const String host = String.fromEnvironment(
       'API_HOST',
-      defaultValue: '192.168.45.146',
+      defaultValue: 'localhost',
     );
     const String port = String.fromEnvironment(
       'API_PORT',
-      defaultValue: '5000',
+      defaultValue: '7125',
     );
     return 'http://$host:$port';
   }
