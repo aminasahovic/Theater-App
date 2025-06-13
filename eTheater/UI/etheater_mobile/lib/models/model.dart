@@ -513,7 +513,7 @@ class Korisnik {
 class KorisnikUpdateRequest {
   final String ime;
   final String prezime;
-  final String telefon;
+  final String brojTelefona;
   final bool status;
   final String email;
   final String? password;
@@ -523,7 +523,7 @@ class KorisnikUpdateRequest {
   KorisnikUpdateRequest({
     required this.ime,
     required this.prezime,
-    required this.telefon,
+    required this.brojTelefona,
     required this.status,
     required this.email,
     required this.password,
@@ -534,7 +534,7 @@ class KorisnikUpdateRequest {
     final data = {
       'ime': ime,
       'prezime': prezime,
-      'telefon': telefon,
+      'brojTelefona': brojTelefona,
       'status': status,
       'email': email,
       'tipKorisnikaId': tipKorisnikaId,
@@ -612,32 +612,38 @@ class UpdateSjedisteStatusRequest {
 
 class MojaRezervacija {
   final int id;
+  final int predstavaId;
   final String? naziv;
   final DateTime datumVrijemeIzvedbe;
   final String? plakatUrl;
   final String? nazivSale;
   final int brojKarata;
   final bool isKupljeno;
+  final bool isUsedTicket;
 
   MojaRezervacija({
     required this.id,
+    required this.predstavaId,
     this.naziv,
     required this.datumVrijemeIzvedbe,
     this.plakatUrl,
     this.nazivSale,
     required this.brojKarata,
     required this.isKupljeno,
+    required this.isUsedTicket,
   });
 
   factory MojaRezervacija.fromJson(Map<String, dynamic> json) {
     return MojaRezervacija(
       id: json['id'],
+      predstavaId: json['predstavaId'],
       naziv: json['naziv'],
       datumVrijemeIzvedbe: DateTime.parse(json['datumVrijemeIzvedbe']),
       plakatUrl: json['plakatUrl'],
       nazivSale: json['nazivSale'],
       brojKarata: json['brojKarata'],
       isKupljeno: json['isKupljeno'],
+      isUsedTicket: json['isUsedTicket'],
     );
   }
 }

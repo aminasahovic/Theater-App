@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:etheater_mobile/screens/master_screen.dart';
 import 'package:etheater_mobile/screens/moje_rezervacije_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:etheater_mobile/models/model.dart';
@@ -86,9 +87,9 @@ class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
     final ukupnaCijena =
         widget.izvedba.cijenaKarte * widget.odabranaSjedista.length;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Pregled kupovine")),
-      body: Stack(
+    return MasterScreen(
+      "Pregled kupovine",
+      Stack(
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 70),

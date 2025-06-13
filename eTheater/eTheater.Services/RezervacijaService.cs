@@ -25,8 +25,7 @@ namespace eTheater.Services
             var query = _context.Rezervacijas
                 .Include(r => r.Izvedba)
                 .ThenInclude(i => i.Predstava)
-                .Include(r => r.Izvedba)
-                    .ThenInclude(i => i.Sala)
+                 .Include(r => r.Izvedba.Sala)
                 .AsQueryable();
 
             if (search.KorisnikId.HasValue)
@@ -54,9 +53,9 @@ namespace eTheater.Services
             var skip = (page - 1) * pageSize;
 
             var entities = await query
-                .OrderBy(r => r.Izvedba.DatumVrijeme)
-                .Skip((int)skip)
-                .Take((int)search.PageSize)
+                .OrderByDescending(r => r.Izvedba.DatumVrijeme)
+                .Skip(skip)
+                .Take(pageSize)
                 .ToListAsync();
 
             var resultItems = entities.Select(r => new RezervacijaViewModel
@@ -87,12 +86,12 @@ namespace eTheater.Services
             Database.Rezervacija rezervacija = new Database.Rezervacija
             {
                 BrojKarata = insertRequest.BrojKarata,
-                KorisnikId= insertRequest.KorisnikId,
-                DatumVrijemeKupovine=DateTime.Now,
-                IzvedbaId= insertRequest.IzvedbaId,
-                PaymentId= insertRequest.PaymentId,
-                IsKupljeno=insertRequest.PaymentId!=null,
-                IsUsedTicket=insertRequest.IsUsedTicket,
+                KorisnikId = insertRequest.KorisnikId,
+                DatumVrijemeKupovine = DateTime.Now,
+                IzvedbaId = insertRequest.IzvedbaId,
+                PaymentId = insertRequest.PaymentId,
+                IsKupljeno = insertRequest.PaymentId != null,
+                IsUsedTicket = insertRequest.IsUsedTicket,
             };
             try
             {
@@ -123,9 +122,9 @@ namespace eTheater.Services
 
                 return false;
             }
-            
-            
-            
+
+
+
         }
 
         public async Task<bool> ObrisiRezervacijuAsync(int rezervacijaId)
@@ -145,9 +144,9 @@ namespace eTheater.Services
 
                 foreach (var sjediste in sjedista)
                 {
-                    sjediste.RezervacijaId = null;  
-                    sjediste.IsSlobodno = true;    
-                    sjediste.Status = "Slobodno";  
+                    sjediste.RezervacijaId = null;
+                    sjediste.IsSlobodno = true;
+                    sjediste.Status = "Slobodno";
                 }
 
                 await _context.SaveChangesAsync();
@@ -175,7 +174,7 @@ namespace eTheater.Services
             var query = _context.Rezervacijas
                 .Include(r => r.Izvedba)
                 .ThenInclude(i => i.Predstava)
-                .Where(r => r.IzvedbaId == izvedbaId && !r.IsDeleted )
+                .Where(r => r.IzvedbaId == izvedbaId && !r.IsDeleted)
                 .AsQueryable();
 
             var report = await query
@@ -185,7 +184,7 @@ namespace eTheater.Services
                     PredstavaId = r.Izvedba.Predstava.Id,
                     NazivPredstave = r.Izvedba.Predstava.Naziv,
                     DatumVrijeme = r.Izvedba.DatumVrijeme,
-                    KapacitetSale = r.Izvedba.Sala.Sjedistes.Count() 
+                    KapacitetSale = r.Izvedba.Sala.Sjedistes.Count()
                 })
                 .Select(g => new TicketSalesReportDTO
                 {
@@ -196,7 +195,7 @@ namespace eTheater.Services
                     UkupnoRezervacija = g.Sum(r => r.BrojKarata),
                     UkupniPrihod = g.Sum(r => r.BrojKarata * r.Izvedba.CijenaKarte),
                     UkupnoMjesta = g.Key.KapacitetSale,
-                    ZauzetaMjesta = g.Sum(r => r.BrojKarata) 
+                    ZauzetaMjesta = g.Sum(r => r.BrojKarata)
                 })
                 .FirstOrDefaultAsync();
 
@@ -224,7 +223,7 @@ namespace eTheater.Services
             if (rezervacija == null)
                 throw new Exception("Rezervacija nije pronađena.");
 
-            if (rezervacija.IsUsedTicket==true)
+            if (rezervacija.IsUsedTicket == true)
                 throw new Exception("Karta je već iskorištena.");
 
             rezervacija.IsUsedTicket = true;

@@ -28,6 +28,7 @@ namespace eTheater.Services
             {
                 query = query.Where(x => x.KomentariObavijestiId == search.KomentariObavijestiId.Value && x.IsDeleted==false);
             }
+            query = query.OrderByDescending(x => x.Datum);
 
             var count = await query.CountAsync();
 

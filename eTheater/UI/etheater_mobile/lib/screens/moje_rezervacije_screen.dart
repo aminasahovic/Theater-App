@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:etheater_mobile/models/model.dart';
 import 'package:etheater_mobile/screens/master_screen.dart';
+import 'package:etheater_mobile/screens/ocijeni_predstavu_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
@@ -71,7 +72,7 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
         korisnikId: korisnikId,
         nazivPredstave: _filterNaziv,
         aktivne: _filterAktivne,
-        isUsedTicket: false,
+        isUsedTicket: !_filterAktivne,
         page: _currentPage,
         pageSize: 4,
       );
@@ -166,6 +167,41 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                     style: const TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
+                  if (!_filterAktivne && rez.isUsedTicket)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                            ),
+                            builder:
+                                (context) => OcijeniPredstavuSheet(
+                                  predstavaId: rez.predstavaId,
+                                  onKomentarPoslan: () {},
+                                ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          textStyle: const TextStyle(fontSize: 14),
+                        ),
+                        icon: const Icon(Icons.star_outline, size: 18),
+                        label: const Text("Ocijeni predstavu"),
+                      ),
+                    ),
+
                   if (rez.isKupljeno)
                     Align(
                       alignment: Alignment.centerRight,
@@ -311,7 +347,7 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Text("Prikaži aktivne rezervacije: "),
+                const Text("Aktivne rezervacije: "),
                 Switch(
                   value: _filterAktivne,
                   onChanged: (value) {

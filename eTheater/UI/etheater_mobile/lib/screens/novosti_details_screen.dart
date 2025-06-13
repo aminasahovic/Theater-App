@@ -69,8 +69,14 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
       setState(() {
         if (currentPage == 1) {
           komentari = response.resultList;
+          odgovorKontroleri.clear();
         } else {
           komentari.addAll(response.resultList);
+        }
+        for (var komentar in response.resultList) {
+          if (!odgovorKontroleri.containsKey(komentar.id)) {
+            odgovorKontroleri[komentar.id] = TextEditingController();
+          }
         }
         hasMore = komentari.length < response.count;
         if (hasMore) currentPage++;
@@ -248,7 +254,7 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
-                                          maxLines: 2,
+                                          maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 4),
@@ -288,15 +294,11 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                     controller: _komentarController,
                     decoration: InputDecoration(
                       labelText: 'Dodaj komentar...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.send),
                         onPressed: () async {
                           final tekst = _komentarController.text.trim();
                           if (tekst.isEmpty) return;
-
                           try {
                             final noviKomentar = InsertKomentarObavijest(
                               obavijestId: widget.novost.id,
@@ -378,7 +380,13 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                             ),
                             const SizedBox(height: 8),
                             TextField(
-                              controller: odgovorKontroleri[k.id],
+                              controller: odgovorKontroleri.putIfAbsent(
+                                k.id,
+                                () {
+                                  return TextEditingController();
+                                },
+                              ),
+
                               decoration: InputDecoration(
                                 hintText: 'Dodaj odgovor...',
                                 contentPadding: const EdgeInsets.symmetric(
@@ -387,26 +395,17 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                                 suffixIcon: IconButton(
                                   icon: const Icon(Icons.send),
                                   onPressed: () async {
-                                    print(k.id);
-                                    print("ruuuuu");
                                     final tekst =
                                         odgovorKontroleri[k.id]?.text.trim() ??
                                         '';
-                                    print(odgovorKontroleri[k.id]);
-
-                                    if (tekst.isEmpty) return;
-                                    print("ruuuuu sam");
 
                                     try {
-                                      print("ruuuuu");
                                       final noviOdgovor = InsertOdgovorKomentar(
                                         komentariObavijestiId: k.id,
                                         korisnikId: AuthProvider.userId!,
                                         textOdgovora: tekst,
                                         datum: DateTime.now(),
                                       );
-                                      print(noviOdgovor);
-
                                       await ApiService.postOdgovorNaKomentar(
                                         noviOdgovor,
                                       );
@@ -420,9 +419,15 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                                           ),
                                         ),
                                       );
+                                      trenutnaStranicaOdgovora[k.id] = 1;
+                                      imaJosOdgovora[k.id] = true;
+                                      odgovoriPoKomentaru[k.id] = [];
                                       await _loadOdgovori(k.id);
-                                      setState(() {});
+                                      setState(() {
+                                        prikaziOdgovore[k.id] = true;
+                                      });
                                     } catch (e) {
+                                      print("Greška: $e");
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(

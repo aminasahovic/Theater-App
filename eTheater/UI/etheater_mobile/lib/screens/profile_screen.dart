@@ -4,6 +4,7 @@ import 'package:etheater_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'master_screen.dart';
+import 'login_screen.dart'; // Ako koristiš named routing, koristi Navigator.pushNamed(context, 'login')
 
 class ProfileScreen extends StatefulWidget {
   final int korisnikId;
@@ -16,7 +17,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<Korisnik> _futureKorisnik;
-
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _imeController = TextEditingController();
@@ -27,7 +27,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _telefonController = TextEditingController();
+
+  bool _showPasswordFields = false;
   var tipKorisnika = 0;
+
   @override
   void initState() {
     super.initState();
@@ -57,27 +60,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _saveProfile() async {
     final password = _passwordController.text;
     final passwordPotvrda = _passwordPotvrdaController.text;
+
     if (_formKey.currentState!.validate()) {
       try {
         final request = KorisnikUpdateRequest(
           ime: _imeController.text,
           prezime: _prezimeController.text,
-          telefon: _telefonController.text,
+          brojTelefona: _telefonController.text,
           status: true,
           email: _emailController.text,
           password: password.isNotEmpty ? password : null,
           passwordPotvrda: passwordPotvrda.isNotEmpty ? passwordPotvrda : null,
           tipKorisnikaId: tipKorisnika,
         );
+
         bool updated = await ApiService.updateKorisnik(
           AuthProvider.userId!,
           request,
         );
 
         if (updated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profil uspješno ažuriran')),
-          );
+          if (password.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Lozinka promijenjena. Prijavite se ponovo.'),
+              ),
+            );
+            AuthProvider.logout();
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Profil uspješno ažuriran')),
+            );
+          }
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,33 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    _passwordController,
-                    "Lozinka (ostavi prazno za nepromjenu)",
-                    obscureText: true,
-                    validator: (val) {
-                      if (val != null && val.isNotEmpty && val.length < 6) {
-                        return 'Lozinka mora imati najmanje 6 znakova';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    _passwordPotvrdaController,
-                    "Potvrdi lozinku",
-                    obscureText: true,
-                    validator: (val) {
-                      if (_passwordController.text.isNotEmpty) {
-                        if (val == null || val.isEmpty)
-                          return 'Potvrdite lozinku';
-                        if (val != _passwordController.text)
-                          return 'Lozinke se ne poklapaju';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
                     _emailController,
                     "Email",
                     keyboardType: TextInputType.emailAddress,
@@ -180,7 +172,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     "Broj telefona",
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 24),
+                  ListTile(
+                    title: const Text("Promijeni lozinku"),
+                    trailing: Icon(
+                      _showPasswordFields
+                          ? Icons.expand_less
+                          : Icons.expand_more,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _showPasswordFields = !_showPasswordFields;
+                      });
+                    },
+                  ),
+                  if (_showPasswordFields) ...[
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      _passwordController,
+                      "Nova lozinka",
+                      obscureText: true,
+                      validator: (val) {
+                        if (_showPasswordFields &&
+                            (val == null || val.length < 6)) {
+                          return 'Lozinka mora imati najmanje 6 znakova';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      _passwordPotvrdaController,
+                      "Potvrdi novu lozinku",
+                      obscureText: true,
+                      validator: (val) {
+                        if (_showPasswordFields &&
+                            val != _passwordController.text) {
+                          return 'Lozinke se ne poklapaju';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -219,8 +254,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: InputDecoration(
         labelText: label,
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: AppTheme.primaryColor),
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );

@@ -97,12 +97,10 @@ class ApiService {
   }
 
   static Future<Predstava> getPredstava(int id) async {
-    print(id);
     final response = await http.get(
       Uri.parse('${ApiKonstante.baseUrl}/Predstava/$id'),
       headers: AuthProvider.authHeaders,
     );
-    print(jsonDecode(response.body));
     if (response.statusCode == 200) {
       return Predstava.fromJson(jsonDecode(response.body));
     } else {
@@ -111,7 +109,6 @@ class ApiService {
   }
 
   static Future<Izvedba> getIzvedba(int izvedbaId) async {
-    print(izvedbaId);
     final response = await http.get(
       Uri.parse('${ApiKonstante.baseUrl}/Izvedba/$izvedbaId'),
       headers: AuthProvider.authHeaders,
@@ -274,7 +271,6 @@ class ApiService {
   static Future<void> postOdgovorNaKomentar(
     InsertOdgovorKomentar odgovor,
   ) async {
-    print(odgovor);
     final response = await http.post(
       Uri.parse('${ApiKonstante.baseUrl}/OdgovorKomentar'),
       headers: {
@@ -285,7 +281,13 @@ class ApiService {
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Greška prilikom slanja odgovora na komentar');
+      final errorMessage =
+          response.body.isNotEmpty
+              ? jsonDecode(response.body)['message'] ?? response.reasonPhrase
+              : 'Nepoznata greška';
+      throw Exception(
+        'Greška prilikom slanja odgovora na komentar: $errorMessage',
+      );
     }
   }
 
@@ -319,8 +321,6 @@ class ApiService {
     int id,
     KorisnikUpdateRequest request,
   ) async {
-    print(id);
-    print(request.toJson());
     final response = await http.put(
       Uri.parse('${ApiKonstante.baseUrl}/Korisnik/$id'),
       headers: AuthProvider.authHeaders,
@@ -409,7 +409,6 @@ class ApiService {
     ).replace(queryParameters: queryParams);
 
     final response = await http.get(uri, headers: AuthProvider.authHeaders);
-
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       return PagedResult<MojaRezervacija>.fromJson(

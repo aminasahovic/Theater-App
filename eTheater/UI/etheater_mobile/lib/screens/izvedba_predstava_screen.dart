@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:etheater_mobile/screens/master_screen.dart';
 import 'package:etheater_mobile/screens/predstave_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -69,12 +70,9 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Izvedbe predstava'),
-        backgroundColor: const Color(0xFF6A1B1B),
-      ),
-      body: Column(
+    return MasterScreen(
+      'Izvedbe predstava',
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
