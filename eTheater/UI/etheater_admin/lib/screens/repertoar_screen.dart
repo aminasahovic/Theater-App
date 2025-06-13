@@ -1,12 +1,17 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/predstava_details_screen.dart';
 import 'package:etheater_admin/services/services.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
+import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../layouts/master_screen.dart';
@@ -220,7 +225,6 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                                   _loadData();
                                 },
                               ),
-
                               IconButton(
                                 icon: const Icon(
                                   Icons.delete,
@@ -841,6 +845,8 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
   Future<void> _showSalesReportDialog(RepertoarIzvedba izvedba) async {
     try {
       final report = await _apiService.getTicketSalesReport(izvedba.izvedbaId);
+      final GlobalKey _chartKey = GlobalKey();
+
       showDialog(
         context: context,
         builder:
@@ -914,40 +920,60 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 8),
-                      SizedBox(
-                        height: 250,
-                        child: PieChart(
-                          PieChartData(
-                            sections: [
-                              PieChartSectionData(
-                                value: report.zauzetaMjesta.toDouble(),
-                                color: Colors.blue,
-                                title: '${report.zauzetaMjesta}',
-                                radius: 70,
-                                titleStyle: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              PieChartSectionData(
-                                value:
-                                    (report.ukupnoMjesta - report.zauzetaMjesta)
-                                        .toDouble(),
-                                color: Colors.grey[300]!,
-                                title:
-                                    '${report.ukupnoMjesta - report.zauzetaMjesta}',
-                                radius: 70,
-                                titleStyle: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 50,
-                            borderData: FlBorderData(show: false),
+                      RepaintBoundary(
+                        key: _chartKey,
+                        child: SizedBox(
+                          height: 300,
+                          child: PieChart(
+                            PieChartData(
+                              sections:
+                                  report.zauzetaMjesta == 0
+                                      ? [
+                                        PieChartSectionData(
+                                          value: report.ukupnoMjesta.toDouble(),
+                                          color: Colors.grey[300]!,
+                                          title: '${report.ukupnoMjesta}',
+                                          radius: 90,
+                                          titleStyle: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ]
+                                      : [
+                                        PieChartSectionData(
+                                          value:
+                                              report.zauzetaMjesta.toDouble(),
+                                          color: Colors.blue,
+                                          title: '${report.zauzetaMjesta}',
+                                          radius: 90,
+                                          titleStyle: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        PieChartSectionData(
+                                          value:
+                                              (report.ukupnoMjesta -
+                                                      report.zauzetaMjesta)
+                                                  .toDouble(),
+                                          color: Colors.grey[300]!,
+                                          title:
+                                              '${report.ukupnoMjesta - report.zauzetaMjesta}',
+                                          radius: 90,
+                                          titleStyle: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                              sectionsSpace: 2,
+                              centerSpaceRadius: 60,
+                              borderData: FlBorderData(show: false),
+                            ),
                           ),
                         ),
                       ),
@@ -955,12 +981,23 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildLegend(color: Colors.blue, label: 'Zauzeto'),
-                          SizedBox(width: 16),
                           _buildLegend(
-                            color: Colors.grey[300]!,
-                            label: 'Slobodno',
+                            color:
+                                report.zauzetaMjesta == 0
+                                    ? Colors.grey[300]!
+                                    : Colors.blue,
+                            label:
+                                report.zauzetaMjesta == 0
+                                    ? 'Slobodno'
+                                    : 'Zauzeto',
                           ),
+                          if (report.zauzetaMjesta != 0) ...[
+                            SizedBox(width: 16),
+                            _buildLegend(
+                              color: Colors.grey[300]!,
+                              label: 'Slobodno',
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -976,7 +1013,8 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
                   icon: Icon(Icons.print),
                   label: Text('Štampaj'),
                   onPressed: () async {
-                    await _printSalesReport(report);
+                    final chartImage = await _captureChartImage(_chartKey);
+                    await _printSalesReport(report, chartImage);
                   },
                 ),
               ],
@@ -986,6 +1024,26 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Greška prilikom dohvata izveštaja: $e')),
       );
+    }
+  }
+
+  Future<Uint8List?> _captureChartImage(GlobalKey chartKey) async {
+    try {
+      await Future.delayed(Duration(milliseconds: 500));
+      RenderRepaintBoundary? boundary =
+          chartKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        print('RenderRepaintBoundary not found');
+        return null;
+      }
+      ui.Image image = await boundary.toImage(pixelRatio: 4.0);
+      ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      return byteData?.buffer.asUint8List();
+    } catch (e) {
+      print('Error capturing chart image: $e');
+      return null;
     }
   }
 
@@ -999,34 +1057,269 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
     );
   }
 
-  Future<void> _printSalesReport(TicketSalesReportDTO report) async {
+  Future<void> _printSalesReport(
+    TicketSalesReportDTO report,
+    Uint8List? chartImage,
+  ) async {
     final pdf = pw.Document();
+    final logoImage = await DefaultAssetBundle.of(
+      context,
+    ).load('assets/images/logo.png').then((data) => data.buffer.asUint8List());
+
+    final timesFont = pw.Font.times();
+    final timesBoldFont = pw.Font.timesBold();
+
     pdf.addPage(
-      pw.Page(
-        build:
-            (pw.Context context) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.all(20),
+        header:
+            (pw.Context context) => pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Text(
-                  'Izvestaj o prodaji karata',
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 20),
-                pw.Text('Izvedba ID: ${report.izvedbaId}'),
-                pw.Text('Naziv predstave: ${report.nazivPredstave}'),
-                pw.Text(
-                  'Datum i vreme: ${DateFormat('dd.MM.yyyy HH:mm').format(report.datumVrijeme)}',
-                ),
-                pw.Text('Ukupno rezervacija: ${report.ukupnoRezervacija}'),
-                pw.Text('Ukupni prihod: ${report.ukupniPrihod} BAM'),
-                pw.Text(
-                  'Popunjenost sale: ${report.zauzetaMjesta}/${report.ukupnoMjesta} mesta',
+                pw.Image(pw.MemoryImage(logoImage), width: 80, height: 80),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                      'E-Theater',
+                      style: pw.TextStyle(
+                        font: timesBoldFont,
+                        fontSize: 24,
+                        color: PdfColor.fromHex('#B71C1C'),
+                      ),
+                    ),
+                    pw.Text(
+                      'Izvestaj o prodaji karata',
+                      style: pw.TextStyle(font: timesBoldFont, fontSize: 18),
+                    ),
+                    pw.Text(
+                      'Datum izvestaja: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+                      style: pw.TextStyle(font: timesFont, fontSize: 12),
+                    ),
+                  ],
                 ),
               ],
             ),
+        footer:
+            (pw.Context context) => pw.Container(
+              alignment: pw.Alignment.center,
+              margin: pw.EdgeInsets.only(top: 10),
+              child: pw.Text(
+                'Stranica ${context.pageNumber} | E-Theater © ${DateTime.now().year}',
+                style: pw.TextStyle(
+                  font: timesFont,
+                  fontSize: 10,
+                  color: PdfColors.grey,
+                ),
+              ),
+            ),
+        build:
+            (pw.Context context) => [
+              pw.SizedBox(height: 20),
+              pw.Divider(),
+              pw.SizedBox(height: 20),
+              // Report Details Table
+              pw.Text(
+                'Detalji izvedbe',
+                style: pw.TextStyle(font: timesBoldFont, fontSize: 16),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Table(
+                border: pw.TableBorder.all(),
+                defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                children: [
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(
+                      color: PdfColor.fromHex('#EEEEEE'),
+                    ),
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Polje',
+                          style: pw.TextStyle(
+                            font: timesBoldFont,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Vrednost',
+                          style: pw.TextStyle(
+                            font: timesBoldFont,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Izvedba ID',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          '${report.izvedbaId}',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Naziv predstave',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          report.nazivPredstave,
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Datum i vreme',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          DateFormat(
+                            'dd.MM.yyyy HH:mm',
+                          ).format(report.datumVrijeme),
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Ukupno rezervacija',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          '${report.ukupnoRezervacija}',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Ukupni prihod',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          '${report.ukupniPrihod} BAM',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          'Popunjenost sale',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.all(8),
+                        child: pw.Text(
+                          '${report.zauzetaMjesta}/${report.ukupnoMjesta} mesta',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              // Pie Chart Section
+              if (chartImage != null) ...[
+                pw.Text(
+                  'Popunjenost sale',
+                  style: pw.TextStyle(font: timesBoldFont, fontSize: 16),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Image(pw.MemoryImage(chartImage), width: 300, height: 300),
+                pw.SizedBox(height: 10),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Row(
+                      children: [
+                        pw.Container(
+                          width: 16,
+                          height: 16,
+                          color: PdfColor.fromInt(
+                            report.zauzetaMjesta == 0
+                                ? Colors.grey[300]!.value
+                                : Colors.blue.value,
+                          ),
+                        ),
+                        pw.SizedBox(width: 4),
+                        pw.Text(
+                          report.zauzetaMjesta == 0 ? 'Slobodno' : 'Zauzeto',
+                          style: pw.TextStyle(font: timesFont, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    if (report.zauzetaMjesta != 0) ...[
+                      pw.SizedBox(width: 16),
+                      pw.Row(
+                        children: [
+                          pw.Container(
+                            width: 16,
+                            height: 16,
+                            color: PdfColor.fromInt(Colors.grey[300]!.value),
+                          ),
+                          pw.SizedBox(width: 4),
+                          pw.Text(
+                            'Slobodno',
+                            style: pw.TextStyle(font: timesFont, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ],
       ),
     );
 
