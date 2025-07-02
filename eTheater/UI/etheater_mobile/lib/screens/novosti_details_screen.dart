@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:etheater_mobile/models/model.dart';
 import 'package:etheater_mobile/providers/auth_provider.dart';
 import 'package:etheater_mobile/screens/master_screen.dart';
+import 'package:etheater_mobile/screens/predstave_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -17,7 +18,7 @@ class NovostiDetailsScreen extends StatefulWidget {
 class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
   final TextEditingController _komentarController = TextEditingController();
   Map<int, TextEditingController> odgovorKontroleri = {};
-  List<Predstava> preporucenePredstave = [];
+  List<PredstavaPreporuka> preporucenePredstave = [];
 
   List<KomentarObavijest> komentari = [];
   int currentPage = 1;
@@ -221,61 +222,79 @@ class _NovostiDetailsScreenState extends State<NovostiDetailsScreen> {
                           final predstava = preporucenePredstave[index];
                           return SizedBox(
                             width: 180,
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (predstava.plakat != null &&
-                                      predstava.plakat!.isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(12),
-                                      ),
-                                      child: Image.memory(
-                                        base64Decode(predstava.plakat!),
-                                        height: 120,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          predstava.naziv,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => PredstavaScreen(
+                                          predstavaId: predstava.id,
+                                          izvedbaId: predstava.izvedbaId,
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${predstava.trajanje} min | ${predstava.godina}',
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          predstava.opis,
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 13),
-                                        ),
-                                      ],
-                                    ),
                                   ),
-                                ],
+                                );
+                              },
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (predstava.plakat != null &&
+                                        predstava.plakat!.isNotEmpty)
+                                      ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(12),
+                                            ),
+                                        child: Image.memory(
+                                          base64Decode(predstava.plakat!),
+                                          height: 120,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            predstava.naziv,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${predstava.trajanje} min | ${predstava.godina}',
+                                            style: const TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            predstava.opis,
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );

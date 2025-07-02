@@ -105,15 +105,39 @@ namespace eTheater.Services
 
             return query;
         }
-        public async Task<List<Model.Predstava>> GetPreprukuByKorisnikID(int korisnikId)
+        public async Task<List<PredstavaPreporukaDTO>> GetPreprukuByKorisnikID(int korisnikId)
         {
-            var preporuka = await _context.Recommenders.Where(x => x.KorisnikId == korisnikId).ToListAsync();
+            var preporuka = await _context.Recommenders
+                .Where(x => x.KorisnikId == korisnikId)
+                .ToListAsync();
+
             var listaId = new List<int>();
-            foreach (var p in preporuka)
+
+            if (preporuka.Any())
             {
-                listaId.Add((int)p.CoPredstavaId1);
-                listaId.Add((int)p.CoPredstavaId2);
-                listaId.Add((int)p.CoPredstavaId3);
+                foreach (var p in preporuka)
+                {
+                    if (p.CoPredstavaId1.HasValue) listaId.Add(p.CoPredstavaId1.Value);
+                    if (p.CoPredstavaId2.HasValue) listaId.Add(p.CoPredstavaId2.Value);
+                    if (p.CoPredstavaId3.HasValue) listaId.Add(p.CoPredstavaId3.Value);
+                }
+            }
+            else
+            {
+                var svePreporuke = await _context.Recommenders
+                    .Select(r => new { r.CoPredstavaId1, r.CoPredstavaId2, r.CoPredstavaId3 })
+                    .ToListAsync();  
+
+                var sveIds = svePreporuke
+                    .SelectMany(r => new int?[] { r.CoPredstavaId1, r.CoPredstavaId2, r.CoPredstavaId3 })
+                    .Where(id => id.HasValue)       
+                    .GroupBy(id => id.Value)        
+                    .OrderByDescending(g => g.Count())  
+                    .Take(3)                      
+                    .Select(g => g.Key)           
+                    .ToList();
+
+                listaId = sveIds;
 
             }
             var preporuceniFilmoviDetalji = await _context.Predstavas
@@ -122,10 +146,35 @@ namespace eTheater.Services
                 .Include(r => r.Reziser)
                 .ToListAsync();
 
-            var preporuceniFilmoviView = _mapper.Map<List<Model.Predstava>>(preporuceniFilmoviDetalji);
+            var preporuceniDTO = new List<PredstavaPreporukaDTO>();
 
-            return preporuceniFilmoviView;
+            foreach (var predstava in preporuceniFilmoviDetalji)
+            {
+                var izvedba = await _context.Izvedbas
+                    .Where(x => x.PredstavaId == predstava.Id && x.DatumVrijeme > DateTime.Now)
+                    .OrderBy(x => x.DatumVrijeme)
+                    .FirstOrDefaultAsync();
+
+                var dto = new PredstavaPreporukaDTO
+                {
+                    Id = predstava.Id,
+                    Naziv = predstava.Naziv,
+                    ZanrId = predstava.ZanrId,
+                    Opis = predstava.Opis,
+                    Trajanje = predstava.Trajanje,
+                    Godina = predstava.Godina,
+                    Plakat = predstava.Plakat,
+                    IsActive = predstava.IsActive,
+                    ReziserId = predstava.ReziserId,
+                    IzvedbaId = izvedba?.Id ?? 0
+                };
+
+                preporuceniDTO.Add(dto);
+            }
+
+            return preporuceniDTO;
         }
+
 
     }
 }

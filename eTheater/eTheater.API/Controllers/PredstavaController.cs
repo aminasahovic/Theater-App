@@ -37,7 +37,7 @@ namespace eTheater.API.Controllers
         }
 
         [HttpGet("GetPreporukuByKorisnikID/{korisnikId}")]
-        public async Task<ActionResult<List<Model.Predstava>>> GetPreporukuByKorisnikID(int korisnikId)
+        public async Task<ActionResult<List<PredstavaPreporukaDTO>>> GetPreporukuByKorisnikID(int korisnikId)
         {
             try
             {

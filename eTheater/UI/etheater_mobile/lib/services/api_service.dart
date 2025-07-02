@@ -462,7 +462,9 @@ class ApiService {
     }
   }
 
-  static Future<List<Predstava>> getPreporukeZaKorisnika(int korisnikId) async {
+  static Future<List<PredstavaPreporuka>> getPreporukeZaKorisnika(
+    int korisnikId,
+  ) async {
     final uri = Uri.parse(
       '${ApiKonstante.baseUrl}/Predstava/GetPreporukuByKorisnikID/$korisnikId',
     );
@@ -470,7 +472,7 @@ class ApiService {
     final response = await http.get(uri, headers: AuthProvider.authHeaders);
     if (response.statusCode == 200) {
       final List<dynamic> decoded = json.decode(response.body);
-      return decoded.map((e) => Predstava.fromJson(e)).toList();
+      return decoded.map((e) => PredstavaPreporuka.fromJson(e)).toList();
     } else {
       throw Exception('Greška prilikom dohvaćanja preporuka.');
     }

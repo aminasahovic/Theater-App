@@ -70,6 +70,61 @@ class Predstava {
   }
 }
 
+class PredstavaPreporuka {
+  final int id;
+  final String naziv;
+  final int zanrId;
+  final String opis;
+  final int trajanje;
+  final int godina;
+  final String? plakat;
+  final bool isActive;
+  final int reziserId;
+  final int izvedbaId;
+
+  PredstavaPreporuka({
+    required this.id,
+    required this.naziv,
+    required this.zanrId,
+    required this.opis,
+    required this.trajanje,
+    required this.godina,
+    this.plakat,
+    required this.isActive,
+    required this.reziserId,
+    required this.izvedbaId,
+  });
+
+  factory PredstavaPreporuka.fromJson(Map<String, dynamic> json) {
+    return PredstavaPreporuka(
+      id: json['id'],
+      naziv: json['naziv'],
+      zanrId: json['zanrId'],
+      opis: json['opis'] ?? '',
+      trajanje: json['trajanje'] ?? 0,
+      godina: json['godina'] ?? 0,
+      plakat: json['plakat'] as String?,
+      isActive: json['isActive'] ?? false,
+      reziserId: json['reziserId'],
+      izvedbaId: json['izvedbaId'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'naziv': naziv,
+      'zanrId': zanrId,
+      'opis': opis,
+      'trajanje': trajanje,
+      'godina': godina,
+      'plakat': plakat,
+      'isActive': isActive,
+      'reziserId': reziserId,
+    };
+  }
+}
+
 class InsertKorisnik {
   String ime;
   String prezime;

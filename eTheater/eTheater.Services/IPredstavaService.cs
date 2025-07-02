@@ -13,6 +13,6 @@ namespace eTheater.Services
     public interface IPredstavaService:ICRUDService<Model.Predstava, PredstavaSearchObject, PredstavaInsertRequest, PredstavaUpdateRequest>
     {
         Task<PagedResult<PredstavaIdNazivDto>> GetAllPredstaveIdNazivAsync(PredstavaLovSearchObject predstavaLovSearchObject);
-        Task<List<Model.Predstava>> GetPreprukuByKorisnikID(int korisnikId);
+        Task<List<PredstavaPreporukaDTO>> GetPreprukuByKorisnikID(int korisnikId);
     }
 }

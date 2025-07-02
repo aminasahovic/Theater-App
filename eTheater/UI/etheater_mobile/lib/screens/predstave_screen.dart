@@ -42,14 +42,24 @@ class _PredstavaDetaljiScreenState extends State<PredstavaScreen> {
 
   Future<void> _loadPodaci() async {
     try {
-      final predstava = await ApiService.getPredstava(widget.predstavaId);
-      final izvedba = await ApiService.getIzvedba(widget.izvedbaId);
-      final glumci = await ApiService.getGlumciZaPredstavu(widget.predstavaId);
+      final predstavaFuture = ApiService.getPredstava(widget.predstavaId);
+      final izvedbaFuture =
+          widget.izvedbaId != 0
+              ? ApiService.getIzvedba(widget.izvedbaId)
+              : Future.value(null);
+
+      final glumciFuture = ApiService.getGlumciZaPredstavu(widget.predstavaId);
+
+      final results = await Future.wait([
+        predstavaFuture,
+        izvedbaFuture,
+        glumciFuture,
+      ]);
 
       setState(() {
-        _predstava = predstava;
-        _izvedba = izvedba;
-        _glumci = glumci;
+        _predstava = results[0] as Predstava;
+        _izvedba = results[1] as Izvedba?;
+        _glumci = results[2] as List<GlumacPredstava>;
         _loading = false;
       });
     } catch (e) {
@@ -90,7 +100,7 @@ class _PredstavaDetaljiScreenState extends State<PredstavaScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       'Detalji predstave',
-      _loading || _predstava == null || _izvedba == null
+      _loading || _predstava == null
           ? const Center(child: CircularProgressIndicator())
           : Stack(
             children: [
@@ -121,14 +131,26 @@ class _PredstavaDetaljiScreenState extends State<PredstavaScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Datum i vrijeme: ${DateFormat('dd.MM.yyyy. HH:mm').format(_izvedba!.datumVrijemeIzvodjenja)}',
-                            ),
-                            Text('Trajanje: ${_predstava!.trajanje} min'),
-                            Text('Godina: ${_predstava!.godina}'),
-                            Text(
-                              'Cijena: ${_izvedba!.cijenaKarte.toStringAsFixed(2)} KM',
-                            ),
+                            if (_izvedba != null) ...[
+                              Text(
+                                'Datum i vrijeme: ${DateFormat('dd.MM.yyyy. HH:mm').format(_izvedba!.datumVrijemeIzvodjenja)}',
+                              ),
+                              Text('Trajanje: ${_predstava!.trajanje} min'),
+                              Text('Godina: ${_predstava!.godina}'),
+                              Text(
+                                'Cijena: ${_izvedba!.cijenaKarte.toStringAsFixed(2)} KM',
+                              ),
+                            ] else ...[
+                              const Text(
+                                'Trenutno ova predstava nije na repertoaru.',
+                                style: TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+
                             const SizedBox(height: 16),
                             const Text(
                               'Opis:',
@@ -256,18 +278,21 @@ class _PredstavaDetaljiScreenState extends State<PredstavaScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => OdabirSjedistaScreen(
-                                  predstava: _predstava!,
-                                  izvedba: _izvedba!,
-                                ),
-                          ),
-                        );
-                      },
+                      onPressed:
+                          _izvedba == null
+                              ? null
+                              : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => OdabirSjedistaScreen(
+                                          predstava: _predstava!,
+                                          izvedba: _izvedba!,
+                                        ),
+                                  ),
+                                );
+                              },
                       child: const Text(
                         'Rezerviši',
                         style: TextStyle(
