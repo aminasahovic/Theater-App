@@ -720,6 +720,7 @@ class KomentarObavijest {
   final DateTime datum;
   final String imeKorisnika;
   final String prezimeKorisnika;
+  final int brojOdgovora;
 
   KomentarObavijest({
     required this.id,
@@ -729,6 +730,7 @@ class KomentarObavijest {
     required this.datum,
     required this.imeKorisnika,
     required this.prezimeKorisnika,
+    required this.brojOdgovora,
   });
 
   factory KomentarObavijest.fromJson(Map<String, dynamic> json) {
@@ -740,6 +742,7 @@ class KomentarObavijest {
       datum: DateTime.parse(json['datum']),
       imeKorisnika: json['imeKorisnika'],
       prezimeKorisnika: json['prezimeKorisnika'],
+      brojOdgovora: json['brojOdgovora'],
     );
   }
 }

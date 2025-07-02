@@ -14,6 +14,7 @@ namespace eTheater.Model.ViewModels
 
         public string ImeKorisnika { get; set; } = string.Empty;
         public string PrezimeKorisnika { get; set; } = string.Empty;
+        public int BrojOdgovora { get; set; } = 0;
     }
 
 }

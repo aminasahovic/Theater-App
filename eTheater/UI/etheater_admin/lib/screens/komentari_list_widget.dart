@@ -17,7 +17,7 @@ class _KomentariListWidgetState extends State<KomentariListWidget> {
   final ApiService _apiService = ApiService();
   int _currentPage = 1;
   int _totalCount = 0;
-  final int _pageSize = 3;
+  final int _pageSize = 2;
   List<KomentarObavijest> _komentari = [];
   bool _loading = true;
 
@@ -99,11 +99,21 @@ class _KomentariListWidgetState extends State<KomentariListWidget> {
                       ),
                       Row(
                         children: [
-                          IconButton(
+                          TextButton.icon(
                             icon: const Icon(Icons.comment_outlined),
-                            tooltip: "Prikaži odgovore",
-                            onPressed: () => prikaziPopupSaOdgovorima(komentar),
+                            label: Text('${komentar.brojOdgovora}'),
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  komentar.brojOdgovora > 0
+                                      ? Colors.blue
+                                      : Colors.grey,
+                            ),
+                            onPressed:
+                                komentar.brojOdgovora > 0
+                                    ? () => prikaziPopupSaOdgovorima(komentar)
+                                    : null,
                           ),
+
                           IconButton(
                             icon: const Icon(
                               Icons.delete_outline,

@@ -46,7 +46,8 @@ namespace eTheater.Services
                     Text = k.Text,
                     Datum = k.Datum,
                     ImeKorisnika = k.Korisnik != null ? k.Korisnik.Ime : "",
-                    PrezimeKorisnika = k.Korisnik != null ? k.Korisnik.Prezime : ""
+                    PrezimeKorisnika = k.Korisnik != null ? k.Korisnik.Prezime : "",
+                    BrojOdgovora = _context.OdgovorKomentars.Count(o => o.KomentariObavijestiId == k.Id && o.IsDeleted == false)
                 })
                 .ToListAsync();
 
