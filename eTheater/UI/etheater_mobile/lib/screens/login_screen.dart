@@ -42,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
           username: username,
           password: password,
           id: data['id'],
+          slika: data['slikaProfila'],
         );
         return data;
       } else {

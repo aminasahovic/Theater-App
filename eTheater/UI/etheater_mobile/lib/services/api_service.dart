@@ -305,13 +305,13 @@ class ApiService {
     }
   }
 
-  static Future<Korisnik> getKorisnikById(int id) async {
+  static Future<KorisnikProfile> getKorisnikById(int id) async {
     final uri = Uri.parse('${ApiKonstante.baseUrl}/Korisnik/$id');
     final response = await http.get(uri, headers: AuthProvider.authHeaders);
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
-      return Korisnik.fromJson(decoded);
+      return KorisnikProfile.fromJson(decoded);
     } else {
       throw Exception('Greška prilikom dohvaćanja korisnika.');
     }
@@ -389,28 +389,27 @@ class ApiService {
   static Future<PagedResult<MojaRezervacija>> getMojeRezervacije({
     required int korisnikId,
     String? nazivPredstave,
-    bool aktivne = true,
+    bool? aktivne,
     bool isUsedTicket = false,
     int page = 1,
     int pageSize = 4,
   }) async {
     final queryParams = <String, String>{
       'KorisnikId': korisnikId.toString(),
-      'Aktivne': aktivne.toString(),
       'IsUsedTicket': isUsedTicket.toString(),
       'Page': page.toString(),
       'PageSize': pageSize.toString(),
+      if (aktivne != null) 'Aktivne': aktivne.toString(),
       if (nazivPredstave != null && nazivPredstave.isNotEmpty)
         'NazivPredstave': nazivPredstave,
     };
-
     final uri = Uri.parse(
       '${ApiKonstante.baseUrl}/Rezervacija/korisnik',
     ).replace(queryParameters: queryParams);
-
     final response = await http.get(uri, headers: AuthProvider.authHeaders);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
+
       return PagedResult<MojaRezervacija>.fromJson(
         decoded,
         (json) => MojaRezervacija.fromJson(json),

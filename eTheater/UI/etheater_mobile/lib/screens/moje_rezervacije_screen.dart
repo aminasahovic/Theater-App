@@ -63,6 +63,9 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
 
   Future<void> _loadRezervacije() async {
     if (!_hasMore) return;
+    print("2");
+
+    print(_filterAktivne);
 
     setState(() => _isLoading = true);
 
@@ -71,11 +74,12 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
       final result = await ApiService.getMojeRezervacije(
         korisnikId: korisnikId,
         nazivPredstave: _filterNaziv,
-        aktivne: _filterAktivne,
+        aktivne: _filterAktivne == true ? true : null,
         isUsedTicket: !_filterAktivne,
         page: _currentPage,
         pageSize: 4,
       );
+      print('Ukupno: ${result.resultList}');
 
       setState(() {
         _rezervacije.addAll(result.resultList);
@@ -167,7 +171,7 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                     style: const TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 8),
-                  if (!_filterAktivne && rez.isUsedTicket)
+                  if (rez.isUsedTicket)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: OutlinedButton.icon(
@@ -202,7 +206,7 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                       ),
                     ),
 
-                  if (rez.isKupljeno)
+                  if (rez.isKupljeno && _filterAktivne)
                     Align(
                       alignment: Alignment.centerRight,
                       child: Padding(
@@ -353,6 +357,9 @@ class _MojeRezervacijeScreenState extends State<MojeRezervacijeScreen> {
                   onChanged: (value) {
                     setState(() {
                       _filterAktivne = value;
+                      print("1");
+
+                      print(_filterAktivne);
                       _resetAndLoadRezervacije();
                     });
                   },

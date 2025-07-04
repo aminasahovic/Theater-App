@@ -1,60 +1,64 @@
-import 'package:etheater_mobile/models/model.dart';
-import 'package:etheater_mobile/providers/auth_provider.dart';
-import 'package:etheater_mobile/theme/app_theme.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../models/model.dart';
+import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import 'login_screen.dart';
 import 'master_screen.dart';
-import 'login_screen.dart'; // Ako koristiš named routing, koristi Navigator.pushNamed(context, 'login')
 
 class ProfileScreen extends StatefulWidget {
   final int korisnikId;
 
-  const ProfileScreen({Key? key, required this.korisnikId}) : super(key: key);
+  const ProfileScreen({super.key, required this.korisnikId});
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<Korisnik> _futureKorisnik;
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _imeController = TextEditingController();
   final TextEditingController _prezimeController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _telefonController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordPotvrdaController =
       TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _telefonController = TextEditingController();
 
   bool _showPasswordFields = false;
-  var tipKorisnika = 0;
+  String? _slikaBase64;
+  int tipKorisnika = 0;
+
+  Future<KorisnikProfile>? _futureKorisnik;
 
   @override
   void initState() {
     super.initState();
     _futureKorisnik = ApiService.getKorisnikById(AuthProvider.userId!);
-    _futureKorisnik.then((korisnik) {
+    _futureKorisnik!.then((korisnik) {
       _imeController.text = korisnik.ime;
       _prezimeController.text = korisnik.prezime;
       _usernameController.text = korisnik.username;
       _emailController.text = korisnik.email;
       _telefonController.text = korisnik.brojTelefona;
       tipKorisnika = korisnik.tipKorisnikaId;
+      _slikaBase64 = korisnik.slikaProfila;
     });
   }
 
-  @override
-  void dispose() {
-    _imeController.dispose();
-    _prezimeController.dispose();
-    _usernameController.dispose();
-    _passwordController.dispose();
-    _passwordPotvrdaController.dispose();
-    _emailController.dispose();
-    _telefonController.dispose();
-    super.dispose();
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        _slikaBase64 = base64Encode(bytes);
+      });
+    }
   }
 
   void _saveProfile() async {
@@ -72,6 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           password: password.isNotEmpty ? password : null,
           passwordPotvrda: passwordPotvrda.isNotEmpty ? passwordPotvrda : null,
           tipKorisnikaId: tipKorisnika,
+          slikaProfila: _slikaBase64,
         );
 
         bool updated = await ApiService.updateKorisnik(
@@ -87,21 +92,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             );
             AuthProvider.logout();
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+            }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Profil uspješno ažuriran')),
+            AuthProvider.setAuthInfo(
+              username: AuthProvider.username!,
+              password: AuthProvider.password!,
+              id: AuthProvider.userId!,
+              slika: _slikaBase64,
             );
+
+            setState(() {});
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Profil ažuriran.')));
           }
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Greška pri ažuriranju profila: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Greška: $e')));
       }
     }
   }
@@ -110,16 +126,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       "Profil korisnika",
-      FutureBuilder<Korisnik>(
+      FutureBuilder<KorisnikProfile>(
         future: _futureKorisnik,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Greška: ${snapshot.error}'));
+            return Center(child: Text("Greška: ${snapshot.error}"));
           } else if (!snapshot.hasData) {
-            return const Center(child: Text('Korisnik nije pronađen.'));
+            return const Center(child: Text("Podaci nisu pronađeni."));
           }
+
+          final korisnik = snapshot.data!;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -127,49 +145,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  _buildTextField(
-                    _imeController,
-                    "Ime",
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Unesite ime';
-                      return null;
-                    },
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.grey.shade300,
+                        backgroundImage:
+                            (_slikaBase64 != null && _slikaBase64!.isNotEmpty)
+                                ? MemoryImage(base64Decode(_slikaBase64!))
+                                : null,
+                        child:
+                            (_slikaBase64 == null || _slikaBase64!.isEmpty)
+                                ? Text(
+                                  korisnik.ime[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 4,
+                        child: InkWell(
+                          onTap: _pickImage,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 24),
+                  _buildTextField(_imeController, "Ime"),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    _prezimeController,
-                    "Prezime",
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Unesite prezime';
-                      return null;
-                    },
-                  ),
+                  _buildTextField(_prezimeController, "Prezime"),
                   const SizedBox(height: 16),
                   _buildTextField(
                     _usernameController,
                     "Korisničko ime",
-                    validator: (val) {
-                      if (val == null || val.isEmpty)
-                        return 'Unesite korisničko ime';
-                      return null;
-                    },
+                    readOnly: true,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     _emailController,
                     "Email",
                     keyboardType: TextInputType.emailAddress,
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Unesite email';
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(val))
-                        return 'Neispravan email';
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     _telefonController,
-                    "Broj telefona",
+                    "Telefon",
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 24),
@@ -192,41 +229,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _passwordController,
                       "Nova lozinka",
                       obscureText: true,
-                      validator: (val) {
-                        if (_showPasswordFields &&
-                            (val == null || val.length < 6)) {
-                          return 'Lozinka mora imati najmanje 6 znakova';
-                        }
-                        return null;
-                      },
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       _passwordPotvrdaController,
-                      "Potvrdi novu lozinku",
+                      "Potvrda lozinke",
                       obscureText: true,
-                      validator: (val) {
-                        if (_showPasswordFields &&
-                            val != _passwordController.text) {
-                          return 'Lozinke se ne poklapaju';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 16),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.save),
+                      label: const Text("Spremi promjene"),
                       onPressed: _saveProfile,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      child: const Text(
-                        "Spremi promjene",
-                        style: TextStyle(fontSize: 18),
+                        textStyle: const TextStyle(fontSize: 18),
                       ),
                     ),
                   ),
@@ -244,20 +265,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String label, {
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
+    bool readOnly = false,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppTheme.primaryColor),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      readOnly: readOnly,
+      validator: (value) {
+        if (label.contains("lozinka")) return null;
+        if (value == null || value.isEmpty) return 'Polje ne smije biti prazno';
+        return null;
+      },
+      decoration: InputDecoration(labelText: label),
     );
   }
 }

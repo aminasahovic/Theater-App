@@ -151,7 +151,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                   validator: (val) {
                     if (val!.isEmpty) return 'Unesite email';
                     if (!RegExp(
-                      r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
+                      r'^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                     ).hasMatch(val)) {
                       return 'Unesite validan email';
                     }

@@ -17,6 +17,8 @@ namespace eTheater.Model
 
         public string? BrojTelefona { get; set; }
         public bool? IsActive { get; set; }
+        public string? SlikaProfila { get; set; }
+
 
     }
 }

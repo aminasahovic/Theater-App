@@ -565,6 +565,41 @@ class Korisnik {
   }
 }
 
+class KorisnikProfile {
+  final int id;
+  final String ime;
+  final String prezime;
+  final String username;
+  final int tipKorisnikaId;
+  final String email;
+  final String brojTelefona;
+  final String? slikaProfila;
+
+  KorisnikProfile({
+    required this.id,
+    required this.ime,
+    required this.prezime,
+    required this.username,
+    required this.tipKorisnikaId,
+    required this.email,
+    required this.brojTelefona,
+    this.slikaProfila,
+  });
+
+  factory KorisnikProfile.fromJson(Map<String, dynamic> json) {
+    return KorisnikProfile(
+      id: json['id'] ?? 0,
+      ime: json['ime'] ?? '',
+      prezime: json['prezime'] ?? '',
+      username: json['username'] ?? '',
+      tipKorisnikaId: json['tipKorisnikaId'] ?? 0,
+      email: json['email'] ?? '',
+      brojTelefona: json['brojTelefona'] ?? '',
+      slikaProfila: json['slikaProfila'],
+    );
+  }
+}
+
 class KorisnikUpdateRequest {
   final String ime;
   final String prezime;
@@ -574,6 +609,7 @@ class KorisnikUpdateRequest {
   final String? password;
   final String? passwordPotvrda;
   final int tipKorisnikaId;
+  final String? slikaProfila;
 
   KorisnikUpdateRequest({
     required this.ime,
@@ -584,6 +620,7 @@ class KorisnikUpdateRequest {
     required this.password,
     required this.passwordPotvrda,
     required this.tipKorisnikaId,
+    this.slikaProfila,
   });
   Map<String, dynamic> toJson() {
     final data = {
@@ -593,6 +630,7 @@ class KorisnikUpdateRequest {
       'status': status,
       'email': email,
       'tipKorisnikaId': tipKorisnikaId,
+      'slikaProfila': slikaProfila,
     };
 
     if (password != null && password!.isNotEmpty) {

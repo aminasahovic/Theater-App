@@ -14,5 +14,7 @@ namespace eTheater.Model.Requests
         public string? Password { get; set; }
         public string? PasswordPotvrda { get; set; }
         public int? TipKorisnikaId { get; set; }
+        public string? SlikaProfila { get; set; }
+
     }
 }

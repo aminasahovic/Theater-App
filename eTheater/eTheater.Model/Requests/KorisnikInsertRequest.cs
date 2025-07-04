@@ -16,5 +16,7 @@ namespace eTheater.Model.Requests
         public bool? IsActive { get; set; }
         public string? BrojTelefona { get; set; }
         public int? TipKorisnikaId { get; set; }
+        public string? SlikaProfila { get; set; }
+
     }
 }

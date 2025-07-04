@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:etheater_mobile/screens/moje_rezervacije_screen.dart';
 import 'package:etheater_mobile/screens/novosti_screen.dart';
 import 'package:etheater_mobile/screens/profile_screen.dart';
@@ -37,53 +39,74 @@ class MasterScreen extends StatelessWidget {
               Container(
                 height: 250,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Stack(
-                  children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProfileScreen(korisnikId: 11),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
                         children: [
                           CircleAvatar(
                             radius: 50,
                             backgroundColor: AppTheme.primaryColor,
-                            child: Text(
-                              username.isNotEmpty
-                                  ? username[0].toUpperCase()
-                                  : "?",
-                              style: const TextStyle(
-                                fontSize: 48,
-                                color: Colors.white,
+                            backgroundImage:
+                                AuthProvider.slika != null
+                                    ? MemoryImage(
+                                      base64Decode(AuthProvider.slika!),
+                                    )
+                                    : null,
+                            child:
+                                AuthProvider.slika == null
+                                    ? Text(
+                                      username.isNotEmpty
+                                          ? username[0].toUpperCase()
+                                          : "?",
+                                      style: const TextStyle(
+                                        fontSize: 48,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => ProfileScreen(
+                                          korisnikId: AuthProvider.userId!,
+                                        ),
+                                  ),
+                                );
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                radius: 18,
+                                child: Icon(
+                                  Icons.edit,
+                                  size: 18,
+                                  color: AppTheme.primaryColor,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            username,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 6),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
                 ),
               ),
 
