@@ -97,7 +97,7 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                   'Izvedbe:',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                const SizedBox(width: 16), // razmak između teksta i dropdowna
+                const SizedBox(width: 16),
                 Expanded(
                   child: DropdownButtonFormField<int>(
                     value: _zanrId,

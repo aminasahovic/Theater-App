@@ -476,4 +476,31 @@ class ApiService {
       throw Exception('Greška prilikom dohvaćanja preporuka.');
     }
   }
+
+  static Future<void> posaljiPotvrdu({
+    required int? korisnikId,
+    required String nazivPredstave,
+    required DateTime datumPrikazivanja,
+    required String sala,
+    required int brojKarata,
+    required double ukupnaCijena,
+    required bool isRezervacija,
+  }) async {
+    final uri = Uri.parse(
+      "${ApiKonstante.baseUrl}/Korisnik/posalji-potvrdu"
+      "?korisnikID=$korisnikId"
+      "&nazivPredstave=${Uri.encodeComponent(nazivPredstave)}"
+      "&datumPrikazivanja=${datumPrikazivanja.toIso8601String()}"
+      "&sala=${Uri.encodeComponent(sala)}"
+      "&brojKarata=$brojKarata"
+      "&ukupnaCijena=$ukupnaCijena"
+      "&isRezervacija=$isRezervacija",
+    );
+
+    final response = await http.post(uri, headers: AuthProvider.authHeaders);
+
+    if (response.statusCode != 200) {
+      throw Exception("Greška prilikom slanja potvrde: ${response.body}");
+    }
+  }
 }

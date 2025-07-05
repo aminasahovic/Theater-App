@@ -40,6 +40,16 @@ class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
         return;
       }
     }
+    await ApiService.posaljiPotvrdu(
+      korisnikId: AuthProvider.userId,
+      nazivPredstave: widget.predstava.naziv,
+      datumPrikazivanja: widget.izvedba.datumVrijemeIzvodjenja,
+      sala: "Velika sala",
+      brojKarata: widget.odabranaSjedista.length,
+      ukupnaCijena:
+          (widget.odabranaSjedista.length * widget.izvedba.cijenaKarte),
+      isRezervacija: _nacinPlacanja == "Gotovina",
+    );
 
     setState(() => _loading = true);
     final korisnikId = AuthProvider.userId!;
