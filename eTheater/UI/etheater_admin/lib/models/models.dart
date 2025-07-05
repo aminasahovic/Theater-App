@@ -788,6 +788,7 @@ class KorisnikVM {
   String email;
   String brojTelefona;
   bool? isActive;
+  String? slikaProfila;
 
   KorisnikVM({
     required this.id,
@@ -798,6 +799,7 @@ class KorisnikVM {
     required this.email,
     required this.brojTelefona,
     this.isActive,
+    this.slikaProfila,
   });
 
   factory KorisnikVM.fromJson(Map<String, dynamic> json) {
@@ -810,6 +812,7 @@ class KorisnikVM {
       email: json['email'],
       brojTelefona: json['brojTelefona'],
       isActive: json['isActive'],
+      slikaProfila: json['slikaProfila'],
     );
   }
 

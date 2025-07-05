@@ -51,7 +51,7 @@ class _EditKorisnikaDialogState extends State<EditKorisnikaDialog> {
       (tip) => tip.id == widget.korisnik.tipKorisnikaId,
       orElse: () => widget.tipovi.first,
     );
-    _isActive = widget.korisnik.isActive!;
+    _isActive = widget.korisnik.isActive ?? true;
   }
 
   @override
