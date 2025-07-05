@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
-import '../services/api_service.dart'; // Prilagodi putanju ako je drugačija
+import '../services/api_service.dart';
 
 class SalaKontrolaScreen extends StatefulWidget {
   const SalaKontrolaScreen({super.key});
