@@ -116,118 +116,175 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registracija'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Ime',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (v) => _validateName(v, 'Ime'),
-                  onChanged: (v) => ime = v,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset('assets/images/background.jpg', fit: BoxFit.cover),
+          Container(color: Colors.black.withOpacity(0.3)),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Prezime',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  validator: (v) => _validateName(v, 'Prezime'),
-                  onChanged: (v) => prezime = v,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Korisničko ime',
-                    prefixIcon: Icon(Icons.account_circle),
-                  ),
-                  validator:
-                      (v) =>
-                          (v == null || v.isEmpty)
-                              ? 'Unesite korisničko ime'
-                              : null,
-                  onChanged: (v) => username = v,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Lozinka',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  validator: _validatePassword,
-                  onChanged: (v) => password = v,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Potvrda lozinke',
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
-                  validator:
-                      (v) =>
-                          (v == null || v.isEmpty) ? 'Potvrdite lozinku' : null,
-                  onChanged: (v) => passwordPotvrda = v,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  validator:
-                      (v) =>
-                          (v == null || !v.contains('@'))
-                              ? 'Unesite validan email'
-                              : null,
-                  onChanged: (v) => email = v,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Broj telefona',
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                  ],
-                  validator: _validatePhone,
-                  onChanged: (v) => brojTelefona = v,
-                ),
-                const SizedBox(height: 20),
-                if (_errorMessage != null)
-                  Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                const SizedBox(height: 20),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                      onPressed: _submit,
-                      child: const Text('Registruj se'),
+                elevation: 8,
+                color: Colors.white.withOpacity(0.4),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Registracija',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildTextField(
+                          label: 'Ime',
+                          icon: Icons.person,
+                          onChanged: (v) => ime = v,
+                          validator: (v) => _validateName(v, 'Ime'),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Prezime',
+                          icon: Icons.person_outline,
+                          onChanged: (v) => prezime = v,
+                          validator: (v) => _validateName(v, 'Prezime'),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Korisničko ime',
+                          icon: Icons.account_circle,
+                          onChanged: (v) => username = v,
+                          validator:
+                              (v) =>
+                                  (v == null || v.isEmpty)
+                                      ? 'Unesite korisničko ime'
+                                      : null,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Lozinka',
+                          icon: Icons.lock,
+                          obscureText: true,
+                          onChanged: (v) => password = v,
+                          validator: _validatePassword,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Potvrda lozinke',
+                          icon: Icons.lock_outline,
+                          obscureText: true,
+                          onChanged: (v) => passwordPotvrda = v,
+                          validator:
+                              (v) =>
+                                  (v == null || v.isEmpty)
+                                      ? 'Potvrdite lozinku'
+                                      : null,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Email',
+                          icon: Icons.email,
+                          onChanged: (v) => email = v,
+                          validator:
+                              (v) =>
+                                  (v == null || !v.contains('@'))
+                                      ? 'Unesite validan email'
+                                      : null,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          label: 'Broj telefona',
+                          icon: Icons.phone,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9+]'),
+                            ),
+                          ],
+                          onChanged: (v) => brojTelefona = v,
+                          validator: _validatePhone,
+                        ),
+                        const SizedBox(height: 20),
+                        if (_errorMessage != null)
+                          Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              backgroundColor: const Color(0xFF800000),
+                            ),
+                            onPressed: _isLoading ? null : _submit,
+                            child:
+                                _isLoading
+                                    ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : const Text(
+                                      'Registruj se',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                const SizedBox(height: 20),
-              ],
+                  ),
+                ),
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required IconData icon,
+    required Function(String) onChanged,
+    String? Function(String?)? validator,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return TextFormField(
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        filled: true,
+        fillColor: Colors.grey.shade200.withOpacity(0.3),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
         ),
       ),
+      onChanged: onChanged,
+      validator: validator,
     );
   }
 }

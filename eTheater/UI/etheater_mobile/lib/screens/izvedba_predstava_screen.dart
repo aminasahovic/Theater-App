@@ -143,8 +143,8 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                       child: GridView.builder(
                         padding: const EdgeInsets.all(16),
                         gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 250,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                               childAspectRatio: 0.6,
@@ -153,6 +153,7 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                         itemBuilder: (context, index) {
                           final izvedba = _izvedbe[index];
                           Widget plakatWidget;
+
                           if (izvedba.plakat != null &&
                               izvedba.plakat!.isNotEmpty) {
                             try {
@@ -160,10 +161,12 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                               plakatWidget = Image.memory(
                                 bytes,
                                 fit: BoxFit.cover,
+                                width: double.infinity,
                               );
                             } catch (_) {
                               plakatWidget = Container(
                                 color: Colors.grey.shade300,
+                                height: 180,
                                 child: const Icon(
                                   Icons.image_not_supported,
                                   size: 50,
@@ -173,6 +176,7 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                           } else {
                             plakatWidget = Container(
                               color: Colors.grey.shade300,
+                              height: 180,
                               child: const Icon(Icons.image, size: 50),
                             );
                           }
@@ -192,14 +196,14 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                             },
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              elevation: 3,
+                              elevation: 4,
                               clipBehavior: Clip.antiAlias,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SizedBox(
+                                  Container(
                                     height: 180,
                                     width: double.infinity,
                                     child: plakatWidget,
@@ -209,7 +213,7 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                                       12,
                                       12,
                                       12,
-                                      16,
+                                      12,
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
@@ -223,7 +227,7 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
                                             color: Colors.brown.shade700,
                                             height: 1.2,
                                           ),
-                                          maxLines: 1,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 8),
