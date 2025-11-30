@@ -1,0 +1,43 @@
+<div class="master-container">
+  <aside class="sidebar">
+    <div class="logo-container">
+      <img src="/images/logo.png" alt="Logo" class="logo" />
+    </div>
+
+    <ul class="menu">
+      <li (click)="navigate('/user-list')">Administracija Korisnika</li>
+      <li (click)="navigate('/predstave')">Predstave</li>
+      <li (click)="navigate('/novosti')">Novosti</li>
+
+      <li>
+        <span (click)="osobljeExpanded = !osobljeExpanded">Administracija Osoblja</span>
+        <ul *ngIf="osobljeExpanded">
+          <li (click)="navigate('/glumci')">Glumci</li>
+          <li (click)="navigate('/reziseri')">Režiseri</li>
+        </ul>
+      </li>
+
+      <li>
+        <span (click)="repertoarExpanded = !repertoarExpanded">Repertoar</span>
+        <ul *ngIf="repertoarExpanded">
+          <li (click)="navigate('/izvedbe')">Izvedbe</li>
+          <li (click)="navigate('/repertoar')">Repertoar</li>
+        </ul>
+      </li>
+
+      <li>
+        <span (click)="komentariExpanded = !komentariExpanded">Upravljanje komentarima</span>
+        <ul *ngIf="komentariExpanded">
+          <li (click)="navigate('/komentari-predstave')">Komentari na predstave</li>
+          <li (click)="navigate('/komentari-novosti')">Komentari na obavijesti</li>
+        </ul>
+      </li>
+
+      <li class="logout" (click)="logout()">Logout</li>
+    </ul>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
