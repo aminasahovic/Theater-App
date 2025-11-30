@@ -8,14 +8,20 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore.Storage;
+using eTheater.Model;
+using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+
+builder.Services.AddHttpClient(); 
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
+builder.Services.AddTransient<IChatRepository, ChatRepository>();
 builder.Services.AddTransient<IZanrService, ZanrService>();
 builder.Services.AddTransient<ITipKorisnikService, TipKorisnikaService>();
 builder.Services.AddTransient<ISjedisteService, SjedisteService>();
@@ -36,6 +42,7 @@ builder.Services.AddTransient<IGlumacPredstavaService, GlumacPredstavaService>()
 builder.Services.AddTransient<IGlumacService, GlumacService>();
 builder.Services.AddTransient<IRabbitMQProducer, RabbitMQProducer>();
 builder.Services.AddTransient<IRecommenderService, RecommenderService>();
+
 
 builder.Services.AddControllers(x =>
     x.Filters.Add<ExceptionFilter>());
@@ -67,7 +74,18 @@ builder.Services.AddMapster();
 builder.Services.AddAuthentication("BasicAuthentication")
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
-var app = builder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build(); 
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -77,7 +95,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowAll");
 app.UseAuthorization();
 
 app.MapControllers();
