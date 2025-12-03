@@ -48,4 +48,17 @@ export class PredstaveService {
   deletePredstavu(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`, this.authHeader());
   }
+  getPredstavaById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}`, this.authHeader());
+  }
+
+  updatePredstava(predstava: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${predstava.id}`, predstava, this.authHeader());
+  }
+
+ getGlumciZaPredstavu(predstavaId: number) {
+  return this.http.get<any[]>(`${ApiKonstante.baseUrl}/GlumacPredstava/predstava/${predstavaId}/glumci`, this.authHeader());
+}
+
+
 }

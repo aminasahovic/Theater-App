@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PredstaveService } from '../../services/predstava.service ';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-predstava-screen',
@@ -40,7 +41,8 @@ export class PredstavaScreen implements OnInit {
   constructor(
     private api: PredstaveService,
     private cd: ChangeDetectorRef,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {
     this.dodajForm = this.fb.group({
       naziv: ['', Validators.required],
@@ -251,5 +253,7 @@ export class PredstavaScreen implements OnInit {
     this.showNotification = true;
     setTimeout(() => this.showNotification = false, 3000); 
   }
-
+openDetails(id: number) {
+  this.router.navigate(['/predstave', id]);
+}
 }

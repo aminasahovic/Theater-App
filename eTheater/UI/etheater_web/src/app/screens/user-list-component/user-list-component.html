@@ -1,0 +1,205 @@
+<div class="container">
+
+  <div class="filter-bar">
+    <input type="text" placeholder="Ime..." [value]="ime" (input)="onImeChange($event.target.value)" class="flex-input">
+    <input type="text" placeholder="Prezime..." [value]="prezime" (input)="onPrezimeChange($event.target.value)"
+      class="flex-input">
+
+    <div class="filter-buttons">
+      <button type="button" class="btn" (click)="showFilterPopup = !showFilterPopup">
+        <i class="material-icons">tune</i> Napredni filter
+      </button>
+      <button type="button" class="btn primary" (click)="openEditPopup()">
+        <i class="material-icons">add</i> Novi korisnik
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-popup" *ngIf="showFilterPopup">
+    <h3>Napredni filteri</h3>
+
+    <label>Username</label>
+    <input type="text" placeholder="Username..." [value]="username" (input)="onUsernameChange($event.target.value)">
+
+    <label>Tip korisnika</label>
+    <select [(ngModel)]="tipId">
+      <option [ngValue]="null">Svi</option>
+      <option *ngFor="let t of tipovi" [ngValue]="t.id">{{ t.naziv }}</option>
+    </select>
+
+    <label>Status</label>
+    <select [(ngModel)]="isActive">
+      <option [ngValue]="null">Svi</option>
+      <option [ngValue]="true">Aktivan</option>
+      <option [ngValue]="false">Neaktivan</option>
+    </select>
+
+    <div class="popup-actions">
+      <button type="button" class="btn" (click)="resetFilters()">Resetuj</button>
+      <button type="button" class="btn primary" (click)="applyFilters()">Primijeni</button>
+    </div>
+  </div>
+
+  <div class="loader" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="no-results" *ngIf="!loading && korisnici.length === 0">
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <p>Nema korisnika</p>
+  </div>
+
+  <div class="grid" *ngIf="!loading">
+    <div class="card" *ngFor="let k of korisnici">
+      <div class="top-actions">
+        <button (click)="openEditPopup(k)" class="icon-btn">
+          <i class="material-icons">edit</i>
+        </button>
+
+        <button (click)="deleteUser(k)" class="icon-btn delete">
+          <i class="material-icons">delete</i>
+        </button>
+      </div>
+      <div class="card-header">
+        <div class="avatar-box">
+          <img *ngIf="k.slikaProfila" [src]="'data:image/jpeg;base64,' + k.slikaProfila">
+          <div *ngIf="!k.slikaProfila" class="placeholder">
+            <i class="material-icons">person</i>
+          </div>
+        </div>
+
+        <div class="user-info">
+          <h3>{{ k.ime }} {{ k.prezime }}</h3>
+          <p class="tip-korisnika">{{ getTipNaziv(k.tipKorisnikaId) }}</p>
+        </div>
+      </div>
+
+      <p class="email">{{ k.email }}</p>
+      <span class="status" [class.active]="k.isActive" [class.inactive]="!k.isActive">
+        {{ getStatus(k.isActive) }}
+      </span>
+    </div>
+  </div>
+
+  <div class="pagination-wrapper">
+    <div class="pagination">
+      <button (click)="prevPage()" [disabled]="page === 1">Prethodna</button>
+      <span>{{ page }} / {{ totalPages }}</span>
+      <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+    </div>
+  </div>
+
+
+  <div class="toster" *ngIf="showNotification">
+    {{ notificationMessage }}
+  </div>
+
+  <div class="edit-popup" *ngIf="showEditPopup">
+    <h3>{{ editMode ? 'Izmijeni korisnika' : 'Novi korisnik' }}</h3>
+
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+
+      <div class="row">
+        <div class="col">
+          <label>Ime</label>
+          <input type="text" formControlName="ime">
+        </div>
+
+        <div class="col">
+          <label>Prezime</label>
+          <input type="text" formControlName="prezime">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Username</label>
+          <input type="text" formControlName="username">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Email</label>
+          <input type="email" formControlName="email">
+        </div>
+
+        <div class="col">
+          <label>Broj telefona</label>
+          <input type="text" formControlName="brojTelefona">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Password</label>
+          <input type="password" formControlName="password">
+        </div>
+
+        <div class="col">
+          <label>Potvrda passworda</label>
+          <input type="password" formControlName="passwordPotvrda">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Tip korisnika</label>
+          <select formControlName="tipKorisnikaId">
+            <option [ngValue]="null">Odaberi...</option>
+            <option *ngFor="let t of tipovi" [ngValue]="t.id">{{ t.naziv }}</option>
+          </select>
+        </div>
+
+        <div class="col">
+          <label>Status</label>
+          <select formControlName="isActive">
+            <option [ngValue]="true">Aktivan</option>
+            <option [ngValue]="false">Neaktivan</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Profilna slika</label>
+          <input type="file" (change)="onFileChange($event)">
+        </div>
+
+        <div class="col">
+          <div class="preview-image" *ngIf="slikaProfilaBase64">
+            <img [src]="slikaProfilaBase64">
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn" (click)="closeEditPopup()">Odustani</button>
+        <button type="submit" class="btn primary">
+          {{ editMode ? 'Sačuvaj' : 'Dodaj' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+  <div class="delete-popup" *ngIf="showDeletePopup">
+    <div class="popup-content">
+      <h2>Obriši korisnika</h2>
+
+      <p>
+        Da li sigurni da želite obrisati korisnika:
+        <br><strong>{{ userToDelete?.ime }} {{ userToDelete?.prezime }}</strong>?
+      </p>
+
+      <div class="popup-buttons">
+        <button type="button" class="btn bordo" (click)="confirmDeleteUser()">
+          Obriši
+        </button>
+
+        <button type="button" class="btn grey" (click)="showDeletePopup = false">
+          Otkaži
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,43 +1,93 @@
 <div class="master-container">
+
   <aside class="sidebar">
-    <div class="logo-container">
-      <img src="/images/logo.png" alt="Logo" class="logo" />
+    <div class="admin-profile">
+      <div class="avatar">
+        <img src="/images/logo.png" alt="Admin" />
+      </div>
+      <div class="role">Admin</div>
     </div>
 
     <ul class="menu">
-      <li (click)="navigate('/user-list')">Administracija Korisnika</li>
-      <li (click)="navigate('/predstave')">Predstave</li>
-      <li (click)="navigate('/novosti')">Novosti</li>
+      <li [class.active]="activeRoute === '/korisnici'" (click)="navigate('/korisnici')">
+        <i class="material-icons">people</i>
+        <span>Administracija korisnika</span>
+      </li>
+
+      <li [class.active]="activeRoute === '/predstave'" (click)="navigate('/predstave')">
+        <i class="material-icons">theaters</i>
+        <span>Predstave</span>
+      </li>
+
+      <li [class.active]="activeRoute === '/novosti'" (click)="navigate('/novosti')">
+        <i class="material-icons">campaign</i>
+        <span>Novosti</span>
+      </li>
 
       <li>
-        <span (click)="osobljeExpanded = !osobljeExpanded">Administracija Osoblja</span>
-        <ul *ngIf="osobljeExpanded">
+        <span class="menu-header" (click)="osobljeExpanded = !osobljeExpanded">
+          <!-- Ikonica se prikazuje samo kad nije expanded -->
+          <i *ngIf="!osobljeExpanded" class="material-icons">people</i>
+          <span>Administracija Osoblja</span>
+          <i class="material-icons arrow">{{ osobljeExpanded ? 'expand_less' : 'expand_more' }}</i>
+        </span>
+        <ul class="submenu" *ngIf="osobljeExpanded">
           <li (click)="navigate('/glumci')">Glumci</li>
           <li (click)="navigate('/reziseri')">Režiseri</li>
         </ul>
       </li>
 
       <li>
-        <span (click)="repertoarExpanded = !repertoarExpanded">Repertoar</span>
-        <ul *ngIf="repertoarExpanded">
-          <li (click)="navigate('/izvedbe')">Izvedbe</li>
-          <li (click)="navigate('/repertoar')">Repertoar</li>
+        <span class="menu-header" (click)="repertoarExpanded = !repertoarExpanded">
+          <i *ngIf="!repertoarExpanded" class="material-icons">schedule</i>
+          <span>Repertoar</span>
+          <i class="material-icons arrow">{{ repertoarExpanded ? 'expand_less' : 'expand_more' }}</i>
+        </span>
+        <ul class="submenu" *ngIf="repertoarExpanded">
+          <li [class.active]="activeRoute === '/izvedbe'" (click)="navigate('/izvedbe')">Izvedbe</li>
+          <li [class.active]="activeRoute === '/repertoar'" (click)="navigate('/repertoar')">Repertoar</li>
         </ul>
       </li>
 
       <li>
-        <span (click)="komentariExpanded = !komentariExpanded">Upravljanje komentarima</span>
-        <ul *ngIf="komentariExpanded">
-          <li (click)="navigate('/komentari-predstave')">Komentari na predstave</li>
-          <li (click)="navigate('/komentari-novosti')">Komentari na obavijesti</li>
+        <span class="menu-header" (click)="komentariExpanded = !komentariExpanded">
+          <i *ngIf="!komentariExpanded" class="material-icons">comment</i>
+          <span>Upravljanje komentarima</span>
+          <i class="material-icons arrow">{{ komentariExpanded ? 'expand_less' : 'expand_more' }}</i>
+        </span>
+        <ul class="submenu" *ngIf="komentariExpanded">
+          <li [class.active]="activeRoute === '/komentari-predstave'" (click)="navigate('/komentari-predstave')">
+            Komentari na predstave
+          </li>
+          <li [class.active]="activeRoute === '/komentari-novosti'" (click)="navigate('/komentari-novosti')">
+            Komentari na obavijesti
+          </li>
         </ul>
       </li>
 
-      <li class="logout" (click)="logout()">Logout</li>
     </ul>
+
+    <div class="sidebar-bottom">
+      <li class="logout" (click)="showLogoutPopup = true">
+        <i class="material-icons">logout</i>
+        <span>Logout</span>
+      </li>
+    </div>
   </aside>
+
 
   <main class="content">
     <router-outlet></router-outlet>
   </main>
+
+  <div class="logout-popup" *ngIf="showLogoutPopup">
+    <div class="popup-content">
+      <p>Da li ste sigurni da se želite odjaviti?</p>
+      <div class="popup-buttons">
+        <button class="btn confirm" (click)="confirmLogout()">Da</button>
+        <button class="btn cancel" (click)="showLogoutPopup=false">Ne</button>
+      </div>
+    </div>
+  </div>
+
 </div>

@@ -1,0 +1,101 @@
+<div class="details-container" *ngIf="!loading">
+    <div class="top-bar">
+        <div class="top-buttons">
+            <button class="edit-btn" [disabled]="editing" (click)="toggleEdit()">Uredi</button>
+            <button class="delete-btn text-btn" [disabled]="editing" (click)="showDeletePopup = true">Obriši</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="left">
+            <img [src]="slikaPreview || 'assets/no-image.png'" class="poster">
+            <div *ngIf="editing" class="upload-box">
+                <label class="upload-btn">
+                    <span class="material-icons">upload</span> Promijeni sliku
+                    <input type="file" (change)="onSlikaSelected($event)">
+                </label>
+            </div>
+        </div>
+
+        <div class="right">
+            <form [formGroup]="form">
+                <div class="row">
+                    <label>Naziv predstave</label>
+                    <input formControlName="naziv" [readonly]="!editing">
+                </div>
+                <div class="row">
+                    <label>Opis</label>
+                    <textarea rows="3" formControlName="opis" [readonly]="!editing"></textarea>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Trajanje</label>
+                        <input type="number" formControlName="trajanje" [readonly]="!editing">
+                    </div>
+                    <div>
+                        <label>Godina</label>
+                        <input type="number" formControlName="godina" [readonly]="!editing">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Žanr</label>
+                        <select formControlName="zanrId" [disabled]="!editing">
+                            <option *ngFor="let z of zanrovi" [value]="z.id">{{ z.naziv }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Režiser</label>
+                        <select formControlName="reziserId" [disabled]="!editing">
+                            <option *ngFor="let r of reziseri" [value]="r.id">{{ r.ime }} {{ r.prezime }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="status-box">
+                    <label>Status:</label>
+                    <span [class.active]="form.value.isActive" [class.inactive]="!form.value.isActive">
+                        {{ form.value.isActive ? 'Aktivno' : 'Neaktivno' }}
+                    </span>
+                    <label class="switch" *ngIf="editing">
+                        <input type="checkbox" formControlName="isActive">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="action-buttons" *ngIf="editing" style="justify-content:flex-end; gap:12px;">
+                    <button class="cancel-btn text-btn" (click)="toggleEdit()">Otkaži</button>
+                    <button class="save-btn">Sačuvaj</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="actors-section" *ngIf="glumci.length > 0">
+        <h3>Glumačka postava</h3>
+        <div class="actors-grid">
+            <div class="actor-card" *ngFor="let g of glumci">
+                <img [src]="g.slika ? 'data:image/png;base64,'+g.slika : 'assets/person-placeholder.png'"
+                    alt="{{g.ime}} {{g.prezime}}">
+                <div class="actor-info">
+                    <span class="actor-name">{{g.ime}} {{g.prezime}}</span>
+                    <span class="actor-role">{{g.uloga}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-overlay" *ngIf="showDeletePopup">
+        <div class="popup">
+            <h2>Da li ste sigurni?</h2>
+            <p>Ova akcija je trajna i ne može se poništiti.</p>
+            <div class="popup-actions">
+                <button class="cancel" (click)="showDeletePopup = false">Otkaži</button>
+                <button class="confirm" (click)="delete()">Obriši</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="loading" class="loading-indicator">
+    Učitavanje podataka...
+</div>

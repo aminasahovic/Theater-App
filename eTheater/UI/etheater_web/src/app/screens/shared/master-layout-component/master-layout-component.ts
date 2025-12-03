@@ -1,30 +1,35 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
-import { Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-master-layout-component',
   templateUrl: './master-layout-component.html',
   styleUrls: ['./master-layout-component.css'],
-  standalone: false
+  standalone:false
 })
 export class MasterLayoutComponent {
   osobljeExpanded = false;
   repertoarExpanded = false;
   komentariExpanded = false;
 
-  constructor(private authService: AuthService, private router: Router) { }
+  showLogoutPopup = false;
+  activeRoute = '';
 
-  logout() {
-    const potvrda = confirm('Da li ste sigurni da se želite odjaviti?');
-    if (potvrda) {
-      this.authService.logout();
-      this.router.navigate(['/']);
-    }
+  constructor(private authService: AuthService, private router: Router) {
+    this.activeRoute = this.router.url;
+    this.router.events.subscribe(() => {
+      this.activeRoute = this.router.url;
+    });
   }
 
   navigate(route: string) {
     this.router.navigate([route]);
+    this.activeRoute = route;
+  }
+
+  confirmLogout() {
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }
