@@ -3,6 +3,7 @@ import { forkJoin } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PredstaveService } from '../../services/predstava.service ';
 import { Router } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-predstava-screen',
@@ -11,8 +12,7 @@ import { Router } from '@angular/router';
   standalone: false
 })
 export class PredstavaScreen implements OnInit {
-  showNotification = false;
-  notificationMessage = '';
+
   loading = false;
   naziv = '';
   zanrId: number | null = null;
@@ -25,6 +25,9 @@ export class PredstavaScreen implements OnInit {
   reziseri: any[] = [];
   godine: number[] = [];
   predstave: any[] = [];
+  glumci: any[] = [];
+  odabraniGlumci: any[] = [];
+  ulogePoGlumcu: { [glumacId: number]: string } = {};
 
   page = 1;
   pageSize = 12;
@@ -42,7 +45,8 @@ export class PredstavaScreen implements OnInit {
     private api: PredstaveService,
     private cd: ChangeDetectorRef,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {
     this.dodajForm = this.fb.group({
       naziv: ['', Validators.required],
@@ -69,19 +73,32 @@ export class PredstavaScreen implements OnInit {
   loadFilterDataAndPredstave() {
     forkJoin({
       zanrovi: this.api.getZanrovi(),
-      reziseri: this.api.getReziseri()
+      reziseri: this.api.getReziseri(),
+      glumci: this.api.getGlumci()
     }).subscribe({
-      next: ({ zanrovi, reziseri }) => {
-        this.zanrovi = Array.isArray(zanrovi) ? zanrovi : [];
-        this.reziseri = Array.isArray(reziseri) ? reziseri : [];
-        this.loadPredstave();
-      },
-      error: () => {
-        this.zanrovi = [];
-        this.reziseri = [];
+      next: ({ zanrovi, reziseri, glumci }) => {
+        this.zanrovi = zanrovi;
+        this.reziseri = reziseri;
+        this.glumci = glumci;
         this.loadPredstave();
       }
     });
+
+  }
+  onGlumacOdabran(event: any) {
+    const id = Number(event.target.value);
+    if (!id) return;
+
+    const gl = this.glumci.find(x => x.id === id);
+    if (!gl) return;
+
+    if (!this.odabraniGlumci.some(g => g.id === id)) {
+      this.odabraniGlumci.push(gl);
+    }
+  }
+  ukloniGlumca(gl: any) {
+    this.odabraniGlumci = this.odabraniGlumci.filter(g => g.id !== gl.id);
+    delete this.ulogePoGlumcu[gl.id];
   }
 
 
@@ -190,44 +207,36 @@ export class PredstavaScreen implements OnInit {
     if (this.dodajForm.invalid) return;
 
     const nova = { ...this.dodajForm.value, plakat: this.plakatBase64 };
+
     this.api.dodajPredstavu(nova).subscribe({
-      next: () => {
+      next: (predstava) => {
+        this.odabraniGlumci.forEach(g => {
+          const body = {
+            glumacId: g.id,
+            predstavaId: predstava.id,
+            uloga: this.ulogePoGlumcu[g.id]
+          };
+          this.api.dodajGlumcaPredstavi(body).subscribe();
+        });
+
         this.showDodajPopup = false;
         this.loadPredstave();
-        this.showSuccess('Predstava uspješno dodana!');
+        this.toast.showSuccess("Predstava uspješno dodana!");
       },
       error: (err) => {
         console.error(err);
         this.showDodajPopup = false;
-        this.loadPredstave();
-        this.showSuccess('Predstava uspješno dodana!');
+        this.toast.showError('Greška pri dodavanju predstave!');
       }
     });
   }
 
-
-  deletePredstava() {
-    if (!this.predstavaToDelete) return;
-
-    this.api.deletePredstavu(this.predstavaToDelete.id).subscribe({
-      next: () => {
-        this.showDeletePopup = false;
-        this.loadPredstave();
-        this.showSuccess('Predstava je obrisana!');
-      },
-      error: (err) => {
-        console.error(err);
-        this.showDeletePopup = false;
-        this.showSuccess('Greška pri brisanju predstave!');
-      }
-    });
-  }
 
   predstavaZaBrisanje: any = null;
 
   openDeletePopup(predstava: any) {
     this.predstavaZaBrisanje = predstava;
-    this.showDeletePopup = true; 
+    this.showDeletePopup = true;
   }
 
   confirmDelete() {
@@ -236,24 +245,20 @@ export class PredstavaScreen implements OnInit {
     this.api.deletePredstavu(this.predstavaZaBrisanje.id).subscribe({
       next: () => {
         this.showDeletePopup = false;
+        this.toast.showSuccess('Predstava je obrisana!');
+
         this.loadPredstave();
-        this.showSuccess("Predstava uspješno obrisana!");
       },
       error: (err) => {
         console.error(err);
         this.showDeletePopup = false;
-        this.showSuccess("Greška pri brisanju predstave!");
+        this.toast.showSuccess('Greška pri brisanju predstave!');
+
       }
     });
   }
 
-
-  showSuccess(message: string) {
-    this.notificationMessage = message;
-    this.showNotification = true;
-    setTimeout(() => this.showNotification = false, 3000); 
+  openDetails(id: number) {
+    this.router.navigate(['/predstave', id]);
   }
-openDetails(id: number) {
-  this.router.navigate(['/predstave', id]);
-}
 }

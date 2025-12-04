@@ -56,9 +56,15 @@ export class PredstaveService {
     return this.http.put<any>(`${this.baseUrl}/${predstava.id}`, predstava, this.authHeader());
   }
 
- getGlumciZaPredstavu(predstavaId: number) {
-  return this.http.get<any[]>(`${ApiKonstante.baseUrl}/GlumacPredstava/predstava/${predstavaId}/glumci`, this.authHeader());
-}
+  getGlumciZaPredstavu(predstavaId: number) {
+    return this.http.get<any[]>(`${ApiKonstante.baseUrl}/GlumacPredstava/predstava/${predstavaId}/glumci`, this.authHeader());
+  }
+  getGlumci(): Observable<any[]> {
+    return this.http.get<any>(`${ApiKonstante.baseUrl}/Glumac`, this.authHeader())
+      .pipe(map(res => res.resultList || []));
+  }
 
-
+  dodajGlumcaPredstavi(body: any): Observable<any> {
+    return this.http.post(`${ApiKonstante.baseUrl}/GlumacPredstava`, body, this.authHeader());
+  }
 }

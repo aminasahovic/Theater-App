@@ -61,9 +61,9 @@
                     </label>
                 </div>
 
-                <div class="action-buttons" *ngIf="editing" style="justify-content:flex-end; gap:12px;">
-                    <button class="cancel-btn text-btn" (click)="toggleEdit()">Otkaži</button>
-                    <button class="save-btn">Sačuvaj</button>
+                <div class="action-buttons" *ngIf="editing">
+                    <button type="button" class="cancel-btn text-btn" (click)="toggleEdit()">Otkaži</button>
+                    <button type="button" class="save-btn" (click)="save()">Sačuvaj</button>
                 </div>
 
             </form>

@@ -6,6 +6,9 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PredstavaDetails } from './screens/predstava-details/predstava-details';
 import { UserListComponent } from './screens/user-list-component/user-list-component';
+import { NovostiScreenComponent } from './screens/novosti-screen-component/novosti-screen-component';
+import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
+import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -16,8 +19,10 @@ export const routes: Routes = [
     children: [
       { path: 'predstave', component: PredstavaScreen },
       { path: 'predstave/:id', component: PredstavaDetails },
-      { path: 'korisnici', component: UserListComponent } // <- nova ruta
-
+      { path: 'korisnici', component: UserListComponent },
+      { path: 'novosti', component: NovostiScreenComponent },
+      { path: 'glumci', component: GlumciScreen },
+      { path: 'reziseri', component: ReziseriScreen }
 
     ]
   }

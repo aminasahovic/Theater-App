@@ -1,0 +1,92 @@
+<div class="container">
+  <div class="filters">
+    <div class="search-wrapper">
+      <input type="text" [formControl]="naslov" placeholder="Pretraži po naslovu" />
+      <button class="reset-icon" *ngIf="naslov.value || datumObjave.value" (click)="resetFilters()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+    <input type="date" [formControl]="datumObjave" />
+    <button (click)="openAddDialog()" class="btn-bordo">Dodaj novost</button>
+  </div>
+
+  <div *ngIf="loading" class="loader">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="novosti-grid" *ngIf="!loading && novosti.length > 0">
+    <div class="novost-card" *ngFor="let n of novosti">
+      <div class="img-container">
+        <img *ngIf="isValidBase64(n.slika)" [src]="'data:image/png;base64,' + n.slika" />
+        <div *ngIf="!isValidBase64(n.slika)" class="placeholder">No Image</div>
+      </div>
+      <div class="novost-card-content">
+        <h3>{{ n.naslov }}</h3>
+        <p>{{ n.sadrzaj }}</p>
+        <small>{{ n.datumObjave | date }}</small>
+        <div class="actions">
+          <button class="edit-btn" (click)="openEditDialog(n)">Uredi</button>
+          <button class="delete-text-btn" (click)="confirmDelete(n)">Obriši</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="no-results" *ngIf="!loading && novosti.length === 0">
+    Nema dostupnih novosti.
+  </div>
+
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button (click)="previousPage()" [disabled]="page <= 1">Prethodna</button>
+    <span>Stranica {{ page }} od {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+  </div>
+  <div class="confirm-overlay" *ngIf="showDeletePopup">
+    <div class="confirm-box">
+      <h3>Da li ste sigurni?</h3>
+      <p>Želite obrisati ovu novost?</p>
+
+      <div class="confirm-actions">
+        <button class="btn-bordo" (click)="deleteConfirmed()">Da, obriši</button>
+        <button class="delete-text-btn" (click)="cancelDelete()">Otkaži</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showPopup">
+  <div class="popup">
+    <h2>{{ isEditMode ? 'Uredi novost' : 'Dodaj novost' }}</h2>
+    <form [formGroup]="popupForm" (ngSubmit)="saveNovost()">
+      <label>Naslov</label>
+      <input formControlName="naslov" />
+      <div *ngIf="popupForm.get('naslov')?.touched && popupForm.get('naslov')?.invalid" class="error">
+        Naslov je obavezan
+      </div>
+
+      <label>Sadržaj</label>
+      <textarea formControlName="sadrzaj"></textarea>
+      <div *ngIf="popupForm.get('sadrzaj')?.touched && popupForm.get('sadrzaj')?.invalid" class="error">
+        Sadržaj je obavezan
+      </div>
+
+      <label>Datum objave</label>
+      <input type="date" formControlName="datumObjave" readonly />
+      <div *ngIf="popupForm.get('datumObjave')?.touched && popupForm.get('datumObjave')?.invalid" class="error">
+        Datum objave je obavezan
+      </div>
+
+      <label>Slika</label>
+      <input type="file" (change)="onSlikaSelected($event)" />
+      <div *ngIf="popupForm.get('slika')?.touched && popupForm.get('slika')?.invalid" class="error">
+        Slika je obavezna
+      </div>
+
+      <div class="popup-actions">
+        <button type="submit" class="btn-bordo">{{ isEditMode ? 'Sačuvaj' : 'Dodaj' }}</button>
+        <button type="button" (click)="closePopup()" class="delete-text-btn">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>

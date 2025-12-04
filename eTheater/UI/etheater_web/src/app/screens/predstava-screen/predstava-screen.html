@@ -48,10 +48,10 @@
   <div class="loader" *ngIf="loading">
     <div class="spinner"></div>
   </div>
-<div class="no-results" *ngIf="!loading && predstave.length === 0">
-  <i class="material-icons">sentiment_dissatisfied</i>
-  <p>Nema dostupnih predstava.</p>
-</div>
+  <div class="no-results" *ngIf="!loading && predstave.length === 0">
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <p>Nema dostupnih predstava.</p>
+  </div>
 
   <div class="grid" *ngIf="!loading">
     <div class="card" *ngFor="let p of predstave">
@@ -68,10 +68,10 @@
 
       <p class="opis">{{ p.opis | slice:0:50 }}...</p>
 
-<div class="actions">
-    <button class="edit-btn" (click)="openDetails(p.id)">Uredi</button>
-    <button class="delete-text-btn" (click)="openDeletePopup(p)">Obriši</button>
-</div>
+      <div class="actions">
+        <button class="edit-btn" (click)="openDetails(p.id)">Uredi</button>
+        <button class="delete-text-btn" (click)="openDeletePopup(p)">Obriši</button>
+      </div>
 
     </div>
   </div>
@@ -87,16 +87,17 @@
     <div class="popup-content">
       <h2>Obriši predstavu</h2>
       <p>Jeste li sigurni da želite obrisati predstavu <strong>{{ predstavaZaBrisanje?.naziv }}</strong>?</p>
-     <div class="popup-buttons">
-    <button type="submit" class="btn bordo" [disabled]="dodajForm.invalid">Spremi</button>
-
-    <button type="button" class="btn text-btn" (click)="showDodajPopup=false">
-        Otkaži
-    </button>
-</div>
-
+      <div class="popup-buttons">
+        <button type="button" class="btn bordo" (click)="confirmDelete()">
+          Obriši
+        </button>
+        <button type="button" class="btn text-btn" (click)="showDeletePopup=false">
+          Otkaži
+        </button>
+      </div>
     </div>
   </div>
+
 
 </div>
 <div class="dodaj-popup" *ngIf="showDodajPopup">
@@ -167,6 +168,26 @@
           </div>
         </div>
       </div>
+      <div class="form-group">
+        <label>Dodaj glumca</label>
+        <select (change)="onGlumacOdabran($event)">
+          <option value="">Izaberi glumca</option>
+          <option *ngFor="let g of glumci" [value]="g.id">
+            {{ g.ime }} {{ g.prezime }}
+          </option>
+        </select>
+      </div>
+      <div class="glumci-list">
+        <div class="glumac-item" *ngFor="let g of odabraniGlumci">
+          <label>Uloga za {{ g.ime }} {{ g.prezime }}</label>
+          <input type="text" (input)="ulogePoGlumcu[g.id] = $event.target.value" placeholder="Upišite ulogu..." />
+
+          <button class="remove-btn" (click)="ukloniGlumca(g)">
+            X
+          </button>
+        </div>
+      </div>
+
 
       <div class="form-group file-input">
         <label>
@@ -192,8 +213,4 @@
 
     </form>
   </div>
-</div>
-
-<div class="toster" *ngIf="showNotification">
-  {{ notificationMessage }}
 </div>

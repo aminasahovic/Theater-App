@@ -26,7 +26,6 @@
 
       <li>
         <span class="menu-header" (click)="osobljeExpanded = !osobljeExpanded">
-          <!-- Ikonica se prikazuje samo kad nije expanded -->
           <i *ngIf="!osobljeExpanded" class="material-icons">people</i>
           <span>Administracija Osoblja</span>
           <i class="material-icons arrow">{{ osobljeExpanded ? 'expand_less' : 'expand_more' }}</i>

@@ -1,0 +1,383 @@
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-wrapper input {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.reset-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+.filters input[type="text"],
+.filters input[type="date"] {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+  flex: 1;
+  margin-right: 10px;
+}
+
+.filters input[type="date"] {
+  max-width: 180px;
+}
+
+.btn-bordo {
+  background: #800020;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.novosti-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.novost-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s, box-shadow 0.25s;
+  display: flex;
+  flex-direction: column;
+}
+
+.novost-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.img-container {
+  width: 100%;
+  height: 180px;
+  background: #f2f2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+.img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.novost-card-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  text-align: center;
+}
+
+p {
+  margin: 0 0 10px 0;
+  color: #444;
+  text-align: justify;
+  max-height: 4.5em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+small {
+  display: block;
+  margin-bottom: 10px;
+  color: #777;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.edit-btn, .delete-text-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.edit-btn { 
+  background: #800020; 
+  color: white; 
+}
+
+.delete-text-btn { 
+  background: transparent; 
+  color: #800020; 
+  font-weight: 600; 
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  border: 2px solid #800020;
+  background: transparent;
+  color: #800020;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #800020;
+  color: white;
+}
+
+.pagination button:disabled { 
+  opacity: 0.4; 
+  cursor: not-allowed; 
+}
+
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.spinner {
+  width: 40px; 
+  height: 40px;
+  border: 4px solid #ccc;
+  border-top-color: #800020;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
+}
+
+.no-results {
+  text-align: center;
+  margin-top: 40px;
+  color: #777;
+}
+
+.container {
+  padding: 20px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.popup {
+  background: #fff;
+  padding: 25px 30px;
+  width: 500px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: scaleIn 0.25s ease-in-out;
+  font-family: "Roboto", sans-serif;
+}
+
+.popup h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+}
+
+.popup label {
+  display: block;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.popup input[type="text"],
+.popup input[type="date"],
+.popup input[type="file"],
+.popup textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.popup input:focus,
+.popup textarea:focus {
+  border-color: #800020;
+  box-shadow: 0 0 8px rgba(128,0,32,0.2);
+}
+
+.popup textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.popup .error {
+  color: #d93025;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.popup form > *:not(.popup-actions):not(.error) {
+  margin-bottom: 10px;
+}
+
+.popup input[type="file"] {
+  cursor: pointer;
+  padding: 8px;
+}
+
+.popup input[formControlName="naslov"] {
+  font-size: 15px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.popup-actions .btn-bordo {
+  background: #800020;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s;
+}
+
+.popup-actions .btn-bordo:hover {
+  background: #a1002d;
+}
+
+.popup-actions .delete-text-btn {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #555;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.popup-actions .delete-text-btn:hover {
+  background: #ffe5e5;
+  border-color: #800020;
+  color: #800020;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.popup input[formControlName="naslov"] {
+  width: 100%;              
+  padding: 12px 14px;         
+  border-radius: 8px;       
+  border: 1px solid #ccc;     
+  font-size: 14px;           
+  box-sizing: border-box;     
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.popup input[formControlName="naslov"]:focus {
+  border-color: #800020;
+  box-shadow: 0 0 8px rgba(128,0,32,0.2);
+}
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.confirm-box {
+  background: white;
+  padding: 25px;
+  width: 320px;
+  text-align: center;
+  border-radius: 10px;
+  animation: pop 0.2s ease-out;
+}
+
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.confirm-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}

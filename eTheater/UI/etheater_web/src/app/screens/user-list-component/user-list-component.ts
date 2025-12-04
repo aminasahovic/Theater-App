@@ -3,6 +3,7 @@ import { forkJoin } from 'rxjs';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Korisnik, TipKorisnika, UserService } from '../../services/user.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-user-list-component',
@@ -34,8 +35,6 @@ export class UserListComponent implements OnInit {
 
   showFilterPopup = false;
 
-  showNotification = false;
-  notificationMessage = '';
 
   showEditPopup = false;
   editMode = false;
@@ -47,7 +46,8 @@ export class UserListComponent implements OnInit {
     private userService: UserService,
     private cd: ChangeDetectorRef,
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {
     this.editForm = this.fb.group({
       ime: [''],
@@ -173,11 +173,7 @@ export class UserListComponent implements OnInit {
     this.openEditPopup(user);
   }
 
-  showNotificationMessage(msg: string) {
-    this.notificationMessage = msg;
-    this.showNotification = true;
-    setTimeout(() => this.showNotification = false, 3000);
-  }
+
 
   openEditPopup(user?: Korisnik) {
     this.editMode = !!user;
@@ -242,13 +238,13 @@ export class UserListComponent implements OnInit {
     if (this.editMode && this.currentEditUserId) {
       korisnik.id = this.currentEditUserId;
       this.userService.updateKorisnika(korisnik).subscribe(() => {
-        this.showNotificationMessage("Korisnik ažuriran!");
+        this.toast.showSuccess("Korisnik ažuriran!");
         this.closeEditPopup();
         this.loadUsers();
       });
     } else {
       this.userService.dodajKorisnika(korisnik).subscribe(() => {
-        this.showNotificationMessage("Korisnik dodan!");
+        this.toast.showSuccess("Korisnik dodan!");
         this.closeEditPopup();
         this.loadUsers();
       });
@@ -267,12 +263,12 @@ export class UserListComponent implements OnInit {
     this.userService.deleteKorisnik(this.userToDelete.id).subscribe({
       next: () => {
         this.showDeletePopup = false;
-        this.showNotificationMessage("Korisnik uspješno obrisan!");
+        this.toast.showSuccess("Korisnik uspješno obrisan!");
         this.loadUsers();
       },
       error: () => {
         this.showDeletePopup = false;
-        this.showNotificationMessage("Greška pri brisanju korisnika!");
+        this.toast.showError("Greška pri brisanju korisnika!");
       }
     });
   }

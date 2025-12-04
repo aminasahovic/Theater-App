@@ -1,0 +1,262 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 16px;
+  font-family: "Roboto", sans-serif;
+  background: #f9f9f9;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.flex-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.flex-input:focus {
+  outline: none;
+  border-color: #800020;
+  box-shadow: 0 0 6px rgba(128,0,32,0.3);
+}
+
+.btn {
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #800020, #a1002d);
+  color: white;
+}
+
+.btn.primary:hover {
+  opacity: 0.9;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.card.horizontal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card.horizontal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.12);
+}
+
+.info h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.actions .btn {
+  margin-left: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.actions .btn.bordo {
+  background: #800020;
+  color: white;
+}
+
+.actions .btn.grey {
+  background: #ccc;
+  color: #333;
+}
+
+.actions .btn.bordo:hover,
+.actions .btn.grey:hover {
+  opacity: 0.9;
+}
+
+.pagination-wrapper {
+  margin-top: auto; 
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  border-top: 1px solid #eee;
+  background: #f9f9f9;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.pagination button {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 2px solid #800020;
+  background: transparent;
+  color: #800020;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #800020;
+  color: white;
+}
+
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  margin: 0 12px;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.edit-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: white;
+  padding: 30px;
+  width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  z-index: 20;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  animation: popupShow 0.25s forwards;
+}
+
+@keyframes popupShow {
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.edit-popup h3 {
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.5rem;
+  color: #800020;
+}
+
+.edit-popup form .row {
+  display: flex;
+  gap: 12px;
+}
+
+.edit-popup .col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-popup .col input {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.edit-popup .col input:focus {
+  outline: none;
+  border-color: #800020;
+  box-shadow: 0 0 6px rgba(128,0,32,0.3);
+}
+
+.error small {
+  color: red;   
+  margin-top: 4px;
+  display: block;
+  font-size: 12px;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.popup-actions .btn.primary {
+  background: linear-gradient(135deg, #800020, #a1002d);
+  color: white;
+  font-weight: bold;
+}
+
+.popup-actions .btn {
+  background: #f0f0f0;
+  color: #333;
+  border-radius: 10px;
+  padding: 10px 18px;
+  transition: 0.25s;
+}
+
+.popup-actions .btn:hover {
+  background: #e0e0e0;
+}
+
+.delete-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.delete-popup .popup-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  width: 350px;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+}
+
+.delete-popup h2 {
+  margin-bottom: 15px;
+  font-size: 1.6rem;
+  color: #b71c1c;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}

@@ -11,6 +11,10 @@ import { MasterLayoutComponent } from './screens/shared/master-layout-component/
 import { AppRoutingModule } from './app.routes';
 import { PredstavaDetails } from './screens/predstava-details/predstava-details';
 import { UserListComponent } from './screens/user-list-component/user-list-component';
+import { NovostiScreenComponent } from './screens/novosti-screen-component/novosti-screen-component';
+import { Toast } from './screens/shared/toast/toast';
+import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
+import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
 
 @NgModule({
   declarations: [
@@ -19,7 +23,11 @@ import { UserListComponent } from './screens/user-list-component/user-list-compo
     LoginComponent,
     MasterLayoutComponent,
     PredstavaDetails,
-    UserListComponent  
+    UserListComponent,
+    NovostiScreenComponent,
+    Toast,
+    GlumciScreen,
+    ReziseriScreen
   ],
   imports: [
     BrowserModule,

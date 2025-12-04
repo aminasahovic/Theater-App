@@ -1,0 +1,81 @@
+<div class="container">
+
+    <div class="filter-bar">
+        <input type="text" placeholder="Pretraži po imenu ili prezimenu..." [value]="ime"
+            (input)="onImeChange($event.target.value)" class="flex-input">
+        <button type="button" class="btn primary" (click)="openEditPopup()">Novi režiser</button>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="no-results" *ngIf="!loading && reziseri.length === 0">
+        <i class="material-icons">sentiment_dissatisfied</i>
+        <p>Nema režisera</p>
+    </div>
+
+    <div class="grid" *ngIf="!loading">
+        <div class="card horizontal" *ngFor="let r of reziseri">
+            <div class="info">
+                <h3>{{ r.ime }} {{ r.prezime }}</h3>
+            </div>
+            <div class="actions">
+                <button (click)="openEditPopup(r)" class="btn bordo">Uredi</button>
+                <button (click)="deleteReziser(r)" class="btn grey">Obriši</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            <button (click)="prevPage()" [disabled]="page === 1">Prethodna</button>
+            <span>{{ page }} / {{ totalPages }}</span>
+            <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+        </div>
+    </div>
+
+    <div class="edit-popup" *ngIf="showEditPopup">
+        <h3>{{ editMode ? 'Uredi Režisera' : 'Novi Režiser' }}</h3>
+        <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+            <div class="row">
+                <div class="col">
+                    <label>Ime</label>
+                    <input type="text" formControlName="ime" class="flex-input">
+                    <div class="error" *ngIf="editForm.get('ime')?.touched && editForm.get('ime')?.invalid">
+                        <small *ngIf="editForm.get('ime')?.errors?.['required']">Ime je obavezno.</small>
+                        <small *ngIf="editForm.get('ime')?.errors?.['pattern']">Prvo veliko slovo, bez brojeva.</small>
+                    </div>
+                </div>
+                <div class="col">
+                    <label>Prezime</label>
+                    <input type="text" formControlName="prezime" class="flex-input">
+                    <div class="error" *ngIf="editForm.get('prezime')?.touched && editForm.get('prezime')?.invalid">
+                        <small *ngIf="editForm.get('prezime')?.errors?.['required']">Prezime je obavezno.</small>
+                        <small *ngIf="editForm.get('prezime')?.errors?.['pattern']">Prvo veliko slovo, bez
+                            brojeva.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-actions">
+                <button type="button" class="btn" (click)="closeEditPopup()">Odustani</button>
+                <button type="submit" class="btn primary" [disabled]="editForm.invalid">
+                    {{ editMode ? 'Sačuvaj' : 'Dodaj' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="delete-popup" *ngIf="showDeletePopup">
+        <div class="popup-content">
+            <h2>Obriši Režisera</h2>
+            <p>Da li ste sigurni da želite obrisati <strong>{{ reziserToDelete?.ime }} {{ reziserToDelete?.prezime
+                    }}</strong>?</p>
+            <div class="popup-buttons">
+                <button type="button" class="btn bordo" (click)="confirmDelete()">Obriši</button>
+                <button type="button" class="btn grey" (click)="closeDelete()">Otkaži</button>
+            </div>
+        </div>
+    </div>
+
+</div>

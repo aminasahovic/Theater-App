@@ -1,0 +1,86 @@
+<div class="container">
+
+    <div class="filter-bar">
+        <input type="text" placeholder="Pretraži po imenu..." [value]="ime" (input)="onImeChange($event.target.value)"
+            class="flex-input">
+        <button type="button" class="btn primary" (click)="openEditPopup()">
+            <i class="material-icons">add</i> Novi glumac
+        </button>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="no-results" *ngIf="!loading && glumci.length === 0">
+        <i class="material-icons">sentiment_dissatisfied</i>
+        <p>Nema glumaca</p>
+    </div>
+
+    <div class="grid" *ngIf="!loading">
+        <div class="card" *ngFor="let g of glumci">
+            <div class="top-actions">
+                <button (click)="openEditPopup(g)" class="icon-btn">
+                    <i class="material-icons">edit</i>
+                </button>
+                <button (click)="deleteGlumac(g)" class="icon-btn delete">
+                    <i class="material-icons">delete</i>
+                </button>
+            </div>
+
+            <div class="avatar-box">
+                <img *ngIf="g.slika" [src]="'data:image/jpeg;base64,' + g.slika">
+                <div *ngIf="!g.slika" class="placeholder">
+                    <i class="material-icons">person</i>
+                </div>
+            </div>
+
+            <h3>{{ g.ime }} {{ g.prezime }}</h3>
+        </div>
+    </div>
+
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            <button (click)="prevPage()" [disabled]="page === 1">Prethodna</button>
+            <span>{{ page }} / {{ totalPages }}</span>
+            <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+        </div>
+    </div>
+
+    <div class="edit-popup" *ngIf="showEditPopup">
+        <h3>{{ editMode ? 'Uredi Glumca' : 'Novi Glumac' }}</h3>
+
+        <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+            <div class="row">
+                <div class="col"><label>Ime</label><input type="text" formControlName="ime"></div>
+                <div class="col"><label>Prezime</label><input type="text" formControlName="prezime"></div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <label>Slika</label>
+                    <input type="file" (change)="onFileChange($event)">
+                </div>
+            </div>
+
+            <div class="popup-actions">
+                <button type="button" class="btn" (click)="closeEditPopup()">Odustani</button>
+                <button type="submit" class="btn primary">{{ editMode ? 'Sačuvaj' : 'Dodaj' }}</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Delete Popup -->
+    <div class="delete-popup" *ngIf="showDeletePopup">
+        <div class="popup-content">
+            <h2>Obriši Glumca</h2>
+            <p>Da li ste sigurni da želite obrisati <strong>{{ glumacToDelete?.ime }} {{ glumacToDelete?.prezime
+                    }}</strong>?</p>
+            <div class="popup-buttons">
+                <button type="button" class="btn bordo" (click)="confirmDelete()">Obriši</button>
+                <button type="button" class="btn grey" (click)="closeDelete()">Otkaži</button>
+            </div>
+        </div>
+    </div>
+
+</div>

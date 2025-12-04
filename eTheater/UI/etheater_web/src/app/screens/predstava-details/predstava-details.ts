@@ -1,14 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PredstaveService } from '../../services/predstava.service ';
 import { forkJoin } from 'rxjs';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-predstava-details',
   templateUrl: './predstava-details.html',
   styleUrls: ['./predstava-details.css'],
-  standalone:false
+  standalone: false
 })
 export class PredstavaDetails implements OnInit {
   loading = true;
@@ -30,75 +31,87 @@ export class PredstavaDetails implements OnInit {
     private route: ActivatedRoute,
     private api: PredstaveService,
     private fb: FormBuilder,
-    private router: Router
-  ) {}
+    private router: Router,
+    private toast: ToastService,
+    private cd: ChangeDetectorRef
 
- ngOnInit(): void {
-  this.form = this.fb.group({
-    naziv: [''],
-    opis: [''],
-    trajanje: [0],
-    godina: [0],
-    zanrId: [null],
-    reziserId: [null],
-    isActive: [false]
-  });
+  ) { }
 
-  this.predstavaId = Number(this.route.snapshot.paramMap.get('id'));
-  this.loadPredstava();
-}
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      naziv: [''],
+      opis: [''],
+      trajanje: [0],
+      godina: [0],
+      zanrId: [null],
+      reziserId: [null],
+      isActive: [false]
+    });
 
-loadPredstava() {
-  this.loading = true;
+    this.route.paramMap.subscribe(params => {
+      this.predstavaId = Number(params.get('id'));
+      this.loadPredstava();
+    });
+  }
 
-  this.api.getPredstavaById(this.predstavaId).subscribe({
-    next: (p) => {
-      this.predstava = p;
-      this.slikaBase64 = p.plakat;
-      this.slikaPreview = p.plakat ? 'data:image/png;base64,' + p.plakat : '';
+  loadPredstava() {
+    this.loading = true;
 
-      this.form.patchValue({
-        naziv: p.naziv,
-        opis: p.opis,
-        trajanje: p.trajanje,
-        godina: p.godina,
-        zanrId: p.zanrId,
-        reziserId: p.reziserId,
-        isActive: p.isActive
-      });
+    forkJoin({
+      predstava: this.api.getPredstavaById(this.predstavaId),
+      zanrovi: this.api.getZanrovi(),
+      reziseri: this.api.getReziseri(),
+      glumci: this.api.getGlumciZaPredstavu(this.predstavaId)
+    }).subscribe({
+      next: ({ predstava, zanrovi, reziseri, glumci }) => {
+        this.predstava = predstava;
+        this.slikaBase64 = predstava.plakat;
+        this.slikaPreview = predstava.plakat ? 'data:image/png;base64,' + predstava.plakat : '';
 
-      this.api.getZanrovi().subscribe(z => this.zanrovi = z || []);
-      this.api.getReziseri().subscribe(r => this.reziseri = r || []);
-      this.api.getGlumciZaPredstavu(this.predstavaId).subscribe(g => this.glumci = g || []);
+        this.form.patchValue({
+          naziv: predstava.naziv,
+          opis: predstava.opis,
+          trajanje: predstava.trajanje,
+          godina: predstava.godina,
+          zanrId: predstava.zanrId,
+          reziserId: predstava.reziserId,
+          isActive: predstava.isActive
+        });
 
-      this.loading = false; 
-    },
-    error: () => this.loading = false
-  });
-}
+        this.zanrovi = zanrovi || [];
+        this.reziseri = reziseri || [];
+        this.glumci = glumci || [];
 
+        this.loading = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Greška pri učitavanju detalja predstave', err);
+        this.loading = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
 
-loadDropdownsAndGlumce() {
+  loadDropdownsAndGlumce() {
 
-  forkJoin({
-    zanrovi: this.api.getZanrovi(),
-    reziseri: this.api.getReziseri(),
-    glumci: this.api.getGlumciZaPredstavu(this.predstavaId)
-  }).subscribe({
-    next: (res) => {
-      this.zanrovi = res.zanrovi || [];
-      this.reziseri = res.reziseri || [];
-      this.glumci = res.glumci || [];
-      this.loading = false;  
-    },
-    error: () => {
-      this.loading = false;
-      console.error('Greška pri učitavanju dropdowna ili glumaca');
-    }
-  });
-}
-
-
+    forkJoin({
+      zanrovi: this.api.getZanrovi(),
+      reziseri: this.api.getReziseri(),
+      glumci: this.api.getGlumciZaPredstavu(this.predstavaId)
+    }).subscribe({
+      next: (res) => {
+        this.zanrovi = res.zanrovi || [];
+        this.reziseri = res.reziseri || [];
+        this.glumci = res.glumci || [];
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        console.error('Greška pri učitavanju dropdowna ili glumaca');
+      }
+    });
+  }
 
   initForm() {
     this.form = this.fb.group({
@@ -130,14 +143,23 @@ loadDropdownsAndGlumce() {
     if (this.form.invalid) return;
     const updated = { id: this.predstavaId, ...this.form.value, plakat: this.slikaBase64 };
     this.api.updatePredstava(updated).subscribe({
-      next: () => { this.editing = false; alert('Podaci uspješno ažurirani'); },
-      error: () => alert('Greška pri ažuriranju')
+      next: () => {
+        this.editing = false; this.toast.showSuccess('Podaci uspješno ažurirani');
+      },
+      error: () => this.toast.showError('Greška pri ažuriranju')
+
     });
   }
 
   delete() {
     this.api.deletePredstavu(this.predstavaId).subscribe({
-      next: () => this.router.navigate(['/predstave'])
+      next: () => {
+        this.toast.showSuccess('Predstava uspješno obrisana');
+        this.router.navigate(['/predstave']);
+      },
+      error: () => {
+        this.toast.showError('Greška pri brisanju predstave');
+      }
     });
   }
 }
