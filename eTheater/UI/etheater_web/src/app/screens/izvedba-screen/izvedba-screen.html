@@ -1,0 +1,142 @@
+<div class="container">
+
+  <div class="controls">
+    <input type="text" [(ngModel)]="search" (input)="onSearchChange($event.target.value)"
+      placeholder="Pretraži po nazivu predstave..." class="search-input" />
+
+    <button class="filter-btn" (click)="showFilter = !showFilter">
+      Filter
+    </button>
+
+    <button class="filter-btn" (click)="openAddEditPopup()">
+      <i class="material-icons">add</i>
+    </button>
+  </div>
+
+  <div class="filter-popup" *ngIf="showFilter">
+    <label>Sala</label>
+    <select [(ngModel)]="salaId">
+      <option [ngValue]="null">Sve</option>
+      <option *ngFor="let s of sale" [ngValue]="s.id">{{ s.naziv }}</option>
+    </select>
+
+    <label>Godina</label>
+    <label>Datum izvedbe</label>
+    <input type="datetime-local" [(ngModel)]="datumIzvodjenja" />
+
+
+    <div class="filter-actions">
+      <button class="reset-btn" (click)="resetFilters()">Resetuj</button>
+      <button class="apply-btn" (click)="applyFilters()">Primijeni</button>
+    </div>
+  </div>
+
+  <div class="loader" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="no-results" *ngIf="!loading && izvedbe.length === 0">
+    <i class="material-icons">sentiment_dissatisfied</i>
+    <p>Nema dostupnih izvedbi.</p>
+  </div>
+
+  <div class="grid" *ngIf="!loading">
+    <div class="card" *ngFor="let i of izvedbe">
+      <div class="img-container">
+        <img *ngIf="i.predstavaSlika" [src]="'data:image/jpeg;base64,' + i.predstavaSlika" />
+        <div *ngIf="!i.predstavaSlika" class="placeholder">Nema slike</div>
+      </div>
+
+      <h3>{{ i.nazivPredstave }}</h3>
+      <p class="opis">
+        Sala: {{ i.salaNaziv }}<br />
+        Cijena: {{ i.cijenaKarte }} KM<br />
+        Datum: {{ i.datumVrijeme | date:'dd.MM.yyyy HH:mm' }}
+      </p>
+
+      <div class="actions">
+        <button class="edit-btn" (click)="openAddEditPopup(i)">Uredi</button>
+        <button class="delete-text-btn" (click)="openDeletePopup(i)">Obriši</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pagination-container">
+    <div class="pagination">
+      <button (click)="previousPage()" [disabled]="page === 1">Prethodna</button>
+      <span>{{ page }} / {{ totalPages }}</span>
+      <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+    </div>
+  </div>
+
+  <div class="delete-popup" *ngIf="showDeletePopup">
+    <div class="popup-content">
+      <h2>Obriši izvedbu</h2>
+      <p>Jeste li sigurni da želite obrisati izvedbu <strong>{{ izvedbaZaBrisanje?.nazivPredstave }}</strong>?</p>
+      <div class="popup-buttons">
+        <button type="button" class="btn bordo" (click)="confirmDelete()">Obriši</button>
+        <button type="button" class="btn text-btn" (click)="showDeletePopup=false">Otkaži</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dodaj-popup" *ngIf="showAddEditPopup">
+    <div class="popup-content">
+      <h2>{{ editMode ? 'Uredi izvedbu' : 'Dodaj novu izvedbu' }}</h2>
+
+      <form [formGroup]="dodajForm" (ngSubmit)="saveDodajForm()">
+
+        <div class="form-group">
+          <label>Predstava</label>
+          <select formControlName="predstavaId"
+            [class.invalid]="dodajForm.get('predstavaId')?.invalid && dodajForm.get('predstavaId')?.touched">
+            <option value="">Odaberi predstavu</option>
+            <option *ngFor="let p of predstave" [value]="p.id">{{ p.naziv }}</option>
+          </select>
+          <div class="error" *ngIf="dodajForm.get('predstavaId')?.invalid && dodajForm.get('predstavaId')?.touched">
+            Predstava je obavezna
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Sala</label>
+          <select formControlName="salaId"
+            [class.invalid]="dodajForm.get('salaId')?.invalid && dodajForm.get('salaId')?.touched">
+            <option value="">Odaberi salu</option>
+            <option *ngFor="let s of sale" [value]="s.id">{{ s.naziv }}</option>
+          </select>
+          <div class="error" *ngIf="dodajForm.get('salaId')?.invalid && dodajForm.get('salaId')?.touched">
+            Sala je obavezna
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Datum i vrijeme</label>
+          <input type="datetime-local" formControlName="datumVrijeme"
+            [class.invalid]="dodajForm.get('datumVrijeme')?.invalid && dodajForm.get('datumVrijeme')?.touched">
+          <div class="error" *ngIf="dodajForm.get('datumVrijeme')?.invalid && dodajForm.get('datumVrijeme')?.touched">
+            Datum i vrijeme su obavezni
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cijena karte (KM)</label>
+          <input type="number" min="0" formControlName="cijenaKarte"
+            [class.invalid]="dodajForm.get('cijenaKarte')?.invalid && dodajForm.get('cijenaKarte')?.touched">
+          <div class="error" *ngIf="dodajForm.get('cijenaKarte')?.invalid && dodajForm.get('cijenaKarte')?.touched">
+            Unesite validnu cijenu
+          </div>
+        </div>
+
+        <div class="popup-buttons">
+          <button type="submit" class="btn bordo" [disabled]="dodajForm.invalid">
+            {{ editMode ? 'Spremi' : 'Dodaj' }}
+          </button>
+
+          <button type="button" class="btn text-btn" (click)="closeAddEditPopup()">
+            Otkaži
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>

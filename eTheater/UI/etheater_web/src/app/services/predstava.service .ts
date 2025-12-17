@@ -67,4 +67,7 @@ export class PredstaveService {
   dodajGlumcaPredstavi(body: any): Observable<any> {
     return this.http.post(`${ApiKonstante.baseUrl}/GlumacPredstava`, body, this.authHeader());
   }
+    getPredstaveLov(): Observable<any> {
+    return this.http.get<any>(this.baseUrl+"/GetAllIdNaziv", this.authHeader());
+  }
 }

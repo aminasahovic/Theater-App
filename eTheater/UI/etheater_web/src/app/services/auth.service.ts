@@ -14,38 +14,46 @@ interface LoginResponse {
   isActive: boolean;
   slikaProfila: string | null;
 }
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   korisnikId?: number;
   username?: string;
   password?: string;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    const saved = localStorage.getItem('auth');
+    if (saved) {
+      const data = JSON.parse(saved);
+      this.username = data.username;
+      this.password = data.password;
+      this.korisnikId = data.korisnikId;
+    }
+  }
 
   async login(user: string, pass: string): Promise<void> {
     const url = `${ApiKonstante.baseUrl}/Korisnik/login?username=${user}&password=${pass}`;
 
-    const response = await lastValueFrom(this.http.post<LoginResponse>(url, {}, {
-      headers: { 'accept': 'text/plain' }
-    }));
+    const response = await lastValueFrom(
+      this.http.post<LoginResponse>(url, {}, { headers: { accept: 'text/plain' } })
+    );
 
-    if (response.tipKorisnikaId !== 4) {
-      throw new Error("Pristup dozvoljen samo administratorima (tip 4).");
-    }
+    if (response.tipKorisnikaId !== 4) throw new Error("Pristup dozvoljen samo adminima");
 
-    this.korisnikId = response.id;
     this.username = user;
     this.password = pass;
-    console.log(this.username)
-    console.log(this.password)
+    this.korisnikId = response.id;
+
+    localStorage.setItem('auth', JSON.stringify({
+      username: user,
+      password: pass,
+      korisnikId: response.id
+    }));
   }
 
   logout() {
-    this.korisnikId = undefined;
     this.username = undefined;
     this.password = undefined;
+    this.korisnikId = undefined;
+    localStorage.removeItem('auth');
   }
 }

@@ -15,6 +15,7 @@ import { NovostiScreenComponent } from './screens/novosti-screen-component/novos
 import { Toast } from './screens/shared/toast/toast';
 import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
 import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
+import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
     NovostiScreenComponent,
     Toast,
     GlumciScreen,
-    ReziseriScreen
+    ReziseriScreen,
+    IzvedbaScreen
   ],
   imports: [
     BrowserModule,

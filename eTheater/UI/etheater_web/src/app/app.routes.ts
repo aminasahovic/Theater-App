@@ -9,6 +9,7 @@ import { UserListComponent } from './screens/user-list-component/user-list-compo
 import { NovostiScreenComponent } from './screens/novosti-screen-component/novosti-screen-component';
 import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
 import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
+import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -22,7 +23,9 @@ export const routes: Routes = [
       { path: 'korisnici', component: UserListComponent },
       { path: 'novosti', component: NovostiScreenComponent },
       { path: 'glumci', component: GlumciScreen },
-      { path: 'reziseri', component: ReziseriScreen }
+      { path: 'reziseri', component: ReziseriScreen },
+      { path: 'izvedbe', component: IzvedbaScreen }
+
 
     ]
   }
