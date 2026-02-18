@@ -10,6 +10,9 @@ import { NovostiScreenComponent } from './screens/novosti-screen-component/novos
 import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
 import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
 import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
+import { RepertoarScreen } from './screens/repertoar-screen/repertoar-screen';
+import { KomentariPredstaveScreen } from './screens/komentari-predstave-screen/komentari-predstave-screen';
+import { KomentariNovostiScreen } from './screens/komentari-novosti-screen/komentari-novosti-screen';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -24,8 +27,10 @@ export const routes: Routes = [
       { path: 'novosti', component: NovostiScreenComponent },
       { path: 'glumci', component: GlumciScreen },
       { path: 'reziseri', component: ReziseriScreen },
-      { path: 'izvedbe', component: IzvedbaScreen }
-
+      { path: 'izvedbe', component: IzvedbaScreen },
+      { path: 'repertoar', component: RepertoarScreen },
+      { path: 'komentari-predstave', component: KomentariPredstaveScreen },
+      { path: 'komentari-novosti', component: KomentariNovostiScreen }
 
     ]
   }

@@ -16,6 +16,9 @@ import { Toast } from './screens/shared/toast/toast';
 import { GlumciScreen } from './screens/glumci-screen/glumci-screen';
 import { ReziseriScreen } from './screens/reziseri-screen/reziseri-screen';
 import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
+import { RepertoarScreen } from './screens/repertoar-screen/repertoar-screen';
+import { KomentariPredstaveScreen } from './screens/komentari-predstave-screen/komentari-predstave-screen';
+import { KomentariNovostiScreen } from './screens/komentari-novosti-screen/komentari-novosti-screen';
 
 @NgModule({
   declarations: [
@@ -29,7 +32,10 @@ import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
     Toast,
     GlumciScreen,
     ReziseriScreen,
-    IzvedbaScreen
+    IzvedbaScreen,
+    RepertoarScreen,
+    KomentariPredstaveScreen,
+    KomentariNovostiScreen
   ],
   imports: [
     BrowserModule,

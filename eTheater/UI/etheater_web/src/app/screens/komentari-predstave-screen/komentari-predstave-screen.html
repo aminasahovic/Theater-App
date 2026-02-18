@@ -1,0 +1,28 @@
+<div class="container">
+
+  <div class="predstave-scroll">
+    <div class="predstava-item" *ngFor="let predstava of predstave">
+      <span class="predstava-naziv">{{ predstava.naziv }}</span>
+      <button class="expand-btn" (click)="toggleExpand(predstava.id)">
+        <i class="material-icons">{{ expandedIds.has(predstava.id) ? 'expand_less' : 'expand_more' }}</i>
+      </button>
+
+      <!-- Komentari -->
+      <div class="komentari-container" *ngIf="expandedIds.has(predstava.id)">
+        <div *ngFor="let komentar of komentariMap[predstava.id]?.resultList || []" class="komentar">
+          <span class="user">{{ komentar.imeKorisnika }} {{ komentar.prezimeKorisnika }}</span>:
+          <span class="text">{{ komentar.komentar }}</span>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="(komentariMap[predstava.id]?.count || 0) > pageSizeKomentari">
+          <button (click)="prevPage(predstava.id)" [disabled]="(komentariPageMap[predstava.id] || 1) === 1">Prethodna</button>
+          <span>{{ komentariPageMap[predstava.id] || 1 }} / {{ getTotalKomentariPages(predstava.id) }}</span>
+<button (click)="nextPage(predstava.id)" [disabled]="(komentariPageMap[predstava.id] || 1) >= getTotalKomentariPages(predstava.id)">Sljedeća</button>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

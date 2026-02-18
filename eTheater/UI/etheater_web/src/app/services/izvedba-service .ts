@@ -44,4 +44,11 @@ export class IzvedbaService {
   deleteIzvedba(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`, this.authHeader());
   }
+  getIzvedbePeriod(pocetak: string, kraj: string) {
+  const params = new HttpParams()
+    .set('DatumOd', pocetak)
+    .set('DatumDo', kraj);
+  return this.http.get<any[]>(`${ApiKonstante.baseUrl}/Izvedba/period`, { params, ...this.authHeader() });
+}
+
 }

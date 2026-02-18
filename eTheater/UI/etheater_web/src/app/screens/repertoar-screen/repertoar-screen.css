@@ -1,0 +1,339 @@
+.container {
+  padding: 16px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* zajednički stil */
+.controls input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+.input-naziv {
+  flex: 2;
+  min-width: 460px;
+}
+
+/* DATUM – uži */
+.input-date {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* RESET dugme kao ikonica */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #777;
+  transition: background 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  background: #f1f1f1;
+  color: #800020;
+}
+.primary {
+  background: #800020;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.controls .primary {
+  background: #800020;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+}
+
+.controls button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.controls .primary {
+  background: #800020;
+  color: white;
+}
+
+.text-btn {
+  background: transparent;
+  color: #555;
+}
+
+
+.card {
+  border: 1px solid #eee;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #800020;
+}
+
+.card-header p {
+  margin: 4px 0 0;
+  color: #777;
+}
+.card-header .actions .text-btn {
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-body {
+  padding: 16px;
+  background: #f9f9f9;
+}
+
+.izvedba {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: #777;
+  font-size: 13px;
+}
+
+.izvedba-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #800020;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.empty {
+  color: #888;
+}
+/* PAGINACIJA */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.pagination button {
+  background: transparent;
+  border: 2px solid #800020;
+  color: #800020;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #800020;
+  color: #fff;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: 600;
+  font-size: 15px;
+  color: #444;
+}
+/* pozadinski overlay */
+.dodaj-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.3s;
+}
+
+/* popup sadržaj */
+.dodaj-popup .popup-content {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 95%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* naslov */
+.dodaj-popup h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+  text-align: center;
+}
+
+/* form grupa */
+.dodaj-popup .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+/* red form-e */
+.dodaj-popup .form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.dodaj-popup .form-row .form-group {
+  flex: 1;
+}
+
+/* input, select */
+.dodaj-popup input,
+.dodaj-popup select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.dodaj-popup input:focus,
+.dodaj-popup select:focus {
+  outline: none;
+  border-color: #800020;
+  box-shadow: 0 0 0 2px rgba(128,0,32,0.2);
+}
+
+.dodaj-popup input.invalid,
+.dodaj-popup select.invalid {
+  border-color: red;
+  box-shadow: 0 0 0 2px rgba(255,0,0,0.2);
+}
+
+/* lista izvedbi sa checkbox */
+.glumci-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 5px;
+  margin-top: 5px;
+  border-top: 1px solid #eee;
+}
+
+.glumac-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* error poruke */
+.dodaj-popup .error {
+  color: red;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* dugmad */
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn.bordo {
+  background: #800020;
+  padding: 10px 18px;
+  border-radius: 8px;
+  color: white;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn.bordo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.text-btn {
+  background: transparent;
+  border: none;
+  color: #800020;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+/* animacija fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.btn.text-btn {
+  background: transparent;
+  border: none;
+  color: #800020;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+.btn {
+  background: #800020;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+}

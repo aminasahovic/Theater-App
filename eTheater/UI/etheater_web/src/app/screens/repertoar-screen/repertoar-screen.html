@@ -1,0 +1,156 @@
+<div class="container">
+
+  <!-- FILTERI -->
+  <div class="controls">
+
+  <input
+    class="input-naziv"
+    type="text"
+    [(ngModel)]="searchNaziv"
+    placeholder="Naziv repertoara"
+    (ngModelChange)="applyFilters()"
+  />
+
+  <input
+    class="input-date"
+    type="date"
+    [(ngModel)]="datumFilter"
+    (ngModelChange)="applyFilters()"
+  />
+
+  <button
+    class="icon-btn"
+    title="Reset filtera"
+    (click)="resetFilters()"
+  >
+    <i class="material-icons">refresh</i>
+  </button>
+
+  <span class="spacer"></span>
+
+  <button class="primary" (click)="openAddPopup()">
+    <i class="material-icons">add</i>
+    Dodaj repertoar
+  </button>
+
+</div>
+
+  <!-- LISTA -->
+  <div *ngIf="loading" class="loader">Učitavanje...</div>
+
+  <div class="list" *ngIf="!loading">
+
+    <div class="card" *ngFor="let r of repertoari">
+      <div class="card-header" (click)="toggleExpand(r)">
+        <div>
+          <h3>{{ r.naziv }}</h3>
+          <p>
+            {{ r.pocetakDatum | date:'dd.MM.yyyy' }}
+            -
+            {{ r.krajDatum | date:'dd.MM.yyyy' }}
+          </p>
+        </div>
+
+        <div class="actions">
+         <button (click)="openEditPopup(r); $event.stopPropagation()">
+  <i class="material-icons">edit</i>
+</button>
+
+          <i class="material-icons">
+            {{ expandedRepertoarId === r.id ? 'expand_less' : 'expand_more' }}
+          </i>
+        </div>
+      </div>
+
+      <!-- IZVEDBE -->
+      <div class="card-body" *ngIf="expandedRepertoarId === r.id">
+        <p *ngIf="repertoarIzvedbe.length === 0" class="empty">
+          Nema izvedbi u ovom periodu.
+        </p>
+
+        <div class="izvedba" *ngFor="let i of repertoarIzvedbe">
+          <div>
+            <strong>{{ i.nazivPredstave }}</strong>
+            <div class="muted">
+              {{ i.datumVrijemeIzvedbe | date:'dd.MM.yyyy HH:mm' }}
+            </div>
+          </div>
+
+          <div class="izvedba-actions">
+            <button title="Pregled">
+              <i class="material-icons">visibility</i>
+            </button>
+            <button title="Izvještaj">
+              <i class="material-icons">bar_chart</i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PAGINACIJA -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button (click)="previousPage()" [disabled]="page === 1">Prethodna</button>
+    <span>{{ page }} / {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+  </div>
+
+</div>
+<div class="dodaj-popup" *ngIf="showAddPopup">
+  <div class="popup-content">
+    <h2>Dodaj repertoar</h2>
+
+    <form [formGroup]="repertoarForm" (ngSubmit)="saveRepertoar()">
+
+      <div class="form-group">
+        <label>Naziv repertoara</label>
+        <input formControlName="naziv" placeholder="Unesite naziv">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Početak</label>
+          <input type="datetime-local" formControlName="pocetakDatum">
+        </div>
+
+        <div class="form-group">
+          <label>Kraj</label>
+          <input type="datetime-local" formControlName="krajDatum">
+        </div>
+      </div>
+
+      <!-- button enable/disable -->
+      <button type="button" class="btn bordo"
+              [disabled]="!canLoadIzvedbe"
+              (click)="loadAvailableIzvedbe()">
+        Učitaj izvedbe
+      </button>
+
+<div *ngIf="availableIzvedbe.length > 0" class="form-group">
+  <label>Izvedbe u ovom periodu</label>
+  <div class="glumci-list">
+    <div class="glumac-item" *ngFor="let i of availableIzvedbe">
+      <label>
+        {{ i.nazivPredstave }} ({{ i.datumVrijemeIzvodjenja | date:'dd.MM.yyyy HH:mm' }})
+      </label>
+      <input type="checkbox" [(ngModel)]="i.odabrano"
+             [ngModelOptions]="{standalone: true}"
+             name="izvedba{{i.izvedbaId}}">
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="popup-buttons">
+        <button type="submit" class="btn bordo" [disabled]="repertoarForm.invalid">
+          Dodaj
+        </button>
+        <button type="button" class="btn text-btn" (click)="closeAddPopup()">Otkaži</button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -29,9 +29,9 @@ namespace eTheater.Services
             }
             if (searchObject.IsActive == true)
             {
-                query = query.Where(x => x.KrajDatum > DateTime.Now).OrderBy(x => x.PocetakDatum);
+                query = query.Where(x => x.KrajDatum > DateTime.Now);
             }
-
+            query = query.OrderByDescending(x => x.PocetakDatum);
             return query;
         }
     }
