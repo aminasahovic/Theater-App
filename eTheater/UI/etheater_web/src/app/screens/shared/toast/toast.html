@@ -1,3 +1,12 @@
-<div class="toast" [class.show]="show" [class.success]="type === 'success'" [class.error]="type === 'error'">
-  {{ message }}
+<div class="toast-wrap" [class.show]="show" [class.success]="type === 'success'" [class.error]="type === 'error'">
+  <div class="toast-icon-col">
+    <div class="toast-icon-ring">
+      <i class="material-icons">{{ type === 'success' ? 'check' : 'close' }}</i>
+    </div>
+  </div>
+  <div class="toast-body">
+    <span class="toast-label">{{ type === 'success' ? 'Uspješno' : 'Greška' }}</span>
+    <span class="toast-msg">{{ message }}</span>
+  </div>
+  <div class="toast-progress"></div>
 </div>

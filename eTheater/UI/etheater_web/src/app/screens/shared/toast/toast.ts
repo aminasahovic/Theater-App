@@ -21,20 +21,16 @@ export class Toast implements OnInit {
 
   ngOnInit() {
     this.toastService.toast$.subscribe(toast => {
-
-      // Sve promjene guramo u sljedeći ciklus
       setTimeout(() => {
         this.message = toast.message;
         this.type = toast.type;
         this.show = true;
         this.cdr.markForCheck();
 
-        // Sakrij nakon 3 sekunde
         setTimeout(() => {
           this.show = false;
           this.cdr.markForCheck();
         }, 3000);
-
       });
     });
   }
