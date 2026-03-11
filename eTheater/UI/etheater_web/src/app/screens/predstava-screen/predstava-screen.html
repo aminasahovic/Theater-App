@@ -1,216 +1,317 @@
-<div class="container">
+<div class="page-wrapper">
 
-  <div class="controls">
-    <input type="text" [(ngModel)]="naziv" (input)="onNazivChange($event.target.value)"
-      placeholder="Pretraži po nazivu..." class="search-input" />
-
-    <button class="filter-btn" (click)="showFilter = !showFilter">
-      Filter
-    </button>
-
-    <button class="filter-btn" (click)="openDodajPopup()">
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Predstave</h1>
+      <span class="page-count" *ngIf="!loading">{{ total }} ukupno</span>
+    </div>
+    <button class="btn-primary" (click)="openDodajPopup()">
       <i class="material-icons">add</i>
+      Nova predstava
     </button>
   </div>
 
-  <div class="filter-popup" *ngIf="showFilter">
-    <label>Žanr</label>
-    <select [(ngModel)]="zanrId">
-      <option [ngValue]="null">Svi</option>
-      <option *ngFor="let z of zanrovi" [ngValue]="z.id">{{ z.naziv }}</option>
-    </select>
-
-    <label>Režiser</label>
-    <select [(ngModel)]="reziserId">
-      <option [ngValue]="null">Svi</option>
-      <option *ngFor="let r of reziseri" [ngValue]="r.id">{{ r.ime }} {{ r.prezime }}</option>
-    </select>
-
-    <label>Godina</label>
-    <select [(ngModel)]="godina">
-      <option [ngValue]="null">Sve</option>
-      <option *ngFor="let g of godine" [ngValue]="g">{{ g }}</option>
-    </select>
-
-    <label>Status</label>
-    <select [(ngModel)]="isActive">
-      <option [ngValue]="null">Svi</option>
-      <option [ngValue]="true">Aktivna</option>
-      <option [ngValue]="false">Neaktivna</option>
-    </select>
-
-    <div class="filter-actions">
-      <button class="reset-btn" (click)="resetFilters()">Resetuj</button>
-      <button class="apply-btn" (click)="applyFilters()">Primijeni</button>
+  <div class="filter-card">
+    <div class="search-row">
+      <div class="search-field">
+        <i class="material-icons search-ico">search</i>
+        <input
+          type="text"
+          placeholder="Pretraži po nazivu..."
+          [value]="naziv"
+          (input)="onNazivChange($event.target.value)"
+        />
+      </div>
+      <button
+        class="btn-filter"
+        [class.active]="showFilter"
+        (click)="showFilter = !showFilter"
+      >
+        <i class="material-icons">tune</i>
+        Filteri
+      </button>
     </div>
-  </div>
 
-  <div class="loader" *ngIf="loading">
-    <div class="spinner"></div>
-  </div>
-  <div class="no-results" *ngIf="!loading && predstave.length === 0">
-    <i class="material-icons">sentiment_dissatisfied</i>
-    <p>Nema dostupnih predstava.</p>
-  </div>
-
-  <div class="grid" *ngIf="!loading">
-    <div class="card" *ngFor="let p of predstave">
-      <div class="img-container">
-        <img *ngIf="p.plakat" [src]="'data:image/jpeg;base64,' + p.plakat" />
-        <div *ngIf="!p.plakat" class="placeholder">Nema slike</div>
-      </div>
-
-      <h3>{{ p.naziv }}</h3>
-
-      <span class="status" [class.active]="p.isActive" [class.inactive]="!p.isActive">
-        {{ p.isActive ? 'Aktivna' : 'Neaktivna' }}
-      </span>
-
-      <p class="opis">{{ p.opis | slice:0:50 }}...</p>
-
-      <div class="actions">
-        <button class="edit-btn" (click)="openDetails(p.id)">Uredi</button>
-        <button class="delete-text-btn" (click)="openDeletePopup(p)">Obriši</button>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="pagination-container">
-    <div class="pagination">
-      <button (click)="previousPage()" [disabled]="page === 1">Prethodna</button>
-      <span>{{ page }} / {{ totalPages }}</span>
-      <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
-    </div>
-  </div>
-  <div class="delete-popup" *ngIf="showDeletePopup">
-    <div class="popup-content">
-      <h2>Obriši predstavu</h2>
-      <p>Jeste li sigurni da želite obrisati predstavu <strong>{{ predstavaZaBrisanje?.naziv }}</strong>?</p>
-      <div class="popup-buttons">
-        <button type="button" class="btn bordo" (click)="confirmDelete()">
-          Obriši
-        </button>
-        <button type="button" class="btn text-btn" (click)="showDeletePopup=false">
-          Otkaži
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-</div>
-<div class="dodaj-popup" *ngIf="showDodajPopup">
-  <div class="popup-content">
-    <h2>Dodaj novu predstavu</h2>
-    <form [formGroup]="dodajForm" (ngSubmit)="dodajPredstavu()">
-
-      <div class="form-group">
-        <label>Naziv</label>
-        <input formControlName="naziv" placeholder="Naziv"
-          [class.invalid]="dodajForm.get('naziv')?.invalid && dodajForm.get('naziv')?.touched" />
-        <div class="error" *ngIf="dodajForm.get('naziv')?.invalid && dodajForm.get('naziv')?.touched">
-          Naziv je obavezan
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Opis</label>
-        <textarea formControlName="opis" placeholder="Opis" rows="3"
-          [class.invalid]="dodajForm.get('opis')?.invalid && dodajForm.get('opis')?.touched"></textarea>
-        <div class="error" *ngIf="dodajForm.get('opis')?.invalid && dodajForm.get('opis')?.touched">
-          Opis je obavezan
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Trajanje (min)</label>
-          <input type="number" formControlName="trajanje"
-            [class.invalid]="dodajForm.get('trajanje')?.invalid && dodajForm.get('trajanje')?.touched" />
-          <div class="error" *ngIf="dodajForm.get('trajanje')?.invalid && dodajForm.get('trajanje')?.touched">
-            Trajanje mora biti veće od 0
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Godina</label>
-          <input type="number" formControlName="godina"
-            [class.invalid]="dodajForm.get('godina')?.invalid && dodajForm.get('godina')?.touched" />
-          <div class="error" *ngIf="dodajForm.get('godina')?.invalid && dodajForm.get('godina')?.touched">
-            Unesite validnu godinu
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
+    <div class="advanced-filters" *ngIf="showFilter">
+      <div class="adv-grid">
+        <div class="adv-field">
           <label>Žanr</label>
-          <select formControlName="zanrId"
-            [class.invalid]="dodajForm.get('zanrId')?.invalid && dodajForm.get('zanrId')?.touched">
-            <option value="">Izaberite žanr</option>
-            <option *ngFor="let z of zanrovi" [value]="z.id">{{ z.naziv }}</option>
+          <select [(ngModel)]="zanrId">
+            <option [ngValue]="null">Svi žanrovi</option>
+            <option *ngFor="let z of zanrovi" [ngValue]="z.id">{{ z.naziv }}</option>
           </select>
-          <div class="error" *ngIf="dodajForm.get('zanrId')?.invalid && dodajForm.get('zanrId')?.touched">
-            Odaberite žanr
-          </div>
         </div>
-
-        <div class="form-group">
+        <div class="adv-field">
           <label>Režiser</label>
-          <select formControlName="reziserId"
-            [class.invalid]="dodajForm.get('reziserId')?.invalid && dodajForm.get('reziserId')?.touched">
-            <option value="">Izaberite režisera</option>
-            <option *ngFor="let r of reziseri" [value]="r.id">{{ r.ime }} {{ r.prezime }}</option>
+          <select [(ngModel)]="reziserId">
+            <option [ngValue]="null">Svi režiseri</option>
+            <option *ngFor="let r of reziseri" [ngValue]="r.id">{{ r.ime }} {{ r.prezime }}</option>
           </select>
-          <div class="error" *ngIf="dodajForm.get('reziserId')?.invalid && dodajForm.get('reziserId')?.touched">
-            Odaberite režisera
-          </div>
+        </div>
+        <div class="adv-field">
+          <label>Godina</label>
+          <select [(ngModel)]="godina">
+            <option [ngValue]="null">Sve godine</option>
+            <option *ngFor="let g of godine" [ngValue]="g">{{ g }}</option>
+          </select>
+        </div>
+        <div class="adv-field">
+          <label>Status</label>
+          <select [(ngModel)]="isActive">
+            <option [ngValue]="null">Sve</option>
+            <option [ngValue]="true">Aktivna</option>
+            <option [ngValue]="false">Neaktivna</option>
+          </select>
         </div>
       </div>
-      <div class="form-group">
-        <label>Dodaj glumca</label>
-        <select (change)="onGlumacOdabran($event)">
-          <option value="">Izaberi glumca</option>
-          <option *ngFor="let g of glumci" [value]="g.id">
-            {{ g.ime }} {{ g.prezime }}
-          </option>
-        </select>
+      <div class="adv-actions">
+        <button class="btn-ghost" (click)="resetFilters()">
+          <i class="material-icons">refresh</i> Resetuj
+        </button>
+        <button class="btn-primary small" (click)="applyFilters(); showFilter = false">
+          <i class="material-icons">check</i> Primijeni
+        </button>
       </div>
-      <div class="glumci-list">
-        <div class="glumac-item" *ngFor="let g of odabraniGlumci">
-          <label>Uloga za {{ g.ime }} {{ g.prezime }}</label>
-          <input type="text" (input)="ulogePoGlumcu[g.id] = $event.target.value" placeholder="Upišite ulogu..." />
+    </div>
+  </div>
 
-          <button class="remove-btn" (click)="ukloniGlumca(g)">
-            X
+  <div class="loading-area" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Učitavanje...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && predstave.length === 0">
+    <i class="material-icons">theaters</i>
+    <p>Nema dostupnih predstava</p>
+    <button class="btn-ghost" (click)="resetFilters()">Resetuj filtere</button>
+  </div>
+
+  <div class="predstave-grid" *ngIf="!loading && predstave.length > 0">
+    <div class="predstava-card" *ngFor="let p of predstave">
+
+      <div class="poster-wrap">
+        <img *ngIf="p.plakat" [src]="'data:image/jpeg;base64,' + p.plakat" alt="{{ p.naziv }}" />
+        <div *ngIf="!p.plakat" class="poster-placeholder">
+          <i class="material-icons">theaters</i>
+        </div>
+        <span class="status-badge" [class.active]="p.isActive" [class.inactive]="!p.isActive">
+          <i class="material-icons">{{ p.isActive ? 'check_circle' : 'cancel' }}</i>
+          {{ p.isActive ? 'Aktivna' : 'Neaktivna' }}
+        </span>
+        <div class="poster-overlay">
+          <button class="overlay-btn edit" (click)="openDetails(p.id)" title="Uredi">
+            <i class="material-icons">edit</i>
+            Uredi
+          </button>
+          <button class="overlay-btn delete" (click)="openDeletePopup(p)" title="Obriši">
+            <i class="material-icons">delete_outline</i>
+            Obriši
           </button>
         </div>
       </div>
 
+      <div class="card-body">
+        <h3 class="card-title">{{ p.naziv }}</h3>
+        <div class="card-meta">
+          <span class="meta-chip" *ngIf="p.trajanje">
+            <i class="material-icons">schedule</i>{{ p.trajanje }} min
+          </span>
+          <span class="meta-chip" *ngIf="p.godina">
+            <i class="material-icons">calendar_today</i>{{ p.godina }}
+          </span>
+        </div>
+        <p class="card-opis">{{ p.opis | slice:0:80 }}{{ (p.opis?.length > 80) ? '...' : '' }}</p>
+      </div>
 
-      <div class="form-group file-input">
-        <label>
-          <i class="material-icons">file_upload</i> Dodaj sliku plakata
-          <input type="file" (change)="onSlikaSelected($event)" />
+    </div>
+  </div>
+
+  <div class="pagination-bar" *ngIf="!loading && totalPages > 1">
+    <button class="pag-btn" (click)="previousPage()" [disabled]="page === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">Stranica <strong>{{ page }}</strong> od <strong>{{ totalPages }}</strong></span>
+    <button class="pag-btn" (click)="nextPage()" [disabled]="page >= totalPages">
+      <i class="material-icons">chevron_right</i>
+    </button>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="showDodajPopup" (click)="showDodajPopup = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="material-icons">theater_comedy</i>
+      </div>
+      <h2>Dodaj novu predstavu</h2>
+      <button class="modal-close" (click)="showDodajPopup = false">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <form [formGroup]="dodajForm" (ngSubmit)="dodajPredstavu()" class="modal-body">
+
+      <div class="form-group">
+        <label>Naziv <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="naziv"
+          placeholder="Naziv predstave"
+          [class.invalid]="dodajForm.get('naziv')?.invalid && dodajForm.get('naziv')?.touched"
+        />
+        <span class="field-error" *ngIf="dodajForm.get('naziv')?.invalid && dodajForm.get('naziv')?.touched">
+          Naziv je obavezan
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Opis <span class="required">*</span></label>
+        <textarea
+          formControlName="opis"
+          placeholder="Opis predstave..."
+          rows="3"
+          [class.invalid]="dodajForm.get('opis')?.invalid && dodajForm.get('opis')?.touched"
+        ></textarea>
+        <span class="field-error" *ngIf="dodajForm.get('opis')?.invalid && dodajForm.get('opis')?.touched">
+          Opis je obavezan
+        </span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Trajanje (min) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="trajanje"
+            placeholder="npr. 120"
+            [class.invalid]="dodajForm.get('trajanje')?.invalid && dodajForm.get('trajanje')?.touched"
+          />
+          <span class="field-error" *ngIf="dodajForm.get('trajanje')?.invalid && dodajForm.get('trajanje')?.touched">
+            Unesite trajanje veće od 0
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Godina <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="godina"
+            [class.invalid]="dodajForm.get('godina')?.invalid && dodajForm.get('godina')?.touched"
+          />
+          <span class="field-error" *ngIf="dodajForm.get('godina')?.invalid && dodajForm.get('godina')?.touched">
+            Unesite validnu godinu
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Žanr <span class="required">*</span></label>
+          <select
+            formControlName="zanrId"
+            [class.invalid]="dodajForm.get('zanrId')?.invalid && dodajForm.get('zanrId')?.touched"
+          >
+            <option value="">Odaberite žanr...</option>
+            <option *ngFor="let z of zanrovi" [value]="z.id">{{ z.naziv }}</option>
+          </select>
+          <span class="field-error" *ngIf="dodajForm.get('zanrId')?.invalid && dodajForm.get('zanrId')?.touched">
+            Odaberite žanr
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Režiser <span class="required">*</span></label>
+          <select
+            formControlName="reziserId"
+            [class.invalid]="dodajForm.get('reziserId')?.invalid && dodajForm.get('reziserId')?.touched"
+          >
+            <option value="">Odaberite režisera...</option>
+            <option *ngFor="let r of reziseri" [value]="r.id">{{ r.ime }} {{ r.prezime }}</option>
+          </select>
+          <span class="field-error" *ngIf="dodajForm.get('reziserId')?.invalid && dodajForm.get('reziserId')?.touched">
+            Odaberite režisera
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Dodaj glumce</label>
+        <select (change)="onGlumacOdabran($event)">
+          <option value="">Izaberi glumca za dodavanje...</option>
+          <option *ngFor="let g of glumci" [value]="g.id">{{ g.ime }} {{ g.prezime }}</option>
+        </select>
+      </div>
+
+      <div class="glumci-section" *ngIf="odabraniGlumci.length > 0">
+        <div class="glumac-chip" *ngFor="let g of odabraniGlumci">
+          <div class="glumac-info">
+            <i class="material-icons">person</i>
+            <span>{{ g.ime }} {{ g.prezime }}</span>
+          </div>
+          <input
+            type="text"
+            class="uloga-input"
+            (input)="ulogePoGlumcu[g.id] = $event.target.value"
+            placeholder="Uloga u predstavi..."
+          />
+          <button type="button" class="remove-glumac" (click)="ukloniGlumca(g)" title="Ukloni">
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plakat</label>
+          <div class="file-upload-area">
+            <input type="file" id="plakatInput" (change)="onSlikaSelected($event)" accept="image/*" />
+            <label for="plakatInput" class="file-label">
+              <i class="material-icons">upload</i>
+              Odaberi sliku
+            </label>
+          </div>
+        </div>
+        <div class="form-group preview-group" *ngIf="plakatBase64">
+          <label>Pregled</label>
+          <img class="preview-img" [src]="'data:image/png;base64,' + plakatBase64" alt="Plakat" />
+        </div>
+      </div>
+
+      <div class="checkbox-row">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive" />
+          <span class="checkmark"></span>
+          Predstava je aktivna
         </label>
       </div>
 
-      <div class="form-group checkbox">
-        <label>
-          <input type="checkbox" formControlName="isActive" /> Aktivna
-        </label>
-      </div>
-
-      <div class="popup-buttons">
-        <button type="submit" class="btn bordo" [disabled]="dodajForm.invalid">Spremi</button>
-        <button type="button" class="btn bordo" (click)="showDodajPopup=false">Otkaži</button>
-      </div>
-
-      <div *ngIf="plakatBase64" class="preview">
-        <img [src]="'data:image/png;base64,' + plakatBase64" alt="Plakat" />
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" (click)="showDodajPopup = false">Odustani</button>
+        <button type="submit" class="btn-primary" [disabled]="dodajForm.invalid">
+          <i class="material-icons">save</i>
+          Spremi predstavu
+        </button>
       </div>
 
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeletePopup" (click)="showDeletePopup = false">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="material-icons">delete_forever</i>
+    </div>
+    <h2 class="delete-title">Obriši predstavu</h2>
+    <p class="delete-msg">
+      Da li ste sigurni da želite obrisati predstavu<br />
+      <strong>{{ predstavaZaBrisanje?.naziv }}</strong>?
+    </p>
+    <div class="modal-footer centered">
+      <button class="btn-ghost" (click)="showDeletePopup = false">Otkaži</button>
+      <button class="btn-danger" (click)="confirmDelete()">
+        <i class="material-icons">delete</i> Obriši
+      </button>
+    </div>
   </div>
 </div>

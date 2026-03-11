@@ -11,10 +11,37 @@ export interface Novost {
   datumObjave: string;
   slika?: string | null;
 }
+export interface OdgovorKomentar {
+  id: number;
+  komentariObavijestiId: number;
+  korisnikId: number;
+  imeKorisnika: string;
+  prezimeKorisnika: string;
+  textOdgovora: string;
+  datum: string;
+}
+
+
+export interface KomentarObavijest {
+  id: number;
+  obavijestId: number;
+  imeKorisnika: string;
+  prezimeKorisnika: string;
+  text: string;
+  datum: string;
+  brojOdgovora: number;
+}
+
+export interface PagedResult<T> {
+  resultList: T[];
+  count: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class NovostiService {
   private baseUrl = `${ApiKonstante.baseUrl}/Obavijest`;
+  private komentariBaseUrl = `${ApiKonstante.baseUrl}/KomentarObavijest`;
+  private odgovoriBaseUrl = `${ApiKonstante.baseUrl}/OdgovorKomentar`;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -23,7 +50,18 @@ export class NovostiService {
     const token = btoa(`${this.auth.username}:${this.auth.password}`);
     return { headers: { Authorization: `Basic ${token}` } };
   }
+getOdgovoriByKomentar(komentarId: number, page = 1, pageSize = 5): Observable<PagedResult<OdgovorKomentar>> {
+  const params = new HttpParams()
+    .set('KomentariObavijestiId', komentarId)
+    .set('Page', page)
+    .set('PageSize', pageSize);
+  return this.http.get<any>(`${this.odgovoriBaseUrl}/GetByKomentarId`, { params, ...this.authHeader() })
+    .pipe(map(res => ({ resultList: res.resultList || [], count: res.count || 0 })));
+}
 
+deleteOdgovorKomentar(id: number): Observable<void> {
+  return this.http.delete<void>(`${this.odgovoriBaseUrl}/${id}`, this.authHeader());
+}
   getNovosti(filter: { page: number; pageSize: number; naslov?: string; datumObjave?: string | null }): Observable<{ data: Novost[]; count: number }> {
     let params = new HttpParams()
       .set('page', filter.page)
@@ -46,5 +84,22 @@ export class NovostiService {
 
   deleteNovost(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, this.authHeader());
+  }
+
+  getKomentariByObavijest(obavijestId: number, page: number, pageSize: number): Observable<PagedResult<KomentarObavijest>> {
+    let params = new HttpParams()
+      .set('ObavijestiId', obavijestId)
+      .set('Page', page)
+      .set('PageSize', pageSize);
+
+    return this.http.get<any>(`${this.komentariBaseUrl}/GetByObavijest`, { params, ...this.authHeader() })
+      .pipe(map(res => ({
+        resultList: res.resultList || [],
+        count: res.count || 0
+      })));
+  }
+
+  deleteKomentarObavijest(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.komentariBaseUrl}/${id}`, this.authHeader());
   }
 }

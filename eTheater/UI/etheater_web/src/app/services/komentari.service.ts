@@ -10,15 +10,17 @@ export interface PagedResult<T> {
 }
 export interface KomentarPredstava {
   id: number;
+  korisnikId?: number;
   predstavaId: number;
   imeKorisnika: string;
   prezimeKorisnika: string;
   komentar: string;
+  ocjena?: number;
   datum: string;
 }
 @Injectable({ providedIn: 'root' })
 export class KomentariService {
-  private baseUrl = `${ApiKonstante.baseUrl}/KomentariPredstava`;
+  private baseUrl = `${ApiKonstante.baseUrl}/KomentarPredstava`;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -31,11 +33,11 @@ export class KomentariService {
   // Dohvati komentare za određenu predstavu s paginacijom
   getKomentari(predstavaId: number, page: number, pageSize = 3): Observable<PagedResult<KomentarPredstava>> {
     let params = new HttpParams()
-      .set('predstavaId', predstavaId)
-      .set('page', page)
-      .set('pageSize', pageSize);
+      .set('PredstavaId', predstavaId)
+      .set('Page', page)
+      .set('PageSize', pageSize);
 
-    return this.http.get<any>(this.baseUrl, { params, ...this.authHeader() })
+    return this.http.get<any>(`${this.baseUrl}/ByPredstava`, { params, ...this.authHeader() })
       .pipe(map(res => ({ resultList: res.resultList || [], count: res.count || 0 })));
   }
 

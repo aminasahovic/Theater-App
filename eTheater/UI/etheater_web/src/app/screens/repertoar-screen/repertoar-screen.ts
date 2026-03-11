@@ -3,6 +3,7 @@ import { RepertoarService } from '../../services/repertoar.service';
 import { IzvedbaService } from '../../services/izvedba-service ';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -31,12 +32,18 @@ export class RepertoarScreen implements OnInit {
   loading = false;
   canLoadIzvedbe = false;
 
+  // Sales report popup
+  showReportPopup = false;
+  reportLoading = false;
+  selectedReport: any = null;
+
   constructor(
     private api: RepertoarService,
     private cd: ChangeDetectorRef,
     private fb: FormBuilder,
     private izvedbaService: IzvedbaService,
-    private toast: ToastService
+    private toast: ToastService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -293,5 +300,66 @@ export class RepertoarScreen implements OnInit {
         },
         error: () => this.availableIzvedbe = []
       });
+  }
+
+  // ---- Repertoar actions (delete, details, sales report) ----
+
+  deleteRepertoar(r: any) {
+    const confirmed = window.confirm('Da li ste sigurni da želite obrisati ovaj repertoar?');
+    if (!confirmed) { return; }
+
+    this.api.deleteRepertoar(r.id).subscribe({
+      next: () => {
+        this.toast.showSuccess('Repertoar uspješno obrisan!');
+        this.loadRepertoari();
+      },
+      error: () => this.toast.showError('Greška pri brisanju repertoara!')
+    });
+  }
+
+  openPredstavaDetails(izvedba: any) {
+    if (!izvedba?.predstavaId) { return; }
+    this.router.navigate(['/predstave', izvedba.predstavaId]);
+  }
+
+  openSalesReport(izvedba: any) {
+    // Otvori popup odmah
+    this.showReportPopup = true;
+    this.reportLoading = true;
+    this.selectedReport = null;
+
+    const izvedbaId =
+      izvedba?.izvedbaId ??
+      izvedba?.IzvedbaId ??
+      izvedba?.id ??
+      null;
+
+    if (!izvedbaId) {
+      this.reportLoading = false;
+      this.toast.showError('Nije moguće odrediti ID izvedbe za izvještaj.');
+      return;
+    }
+
+    this.api.getTicketSalesReport(izvedbaId).subscribe({
+      next: (res) => {
+        this.selectedReport = res;
+        this.reportLoading = false;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.reportLoading = false;
+        this.showReportPopup = false;
+        this.toast.showError('Greška pri dohvaćanju izvještaja prodaje!');
+      }
+    });
+  }
+
+  closeReportPopup() {
+    this.showReportPopup = false;
+    this.selectedReport = null;
+  }
+
+  printReport() {
+    window.print();
   }
 }

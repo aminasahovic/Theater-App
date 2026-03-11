@@ -1,27 +1,200 @@
-<div class="container">
+<div class="page-wrapper">
 
-  <div class="predstave-scroll">
-    <div class="predstava-item" *ngFor="let predstava of predstave">
-      <span class="predstava-naziv">{{ predstava.naziv }}</span>
-      <button class="expand-btn" (click)="toggleExpand(predstava.id)">
-        <i class="material-icons">{{ expandedIds.has(predstava.id) ? 'expand_less' : 'expand_more' }}</i>
-      </button>
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Komentari predstava</h1>
+      <span class="page-count" *ngIf="!isLoadingPredstave">
+        {{ displayedPredstave.length }} prikazano
+      </span>
+    </div>
+  </div>
 
-      <!-- Komentari -->
-      <div class="komentari-container" *ngIf="expandedIds.has(predstava.id)">
-        <div *ngFor="let komentar of komentariMap[predstava.id]?.resultList || []" class="komentar">
-          <span class="user">{{ komentar.imeKorisnika }} {{ komentar.prezimeKorisnika }}</span>:
-          <span class="text">{{ komentar.komentar }}</span>
+  <div class="filter-card">
+    <div class="search-field">
+      <i class="material-icons search-ico">search</i>
+      <input
+        type="text"
+        placeholder="Pretraži po nazivu predstave..."
+        (input)="onSearchChange($event.target.value)"
+      />
+    </div>
+  </div>
+
+  <div class="loading-area" *ngIf="isLoadingPredstave">
+    <div class="spinner"></div>
+    <span>Učitavanje predstava...</span>
+  </div>
+
+  <div class="error-state" *ngIf="!isLoadingPredstave && errorPredstave">
+    <i class="material-icons">error_outline</i>
+    <p>{{ errorPredstave }}</p>
+  </div>
+
+  <div class="empty-state"
+    *ngIf="!isLoadingPredstave && !errorPredstave && displayedPredstave.length === 0">
+    <i class="material-icons">theaters</i>
+    <p>Nema dostupnih predstava</p>
+  </div>
+
+  <div
+    class="predstave-list"
+    *ngIf="!isLoadingPredstave && !errorPredstave && displayedPredstave.length > 0"
+  >
+    <div
+      class="predstava-card"
+      *ngFor="let predstava of displayedPredstave"
+      [class.expanded]="isExpanded(predstava.id)"
+    >
+
+      <div class="pcard-header" (click)="toggleExpand(predstava.id)">
+        <div class="pcard-icon">
+          <i class="material-icons">theaters</i>
         </div>
 
-        <!-- Pagination -->
-        <div class="pagination" *ngIf="(komentariMap[predstava.id]?.count || 0) > pageSizeKomentari">
-          <button (click)="prevPage(predstava.id)" [disabled]="(komentariPageMap[predstava.id] || 1) === 1">Prethodna</button>
-          <span>{{ komentariPageMap[predstava.id] || 1 }} / {{ getTotalKomentariPages(predstava.id) }}</span>
-<button (click)="nextPage(predstava.id)" [disabled]="(komentariPageMap[predstava.id] || 1) >= getTotalKomentariPages(predstava.id)">Sljedeća</button>
+        <div class="pcard-info">
+          <span class="pcard-title">{{ predstava.naziv }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="toggle-btn"
+          (click)="$event.stopPropagation(); toggleExpand(predstava.id)"
+          [class.active]="isExpanded(predstava.id)"
+        >
+          <i class="material-icons">comment</i>
+          <span>{{ isExpanded(predstava.id) ? 'Sakrij' : 'Komentari' }}</span>
+          <div class="chevron" [class.open]="isExpanded(predstava.id)">
+            <i class="material-icons">expand_more</i>
+          </div>
+        </button>
 
       </div>
 
+      <div class="komentari-section" *ngIf="isExpanded(predstava.id)">
+
+        <div class="loading-area small" *ngIf="komentariLoading[predstava.id]">
+          <div class="spinner small"></div>
+          <span>Učitavanje komentara...</span>
+        </div>
+
+        <ng-container *ngIf="!komentariLoading[predstava.id]">
+
+          <div class="no-komentari"
+            *ngIf="(komentariMap[predstava.id]?.resultList || []).length === 0">
+            <i class="material-icons">chat_bubble_outline</i>
+            <span>Nema komentara za ovu predstavu</span>
+          </div>
+
+          <div
+            class="komentari-list"
+            *ngIf="(komentariMap[predstava.id]?.resultList || []).length > 0"
+          >
+            <div
+              class="komentar-row"
+              *ngFor="let komentar of komentariMap[predstava.id]?.resultList || []"
+            >
+              <div class="komentar-avatar">
+                <i class="material-icons">person</i>
+              </div>
+
+              <div class="komentar-body">
+                <div class="komentar-top">
+                  <span class="komentar-user">
+                    {{ komentar.imeKorisnika }} {{ komentar.prezimeKorisnika }}
+                  </span>
+                  <span class="komentar-date">
+                    {{ komentar.datum | date:'dd.MM.yyyy. HH:mm' }}
+                  </span>
+                  <button
+                    type="button"
+                    class="komentar-delete-btn"
+                    title="Obriši komentar"
+                    (click)="$event.stopPropagation(); deleteKomentar(predstava.id, komentar.id)"
+                  >
+                    <i class="material-icons">delete_outline</i>
+                  </button>
+                </div>
+
+                <div class="ocjena-row" *ngIf="komentar.ocjena != null">
+                  <span
+                    class="star"
+                    *ngFor="let filled of getStars(komentar.ocjena)"
+                    [class.filled]="filled"
+                  >
+                    <i class="material-icons">{{ filled ? 'star' : 'star_border' }}</i>
+                  </span>
+                  <span class="ocjena-val">{{ komentar.ocjena }}/5</span>
+                </div>
+
+                <p class="komentar-text">{{ komentar.komentar }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="kom-pagination"
+            *ngIf="(komentariMap[predstava.id]?.count || 0) > pageSizeKomentari"
+          >
+            <button
+              class="pag-btn-sm"
+              type="button"
+              (click)="$event.stopPropagation(); prevPage(predstava.id)"
+              [disabled]="(komentariPageMap[predstava.id] || 1) === 1"
+            >
+              <i class="material-icons">chevron_left</i>
+            </button>
+            <span class="pag-info-sm">
+              {{ komentariPageMap[predstava.id] || 1 }} /
+              {{ getTotalKomentariPages(predstava.id) }}
+            </span>
+            <button
+              class="pag-btn-sm"
+              type="button"
+              (click)="$event.stopPropagation(); nextPage(predstava.id)"
+              [disabled]="(komentariPageMap[predstava.id] || 1) >= getTotalKomentariPages(predstava.id)"
+            >
+              <i class="material-icons">chevron_right</i>
+            </button>
+          </div>
+
+        </ng-container>
+      </div>
+
+    </div>
+  </div>
+
+  <div
+    class="pagination-bar"
+    *ngIf="!isLoadingPredstave && !errorPredstave && totalPagesPredstave > 1"
+  >
+    <button class="pag-btn" (click)="prevPagePredstave()" [disabled]="currentPagePredstave === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">
+      Stranica <strong>{{ currentPagePredstave }}</strong> od
+      <strong>{{ totalPagesPredstave }}</strong>
+    </span>
+    <button class="pag-btn" (click)="nextPagePredstave()" [disabled]="currentPagePredstave >= totalPagesPredstave">
+      <i class="material-icons">chevron_right</i>
+    </button>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-icon danger">
+        <i class="material-icons">delete_outline</i>
+      </div>
+      <h2 class="modal-title">Obriši komentar</h2>
+      <p class="modal-sub">Da li ste sigurni da želite obrisati ovaj komentar? Ova akcija se ne može poništiti.</p>
+      <div class="modal-footer">
+        <button class="btn-ghost" type="button" (click)="cancelDelete()" [disabled]="isDeleting">
+          Otkaži
+        </button>
+        <button class="btn-danger" type="button" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="!isDeleting">Obriši</span>
+          <span *ngIf="isDeleting" class="btn-spinner"></span>
+        </button>
+      </div>
     </div>
   </div>
 

@@ -56,4 +56,11 @@ export class RepertoarService {
         return this.http.delete(`${this.baseUrl}/${repertoarId}`, this.authHeader());
     }
 
+    getTicketSalesReport(izvedbaId: number) {
+        return this.http.get<any>(
+            `${this.baseUrlbase}/Rezervacija/izvjestaj/prodaja/${izvedbaId}`,
+            this.authHeader()
+        );
+    }
+
 }

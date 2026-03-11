@@ -1,25 +1,107 @@
-<div class="login-container">
-  <div class="background"></div>
+<div class="login-page">
 
-  <div class="overlay"></div>
-
-  <div class="card">
-    <img src="/images/logo.png" class="logo" />
-    <h2>Prijava</h2>
-
-    <form (ngSubmit)="login()">
-      <input type="text" placeholder="Korisničko ime" [(ngModel)]="username" name="username" required />
-
-      <input type="password" placeholder="Lozinka" [(ngModel)]="password" name="password" required />
-
-      <button type="submit" class="login-btn">Prijavi se</button>
-    </form>
+  <div class="bg-layer">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="curtain-left"></div>
+    <div class="curtain-right"></div>
   </div>
 
-  <div class="error-popup" *ngIf="showError">
-    <div class="popup-content">
-      <p>{{ errorMessage }}</p>
-      <button (click)="showError = false">Zatvori</button>
+  <div class="login-card">
+
+    <div class="card-top">
+      <div class="logo-ring">
+        <img src="/images/logo.png" alt="eTeatar" />
+      </div>
+      <h1 class="app-name">eTeatar</h1>
+      <p class="app-tagline">Administratorski panel</p>
     </div>
+
+    <div class="divider-line"></div>
+
+    <form (ngSubmit)="login()" autocomplete="off" class="login-form">
+
+      <div class="field-group" [class.has-error]="showError">
+        <div class="field-inner">
+          <i class="material-icons f-icon">person_outline</i>
+          <input
+            type="text"
+            class="f-input"
+            placeholder=" "
+            [(ngModel)]="username"
+            name="username"
+            required
+            autocomplete="username"
+          />
+          <label class="f-label">Korisničko ime</label>
+        </div>
+      </div>
+
+      <div class="field-group" [class.has-error]="showError">
+        <div class="field-inner">
+          <i class="material-icons f-icon">lock_outline</i>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            class="f-input"
+            placeholder=" "
+            [(ngModel)]="password"
+            name="password"
+            required
+            autocomplete="current-password"
+          />
+          <label class="f-label">Lozinka</label>
+          <button
+            type="button"
+            class="eye-btn"
+            (click)="showPassword = !showPassword"
+            tabindex="-1"
+          >
+            <i class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</i>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-box" *ngIf="showError">
+        <i class="material-icons">error_outline</i>
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="err-close" (click)="showError = false">
+          <i class="material-icons">close</i>
+        </button>
+      </div>
+
+      <button
+        type="submit"
+        class="login-btn"
+        [disabled]="isLoading || !username || !password"
+      >
+        <span class="btn-glow"></span>
+        <span class="btn-spinner-wrap" *ngIf="isLoading">
+          <span class="b-spinner"></span>
+        </span>
+        <i class="material-icons" *ngIf="!isLoading">login</i>
+        <span>{{ isLoading ? 'Prijavljivanje...' : 'Prijavi se' }}</span>
+      </button>
+
+    </form>
+
+    <div class="features-row">
+      <div class="feat">
+        <i class="material-icons">event_seat</i>
+        <span>Repertoar</span>
+      </div>
+      <div class="feat">
+        <i class="material-icons">people</i>
+        <span>Korisnici</span>
+      </div>
+      <div class="feat">
+        <i class="material-icons">bar_chart</i>
+        <span>Izvještaji</span>
+      </div>
+    </div>
+
+    <p class="card-footer">&copy; {{ currentYear }} eTeatar</p>
+
   </div>
+
 </div>

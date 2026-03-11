@@ -15,17 +15,25 @@ export class LoginComponent {
   password = '';
   showError = false;
   errorMessage = '';
+  isLoading = false;
+  showPassword = false;
+  currentYear = new Date().getFullYear();
 
   constructor(private authService: AuthService, private router: Router) {}
 
   async login() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    this.showError = false;
+
     try {
       await this.authService.login(this.username, this.password);
-
       this.router.navigate(['/predstave']);
     } catch (err: any) {
       this.errorMessage = err.message || 'Pogrešno korisničko ime ili lozinka!';
       this.showError = true;
+    } finally {
+      this.isLoading = false;
     }
   }
 }

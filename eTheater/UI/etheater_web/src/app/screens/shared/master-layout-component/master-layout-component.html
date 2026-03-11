@@ -1,79 +1,125 @@
 <div class="master-container">
 
   <aside class="sidebar">
-    <div class="admin-profile">
-      <div class="avatar">
-        <img src="/images/logo.png" alt="Admin" />
+
+    <div class="sidebar-header">
+      <div class="brand-avatar">
+        <img src="/images/logo.png" alt="eTheater" />
       </div>
-      <div class="role">Admin</div>
+      <div class="brand-label">eTheater</div>
+      <div class="brand-role">Administracija</div>
     </div>
 
-    <ul class="menu">
-      <li [class.active]="activeRoute === '/korisnici'" (click)="navigate('/korisnici')">
-        <i class="material-icons">people</i>
-        <span>Administracija korisnika</span>
-      </li>
+    <nav class="sidebar-nav">
 
-      <li [class.active]="activeRoute === '/predstave'" (click)="navigate('/predstave')">
-        <i class="material-icons">theaters</i>
-        <span>Predstave</span>
-      </li>
+      <div class="nav-section-label">Glavni meni</div>
 
-      <li [class.active]="activeRoute === '/novosti'" (click)="navigate('/novosti')">
-        <i class="material-icons">campaign</i>
-        <span>Novosti</span>
-      </li>
+      <ul class="menu">
 
-      <li>
-        <span class="menu-header" (click)="osobljeExpanded = !osobljeExpanded">
-          <i *ngIf="!osobljeExpanded" class="material-icons">people</i>
-          <span>Administracija Osoblja</span>
-          <i class="material-icons arrow">{{ osobljeExpanded ? 'expand_less' : 'expand_more' }}</i>
-        </span>
-        <ul class="submenu" *ngIf="osobljeExpanded">
-          <li (click)="navigate('/glumci')">Glumci</li>
-          <li (click)="navigate('/reziseri')">Režiseri</li>
-        </ul>
-      </li>
+        <li [class.active]="activeRoute === '/korisnici'" (click)="navigate('/korisnici')">
+          <i class="material-icons">people</i>
+          <span>Korisnici</span>
+        </li>
 
-      <li>
-        <span class="menu-header" (click)="repertoarExpanded = !repertoarExpanded">
-          <i *ngIf="!repertoarExpanded" class="material-icons">schedule</i>
-          <span>Repertoar</span>
-          <i class="material-icons arrow">{{ repertoarExpanded ? 'expand_less' : 'expand_more' }}</i>
-        </span>
-        <ul class="submenu" *ngIf="repertoarExpanded">
-          <li [class.active]="activeRoute === '/izvedbe'" (click)="navigate('/izvedbe')">Izvedbe</li>
-          <li [class.active]="activeRoute === '/repertoar'" (click)="navigate('/repertoar')">Repertoar</li>
-        </ul>
-      </li>
+        <li [class.active]="activeRoute === '/predstave'" (click)="navigate('/predstave')">
+          <i class="material-icons">theaters</i>
+          <span>Predstave</span>
+        </li>
 
-      <li>
-        <span class="menu-header" (click)="komentariExpanded = !komentariExpanded">
-          <i *ngIf="!komentariExpanded" class="material-icons">comment</i>
-          <span>Upravljanje komentarima</span>
-          <i class="material-icons arrow">{{ komentariExpanded ? 'expand_less' : 'expand_more' }}</i>
-        </span>
-        <ul class="submenu" *ngIf="komentariExpanded">
-          <li [class.active]="activeRoute === '/komentari-predstave'" (click)="navigate('/komentari-predstave')">
-            Komentari na predstave
-          </li>
-          <li [class.active]="activeRoute === '/komentari-novosti'" (click)="navigate('/komentari-novosti')">
-            Komentari na obavijesti
-          </li>
-        </ul>
-      </li>
+        <li [class.active]="activeRoute === '/novosti'" (click)="navigate('/novosti')">
+          <i class="material-icons">campaign</i>
+          <span>Novosti</span>
+        </li>
 
-    </ul>
+      </ul>
 
-    <div class="sidebar-bottom">
-      <li class="logout" (click)="showLogoutPopup = true">
+      <div class="nav-section-label">Upravljanje</div>
+
+      <ul class="menu">
+
+        <li class="menu-group">
+          <div
+            class="menu-header"
+            [class.expanded]="osobljeExpanded"
+            (click)="osobljeExpanded = !osobljeExpanded"
+          >
+            <i class="material-icons nav-icon">badge</i>
+            <span class="label">Osoblje</span>
+            <i class="material-icons arrow">expand_more</i>
+          </div>
+          <ul class="submenu" *ngIf="osobljeExpanded">
+            <li [class.active]="activeRoute === '/glumci'" (click)="navigate('/glumci')">
+              <i class="material-icons sub-icon">person</i>
+              Glumci
+            </li>
+            <li [class.active]="activeRoute === '/reziseri'" (click)="navigate('/reziseri')">
+              <i class="material-icons sub-icon">manage_accounts</i>
+              Režiseri
+            </li>
+          </ul>
+        </li>
+
+        <li class="menu-group">
+          <div
+            class="menu-header"
+            [class.expanded]="repertoarExpanded"
+            (click)="repertoarExpanded = !repertoarExpanded"
+          >
+            <i class="material-icons nav-icon">calendar_month</i>
+            <span class="label">Repertoar</span>
+            <i class="material-icons arrow">expand_more</i>
+          </div>
+          <ul class="submenu" *ngIf="repertoarExpanded">
+            <li [class.active]="activeRoute === '/izvedbe'" (click)="navigate('/izvedbe')">
+              <i class="material-icons sub-icon">event</i>
+              Izvedbe
+            </li>
+            <li [class.active]="activeRoute === '/repertoar'" (click)="navigate('/repertoar')">
+              <i class="material-icons sub-icon">schedule</i>
+              Repertoar
+            </li>
+          </ul>
+        </li>
+
+        <li class="menu-group">
+          <div
+            class="menu-header"
+            [class.expanded]="komentariExpanded"
+            (click)="komentariExpanded = !komentariExpanded"
+          >
+            <i class="material-icons nav-icon">forum</i>
+            <span class="label">Komentari</span>
+            <i class="material-icons arrow">expand_more</i>
+          </div>
+          <ul class="submenu" *ngIf="komentariExpanded">
+            <li
+              [class.active]="activeRoute === '/komentari-predstave'"
+              (click)="navigate('/komentari-predstave')"
+            >
+              <i class="material-icons sub-icon">movie</i>
+              Komentari predstava
+            </li>
+            <li
+              [class.active]="activeRoute === '/komentari-novosti'"
+              (click)="navigate('/komentari-novosti')"
+            >
+              <i class="material-icons sub-icon">newspaper</i>
+              Komentari novosti
+            </li>
+          </ul>
+        </li>
+
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="logout-btn" (click)="showLogoutPopup = true">
         <i class="material-icons">logout</i>
-        <span>Logout</span>
-      </li>
+        <span>Odjava</span>
+      </div>
     </div>
-  </aside>
 
+  </aside>
 
   <main class="content">
     <router-outlet></router-outlet>
@@ -81,10 +127,11 @@
 
   <div class="logout-popup" *ngIf="showLogoutPopup">
     <div class="popup-content">
+      <div class="popup-icon"><i class="material-icons">logout</i></div>
       <p>Da li ste sigurni da se želite odjaviti?</p>
       <div class="popup-buttons">
-        <button class="btn confirm" (click)="confirmLogout()">Da</button>
-        <button class="btn cancel" (click)="showLogoutPopup=false">Ne</button>
+        <button class="btn confirm" (click)="confirmLogout()">Odjavi se</button>
+        <button class="btn cancel" (click)="showLogoutPopup = false">Otkaži</button>
       </div>
     </div>
   </div>

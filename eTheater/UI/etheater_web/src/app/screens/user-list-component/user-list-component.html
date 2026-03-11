@@ -1,152 +1,205 @@
-<div class="container">
+<div class="page-wrapper">
 
-  <div class="filter-bar">
-    <input type="text" placeholder="Ime..." [value]="ime" (input)="onImeChange($event.target.value)" class="flex-input">
-    <input type="text" placeholder="Prezime..." [value]="prezime" (input)="onPrezimeChange($event.target.value)"
-      class="flex-input">
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Korisnici</h1>
+      <span class="page-count" *ngIf="!loading">{{ totalCount }} ukupno</span>
+    </div>
+    <button class="btn-primary" (click)="openEditPopup()">
+      <i class="material-icons">person_add</i>
+      Novi korisnik
+    </button>
+  </div>
 
-    <div class="filter-buttons">
-      <button type="button" class="btn" (click)="showFilterPopup = !showFilterPopup">
-        <i class="material-icons">tune</i> Napredni filter
+  <div class="filter-card">
+    <div class="search-row">
+      <div class="search-field">
+        <i class="material-icons search-ico">search</i>
+        <input
+          type="text"
+          placeholder="Pretraga po imenu..."
+          [value]="ime"
+          (input)="onImeChange($event.target.value)"
+        />
+      </div>
+      <div class="search-field">
+        <i class="material-icons search-ico">search</i>
+        <input
+          type="text"
+          placeholder="Pretraga po prezimenu..."
+          [value]="prezime"
+          (input)="onPrezimeChange($event.target.value)"
+        />
+      </div>
+      <button
+        class="btn-filter"
+        [class.active]="showFilterPopup"
+        (click)="showFilterPopup = !showFilterPopup"
+      >
+        <i class="material-icons">tune</i>
+        Filteri
       </button>
-      <button type="button" class="btn primary" (click)="openEditPopup()">
-        <i class="material-icons">add</i> Novi korisnik
-      </button>
     </div>
-  </div>
 
-  <div class="filter-popup" *ngIf="showFilterPopup">
-    <h3>Napredni filteri</h3>
-
-    <label>Username</label>
-    <input type="text" placeholder="Username..." [value]="username" (input)="onUsernameChange($event.target.value)">
-
-    <label>Tip korisnika</label>
-    <select [(ngModel)]="tipId">
-      <option [ngValue]="null">Svi</option>
-      <option *ngFor="let t of tipovi" [ngValue]="t.id">{{ t.naziv }}</option>
-    </select>
-
-    <label>Status</label>
-    <select [(ngModel)]="isActive">
-      <option [ngValue]="null">Svi</option>
-      <option [ngValue]="true">Aktivan</option>
-      <option [ngValue]="false">Neaktivan</option>
-    </select>
-
-    <div class="popup-actions">
-      <button type="button" class="btn" (click)="resetFilters()">Resetuj</button>
-      <button type="button" class="btn primary" (click)="applyFilters()">Primijeni</button>
-    </div>
-  </div>
-
-  <div class="loader" *ngIf="loading">
-    <div class="spinner"></div>
-  </div>
-
-  <div class="no-results" *ngIf="!loading && korisnici.length === 0">
-    <i class="material-icons">sentiment_dissatisfied</i>
-    <p>Nema korisnika</p>
-  </div>
-
-  <div class="grid" *ngIf="!loading">
-    <div class="card" *ngFor="let k of korisnici">
-      <div class="top-actions">
-        <button (click)="openEditPopup(k)" class="icon-btn">
-          <i class="material-icons">edit</i>
-        </button>
-
-        <button (click)="deleteUser(k)" class="icon-btn delete">
-          <i class="material-icons">delete</i>
-        </button>
-      </div>
-      <div class="card-header">
-        <div class="avatar-box">
-          <img *ngIf="k.slikaProfila" [src]="'data:image/jpeg;base64,' + k.slikaProfila">
-          <div *ngIf="!k.slikaProfila" class="placeholder">
-            <i class="material-icons">person</i>
-          </div>
-        </div>
-
-        <div class="user-info">
-          <h3>{{ k.ime }} {{ k.prezime }}</h3>
-          <p class="tip-korisnika">{{ getTipNaziv(k.tipKorisnikaId) }}</p>
-        </div>
-      </div>
-
-      <p class="email">{{ k.email }}</p>
-      <span class="status" [class.active]="k.isActive" [class.inactive]="!k.isActive">
-        {{ getStatus(k.isActive) }}
-      </span>
-    </div>
-  </div>
-
-  <div class="pagination-wrapper">
-    <div class="pagination">
-      <button (click)="prevPage()" [disabled]="page === 1">Prethodna</button>
-      <span>{{ page }} / {{ totalPages }}</span>
-      <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
-    </div>
-  </div>
-
-  <div class="edit-popup" *ngIf="showEditPopup">
-    <h3>{{ editMode ? 'Izmijeni korisnika' : 'Novi korisnik' }}</h3>
-
-    <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
-
-      <div class="row">
-        <div class="col">
-          <label>Ime</label>
-          <input type="text" formControlName="ime">
-        </div>
-
-        <div class="col">
-          <label>Prezime</label>
-          <input type="text" formControlName="prezime">
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
+    <div class="advanced-filters" *ngIf="showFilterPopup">
+      <div class="adv-grid">
+        <div class="adv-field">
           <label>Username</label>
-          <input type="text" formControlName="username">
+          <input
+            type="text"
+            placeholder="Unesite username..."
+            [value]="username"
+            (input)="onUsernameChange($event.target.value)"
+          />
         </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label>Email</label>
-          <input type="email" formControlName="email">
-        </div>
-
-        <div class="col">
-          <label>Broj telefona</label>
-          <input type="text" formControlName="brojTelefona">
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <label>Password</label>
-          <input type="password" formControlName="password">
-        </div>
-
-        <div class="col">
-          <label>Potvrda passworda</label>
-          <input type="password" formControlName="passwordPotvrda">
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
+        <div class="adv-field">
           <label>Tip korisnika</label>
-          <select formControlName="tipKorisnikaId">
-            <option [ngValue]="null">Odaberi...</option>
+          <select [(ngModel)]="tipId">
+            <option [ngValue]="null">Svi tipovi</option>
             <option *ngFor="let t of tipovi" [ngValue]="t.id">{{ t.naziv }}</option>
           </select>
         </div>
+        <div class="adv-field">
+          <label>Status</label>
+          <select [(ngModel)]="isActive">
+            <option [ngValue]="null">Svi</option>
+            <option [ngValue]="true">Aktivan</option>
+            <option [ngValue]="false">Neaktivan</option>
+          </select>
+        </div>
+      </div>
+      <div class="adv-actions">
+        <button class="btn-ghost" (click)="resetFilters()">
+          <i class="material-icons">refresh</i> Resetuj
+        </button>
+        <button class="btn-primary small" (click)="applyFilters(); showFilterPopup = false">
+          <i class="material-icons">check</i> Primijeni
+        </button>
+      </div>
+    </div>
+  </div>
 
-        <div class="col">
+  <div class="loading-area" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Učitavanje...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && korisnici.length === 0">
+    <i class="material-icons">manage_accounts</i>
+    <p>Nema korisnika koji odgovaraju filteru</p>
+    <button class="btn-ghost" (click)="resetFilters()">Resetuj filtere</button>
+  </div>
+
+  <div class="users-grid" *ngIf="!loading && korisnici.length > 0">
+    <div class="user-card" *ngFor="let k of korisnici">
+
+      <div class="card-actions">
+        <button class="action-btn edit" (click)="openEditPopup(k)" title="Uredi">
+          <i class="material-icons">edit</i>
+        </button>
+        <button class="action-btn delete" (click)="deleteUser(k)" title="Obriši">
+          <i class="material-icons">delete_outline</i>
+        </button>
+      </div>
+
+      <div class="card-avatar">
+        <img *ngIf="k.slikaProfila" [src]="'data:image/jpeg;base64,' + k.slikaProfila" alt="Profilna slika" />
+        <div *ngIf="!k.slikaProfila" class="avatar-placeholder">
+          <i class="material-icons">person</i>
+        </div>
+      </div>
+
+      <div class="card-name">{{ k.ime }} {{ k.prezime }}</div>
+      <div class="card-role">{{ getTipNaziv(k.tipKorisnikaId) }}</div>
+      <div class="card-email">
+        <i class="material-icons">mail_outline</i>
+        {{ k.email }}
+      </div>
+
+      <span class="status-badge" [class.active]="k.isActive" [class.inactive]="!k.isActive">
+        <i class="material-icons">{{ k.isActive ? 'check_circle' : 'cancel' }}</i>
+        {{ getStatus(k.isActive) }}
+      </span>
+
+    </div>
+  </div>
+
+  <div class="pagination-bar" *ngIf="!loading && totalPages > 1">
+    <button class="pag-btn" (click)="prevPage()" [disabled]="page === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">Stranica <strong>{{ page }}</strong> od <strong>{{ totalPages }}</strong></span>
+    <button class="pag-btn" (click)="nextPage()" [disabled]="page >= totalPages">
+      <i class="material-icons">chevron_right</i>
+    </button>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="showEditPopup" (click)="closeEditPopup()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="material-icons">{{ editMode ? 'edit' : 'person_add' }}</i>
+      </div>
+      <h2>{{ editMode ? 'Uredi korisnika' : 'Novi korisnik' }}</h2>
+      <button class="modal-close" (click)="closeEditPopup()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()" class="modal-body">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ime</label>
+          <input type="text" formControlName="ime" placeholder="Unesite ime" />
+        </div>
+        <div class="form-group">
+          <label>Prezime</label>
+          <input type="text" formControlName="prezime" placeholder="Unesite prezime" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Username</label>
+          <input type="text" formControlName="username" placeholder="Unesite username" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" formControlName="email" placeholder="email@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Broj telefona</label>
+          <input type="text" formControlName="brojTelefona" placeholder="+387..." />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" formControlName="password" placeholder="Unesite password" />
+        </div>
+        <div class="form-group">
+          <label>Potvrda passworda</label>
+          <input type="password" formControlName="passwordPotvrda" placeholder="Ponovite password" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tip korisnika</label>
+          <select formControlName="tipKorisnikaId">
+            <option [ngValue]="null">Odaberi tip...</option>
+            <option *ngFor="let t of tipovi" [ngValue]="t.id">{{ t.naziv }}</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>Status</label>
           <select formControlName="isActive">
             <option [ngValue]="true">Aktivan</option>
@@ -155,46 +208,50 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col">
+      <div class="form-row image-row">
+        <div class="form-group">
           <label>Profilna slika</label>
-          <input type="file" (change)="onFileChange($event)">
-        </div>
-
-        <div class="col">
-          <div class="preview-image" *ngIf="slikaProfilaBase64">
-            <img [src]="slikaProfilaBase64">
+          <div class="file-upload-area">
+            <input type="file" id="fileInput" (change)="onFileChange($event)" accept="image/*" />
+            <label for="fileInput" class="file-label">
+              <i class="material-icons">upload</i>
+              Odaberi sliku
+            </label>
           </div>
+        </div>
+        <div class="form-group preview-group" *ngIf="slikaProfilaBase64">
+          <label>Pregled</label>
+          <img class="preview-img" [src]="slikaProfilaBase64" alt="Preview" />
         </div>
       </div>
 
-      <div class="popup-actions">
-        <button type="button" class="btn" (click)="closeEditPopup()">Odustani</button>
-        <button type="submit" class="btn primary">
-          {{ editMode ? 'Sačuvaj' : 'Dodaj' }}
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" (click)="closeEditPopup()">Odustani</button>
+        <button type="submit" class="btn-primary">
+          <i class="material-icons">{{ editMode ? 'save' : 'person_add' }}</i>
+          {{ editMode ? 'Sačuvaj izmjene' : 'Dodaj korisnika' }}
         </button>
       </div>
 
     </form>
   </div>
-  <div class="delete-popup" *ngIf="showDeletePopup">
-    <div class="popup-content">
-      <h2>Obriši korisnika</h2>
+</div>
 
-      <p>
-        Da li sigurni da želite obrisati korisnika:
-        <br><strong>{{ userToDelete?.ime }} {{ userToDelete?.prezime }}</strong>?
-      </p>
-
-      <div class="popup-buttons">
-        <button type="button" class="btn bordo" (click)="confirmDeleteUser()">
-          Obriši
-        </button>
-
-        <button type="button" class="btn grey" (click)="showDeletePopup = false">
-          Otkaži
-        </button>
-      </div>
+<div class="modal-overlay" *ngIf="showDeletePopup" (click)="showDeletePopup = false">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="material-icons">delete_forever</i>
+    </div>
+    <h2 class="delete-title">Obriši korisnika</h2>
+    <p class="delete-msg">
+      Da li ste sigurni da želite obrisati korisnika<br />
+      <strong>{{ userToDelete?.ime }} {{ userToDelete?.prezime }}</strong>?
+    </p>
+    <div class="modal-footer centered">
+      <button class="btn-ghost" (click)="showDeletePopup = false">Otkaži</button>
+      <button class="btn-danger" (click)="confirmDeleteUser()">
+        <i class="material-icons">delete</i> Obriši
+      </button>
     </div>
   </div>
 </div>

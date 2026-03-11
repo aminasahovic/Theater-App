@@ -69,7 +69,7 @@ export class UserListComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.filter-bar') && !target.closest('.filter-popup')) {
+    if (!target.closest('.filter-card')) {
       this.showFilterPopup = false;
     }
   }

@@ -1,86 +1,157 @@
-<div class="container">
+<div class="page-wrapper">
 
-    <div class="filter-bar">
-        <input type="text" placeholder="Pretraži po imenu..." [value]="ime" (input)="onImeChange($event.target.value)"
-            class="flex-input">
-        <button type="button" class="btn primary" (click)="openEditPopup()">
-            <i class="material-icons">add</i> Novi glumac
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Glumci</h1>
+      <span class="page-count" *ngIf="!loading">{{ totalCount }} ukupno</span>
+    </div>
+    <button class="btn-primary" (click)="openEditPopup()">
+      <i class="material-icons">person_add</i>
+      Novi glumac
+    </button>
+  </div>
+
+  <div class="filter-card">
+    <div class="search-field">
+      <i class="material-icons search-ico">search</i>
+      <input
+        type="text"
+        placeholder="Pretraži po imenu ili prezimenu..."
+        [value]="ime"
+        (input)="onImeChange($event.target.value)"
+      />
+    </div>
+  </div>
+
+  <div class="loading-area" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Učitavanje...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && glumci.length === 0">
+    <i class="material-icons">person_off</i>
+    <p>Nema glumaca</p>
+    <button class="btn-ghost" (click)="onImeChange('')">Resetuj pretragu</button>
+  </div>
+
+  <div class="glumci-grid" *ngIf="!loading && glumci.length > 0">
+    <div class="glumac-card" *ngFor="let g of glumci">
+
+      <div class="photo-wrap">
+        <img
+          *ngIf="g.slika"
+          [src]="'data:image/jpeg;base64,' + g.slika"
+          alt="{{ g.ime }} {{ g.prezime }}"
+        />
+        <div *ngIf="!g.slika" class="photo-placeholder">
+          <i class="material-icons">person</i>
+        </div>
+
+        <div class="photo-overlay">
+          <button class="overlay-btn edit" (click)="openEditPopup(g)" title="Uredi">
+            <i class="material-icons">edit</i>
+          </button>
+          <button class="overlay-btn delete" (click)="deleteGlumac(g)" title="Obriši">
+            <i class="material-icons">delete_outline</i>
+          </button>
+        </div>
+      </div>
+
+      <div class="glumac-body">
+        <h3 class="glumac-name">{{ g.ime }} {{ g.prezime }}</h3>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="pagination-bar" *ngIf="!loading && totalPages > 1">
+    <button class="pag-btn" (click)="prevPage()" [disabled]="page === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">
+      Stranica <strong>{{ page }}</strong> od <strong>{{ totalPages }}</strong>
+    </span>
+    <button class="pag-btn" (click)="nextPage()" [disabled]="page >= totalPages">
+      <i class="material-icons">chevron_right</i>
+    </button>
+  </div>
+
+</div>
+
+<div class="modal-overlay" *ngIf="showEditPopup" (click)="closeEditPopup()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="material-icons">{{ editMode ? 'edit' : 'person_add' }}</i>
+      </div>
+      <h2>{{ editMode ? 'Uredi glumca' : 'Novi glumac' }}</h2>
+      <button class="modal-close" (click)="closeEditPopup()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()" class="modal-body">
+
+      <div class="avatar-preview" *ngIf="slikaBase64">
+        <img
+          [src]="slikaBase64.startsWith('data:') ? slikaBase64 : 'data:image/jpeg;base64,' + slikaBase64"
+          alt="Pregled"
+        />
+      </div>
+      <div class="avatar-preview placeholder-preview" *ngIf="!slikaBase64">
+        <i class="material-icons">person</i>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ime <span class="required">*</span></label>
+          <input type="text" formControlName="ime" placeholder="Ime glumca" />
+        </div>
+        <div class="form-group">
+          <label>Prezime <span class="required">*</span></label>
+          <input type="text" formControlName="prezime" placeholder="Prezime glumca" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Fotografija</label>
+        <div class="file-upload-area">
+          <input type="file" id="glumacSlikaInput" (change)="onFileChange($event)" accept="image/*" />
+          <label for="glumacSlikaInput" class="file-label">
+            <i class="material-icons">upload</i>
+            {{ slikaBase64 ? 'Zamijeni fotografiju' : 'Odaberi fotografiju' }}
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" (click)="closeEditPopup()">Odustani</button>
+        <button type="submit" class="btn-primary">
+          <i class="material-icons">save</i>
+          {{ editMode ? 'Sačuvaj izmjene' : 'Dodaj glumca' }}
         </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeletePopup" (click)="closeDelete()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="material-icons">delete_forever</i>
     </div>
-
-    <div class="loader" *ngIf="loading">
-        <div class="spinner"></div>
+    <h2 class="delete-title">Obriši glumca</h2>
+    <p class="delete-msg">
+      Da li ste sigurni da želite obrisati<br />
+      <strong>{{ glumacToDelete?.ime }} {{ glumacToDelete?.prezime }}</strong>?
+    </p>
+    <div class="modal-footer centered">
+      <button class="btn-ghost" (click)="closeDelete()">Otkaži</button>
+      <button class="btn-danger" (click)="confirmDelete()">
+        <i class="material-icons">delete</i> Obriši
+      </button>
     </div>
-
-    <div class="no-results" *ngIf="!loading && glumci.length === 0">
-        <i class="material-icons">sentiment_dissatisfied</i>
-        <p>Nema glumaca</p>
-    </div>
-
-    <div class="grid" *ngIf="!loading">
-        <div class="card" *ngFor="let g of glumci">
-            <div class="top-actions">
-                <button (click)="openEditPopup(g)" class="icon-btn">
-                    <i class="material-icons">edit</i>
-                </button>
-                <button (click)="deleteGlumac(g)" class="icon-btn delete">
-                    <i class="material-icons">delete</i>
-                </button>
-            </div>
-
-            <div class="avatar-box">
-                <img *ngIf="g.slika" [src]="'data:image/jpeg;base64,' + g.slika">
-                <div *ngIf="!g.slika" class="placeholder">
-                    <i class="material-icons">person</i>
-                </div>
-            </div>
-
-            <h3>{{ g.ime }} {{ g.prezime }}</h3>
-        </div>
-    </div>
-
-    <div class="pagination-wrapper">
-        <div class="pagination">
-            <button (click)="prevPage()" [disabled]="page === 1">Prethodna</button>
-            <span>{{ page }} / {{ totalPages }}</span>
-            <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
-        </div>
-    </div>
-
-    <div class="edit-popup" *ngIf="showEditPopup">
-        <h3>{{ editMode ? 'Uredi Glumca' : 'Novi Glumac' }}</h3>
-
-        <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
-            <div class="row">
-                <div class="col"><label>Ime</label><input type="text" formControlName="ime"></div>
-                <div class="col"><label>Prezime</label><input type="text" formControlName="prezime"></div>
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <label>Slika</label>
-                    <input type="file" (change)="onFileChange($event)">
-                </div>
-            </div>
-
-            <div class="popup-actions">
-                <button type="button" class="btn" (click)="closeEditPopup()">Odustani</button>
-                <button type="submit" class="btn primary">{{ editMode ? 'Sačuvaj' : 'Dodaj' }}</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Delete Popup -->
-    <div class="delete-popup" *ngIf="showDeletePopup">
-        <div class="popup-content">
-            <h2>Obriši Glumca</h2>
-            <p>Da li ste sigurni da želite obrisati <strong>{{ glumacToDelete?.ime }} {{ glumacToDelete?.prezime
-                    }}</strong>?</p>
-            <div class="popup-buttons">
-                <button type="button" class="btn bordo" (click)="confirmDelete()">Obriši</button>
-                <button type="button" class="btn grey" (click)="closeDelete()">Otkaži</button>
-            </div>
-        </div>
-    </div>
-
+  </div>
 </div>

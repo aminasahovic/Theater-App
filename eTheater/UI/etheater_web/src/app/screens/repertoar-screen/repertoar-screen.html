@@ -1,156 +1,323 @@
-<div class="container">
+<div class="page-wrapper">
 
-  <!-- FILTERI -->
-  <div class="controls">
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Repertoar</h1>
+      <span class="page-count" *ngIf="!loading">{{ total }} ukupno</span>
+    </div>
+    <button class="btn-primary" (click)="openAddPopup()">
+      <i class="material-icons">add</i>
+      Dodaj repertoar
+    </button>
+  </div>
 
-  <input
-    class="input-naziv"
-    type="text"
-    [(ngModel)]="searchNaziv"
-    placeholder="Naziv repertoara"
-    (ngModelChange)="applyFilters()"
-  />
+  <div class="filter-card">
+    <div class="search-row">
+      <div class="search-field">
+        <i class="material-icons search-ico">search</i>
+        <input
+          type="text"
+          placeholder="Pretraži po nazivu..."
+          [(ngModel)]="searchNaziv"
+          (ngModelChange)="applyFilters()"
+        />
+      </div>
+      <div class="date-field">
+        <i class="material-icons date-ico">event</i>
+        <input
+          type="date"
+          [(ngModel)]="datumFilter"
+          (ngModelChange)="applyFilters()"
+        />
+      </div>
+      <button class="btn-ghost" title="Resetuj filtere" (click)="resetFilters()">
+        <i class="material-icons">refresh</i>
+        Resetuj
+      </button>
+    </div>
+  </div>
 
-  <input
-    class="input-date"
-    type="date"
-    [(ngModel)]="datumFilter"
-    (ngModelChange)="applyFilters()"
-  />
+  <div class="loading-area" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Učitavanje...</span>
+  </div>
 
-  <button
-    class="icon-btn"
-    title="Reset filtera"
-    (click)="resetFilters()"
-  >
-    <i class="material-icons">refresh</i>
-  </button>
+  <div class="empty-state" *ngIf="!loading && repertoari.length === 0">
+    <i class="material-icons">event_note</i>
+    <p>Nema dostupnih repertoara</p>
+    <button class="btn-ghost" (click)="resetFilters()">Resetuj filtere</button>
+  </div>
 
-  <span class="spacer"></span>
+  <div class="repertoari-list" *ngIf="!loading && repertoari.length > 0">
+    <div
+      class="repertoar-card"
+      *ngFor="let r of repertoari"
+      [class.expanded]="expandedRepertoarId === r.id"
+    >
 
-  <button class="primary" (click)="openAddPopup()">
-    <i class="material-icons">add</i>
-    Dodaj repertoar
-  </button>
-
-</div>
-
-  <!-- LISTA -->
-  <div *ngIf="loading" class="loader">Učitavanje...</div>
-
-  <div class="list" *ngIf="!loading">
-
-    <div class="card" *ngFor="let r of repertoari">
-      <div class="card-header" (click)="toggleExpand(r)">
-        <div>
-          <h3>{{ r.naziv }}</h3>
-          <p>
-            {{ r.pocetakDatum | date:'dd.MM.yyyy' }}
-            -
-            {{ r.krajDatum | date:'dd.MM.yyyy' }}
-          </p>
+      <div class="rcard-header" (click)="toggleExpand(r)">
+        <div class="rcard-icon">
+          <i class="material-icons">calendar_month</i>
         </div>
 
-        <div class="actions">
-         <button (click)="openEditPopup(r); $event.stopPropagation()">
-  <i class="material-icons">edit</i>
-</button>
+        <div class="rcard-info">
+          <span class="rcard-title">{{ r.naziv }}</span>
+          <span class="rcard-dates">
+            <i class="material-icons">date_range</i>
+            {{ r.pocetakDatum | date:'dd.MM.yyyy' }} — {{ r.krajDatum | date:'dd.MM.yyyy' }}
+          </span>
+        </div>
 
-          <i class="material-icons">
-            {{ expandedRepertoarId === r.id ? 'expand_less' : 'expand_more' }}
-          </i>
+        <div class="rcard-actions">
+          <button
+            class="action-btn edit"
+            title="Uredi"
+            (click)="openEditPopup(r); $event.stopPropagation()"
+          >
+            <i class="material-icons">edit</i>
+          </button>
+          <button
+            class="action-btn delete"
+            title="Obriši"
+            (click)="deleteRepertoar(r); $event.stopPropagation()"
+          >
+            <i class="material-icons">delete_outline</i>
+          </button>
+          <div class="expand-chevron" [class.open]="expandedRepertoarId === r.id">
+            <i class="material-icons">expand_more</i>
+          </div>
         </div>
       </div>
 
-      <!-- IZVEDBE -->
-      <div class="card-body" *ngIf="expandedRepertoarId === r.id">
-        <p *ngIf="repertoarIzvedbe.length === 0" class="empty">
-          Nema izvedbi u ovom periodu.
-        </p>
+      <div class="rcard-body" *ngIf="expandedRepertoarId === r.id">
 
-        <div class="izvedba" *ngFor="let i of repertoarIzvedbe">
-          <div>
-            <strong>{{ i.nazivPredstave }}</strong>
-            <div class="muted">
-              {{ i.datumVrijemeIzvedbe | date:'dd.MM.yyyy HH:mm' }}
+        <div class="rcard-body-empty" *ngIf="repertoarIzvedbe.length === 0">
+          <i class="material-icons">event_busy</i>
+          <span>Nema izvedbi u ovom periodu</span>
+        </div>
+
+        <div class="izvedba-row" *ngFor="let i of repertoarIzvedbe">
+          <div class="izvedba-left">
+            <div class="izvedba-dot"></div>
+            <div class="izvedba-text">
+              <span class="izvedba-naziv">{{ i.nazivPredstave }}</span>
+              <span class="izvedba-datum">
+                <i class="material-icons">access_time</i>
+                {{ i.datumVrijemeIzvedbe | date:'dd.MM.yyyy HH:mm' }}
+              </span>
             </div>
           </div>
-
-          <div class="izvedba-actions">
-            <button title="Pregled">
+          <div class="izvedba-btns">
+            <button class="izvedba-btn" title="Detalji predstave" (click)="openPredstavaDetails(i)">
               <i class="material-icons">visibility</i>
             </button>
-            <button title="Izvještaj">
+            <button class="izvedba-btn report" title="Izvještaj prodaje" (click)="openSalesReport(i)">
               <i class="material-icons">bar_chart</i>
             </button>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
 
-  <!-- PAGINACIJA -->
-  <div class="pagination" *ngIf="totalPages > 1">
-    <button (click)="previousPage()" [disabled]="page === 1">Prethodna</button>
-    <span>{{ page }} / {{ totalPages }}</span>
-    <button (click)="nextPage()" [disabled]="page >= totalPages">Sljedeća</button>
+  <div class="pagination-bar" *ngIf="!loading && totalPages > 1">
+    <button class="pag-btn" (click)="previousPage()" [disabled]="page === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">
+      Stranica <strong>{{ page }}</strong> od <strong>{{ totalPages }}</strong>
+    </span>
+    <button class="pag-btn" (click)="nextPage()" [disabled]="page >= totalPages">
+      <i class="material-icons">chevron_right</i>
+    </button>
   </div>
 
 </div>
-<div class="dodaj-popup" *ngIf="showAddPopup">
-  <div class="popup-content">
-    <h2>Dodaj repertoar</h2>
 
-    <form [formGroup]="repertoarForm" (ngSubmit)="saveRepertoar()">
+<div class="modal-overlay" *ngIf="showAddPopup" (click)="closeAddPopup()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="material-icons">{{ editingRepertoar ? 'edit_calendar' : 'event_available' }}</i>
+      </div>
+      <h2>{{ editingRepertoar ? 'Uredi repertoar' : 'Dodaj repertoar' }}</h2>
+      <button class="modal-close" (click)="closeAddPopup()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <form [formGroup]="repertoarForm" (ngSubmit)="saveRepertoar()" class="modal-body">
 
       <div class="form-group">
-        <label>Naziv repertoara</label>
-        <input formControlName="naziv" placeholder="Unesite naziv">
+        <label>Naziv repertoara <span class="required">*</span></label>
+        <input
+          type="text"
+          formControlName="naziv"
+          placeholder="npr. Proljetni repertoar 2026"
+          [class.invalid]="repertoarForm.get('naziv')?.invalid && repertoarForm.get('naziv')?.touched"
+        />
+        <span class="field-error"
+          *ngIf="repertoarForm.get('naziv')?.invalid && repertoarForm.get('naziv')?.touched">
+          Naziv je obavezan
+        </span>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Početak</label>
-          <input type="datetime-local" formControlName="pocetakDatum">
+          <label>Početak <span class="required">*</span></label>
+          <input
+            type="datetime-local"
+            formControlName="pocetakDatum"
+            [class.invalid]="repertoarForm.get('pocetakDatum')?.invalid && repertoarForm.get('pocetakDatum')?.touched"
+          />
+          <span class="field-error"
+            *ngIf="repertoarForm.get('pocetakDatum')?.touched && repertoarForm.get('pocetakDatum')?.errors?.['pastDate']">
+            Datum mora biti u budućnosti
+          </span>
         </div>
-
         <div class="form-group">
-          <label>Kraj</label>
-          <input type="datetime-local" formControlName="krajDatum">
+          <label>Kraj <span class="required">*</span></label>
+          <input
+            type="datetime-local"
+            formControlName="krajDatum"
+            [class.invalid]="repertoarForm.get('krajDatum')?.invalid && repertoarForm.get('krajDatum')?.touched"
+          />
         </div>
       </div>
 
-      <!-- button enable/disable -->
-      <button type="button" class="btn bordo"
-              [disabled]="!canLoadIzvedbe"
-              (click)="loadAvailableIzvedbe()">
-        Učitaj izvedbe
+      <button
+        type="button"
+        class="btn-load-izvedbe"
+        [disabled]="!canLoadIzvedbe"
+        (click)="loadAvailableIzvedbe()"
+      >
+        <i class="material-icons">refresh</i>
+        Učitaj izvedbe za ovaj period
       </button>
 
-<div *ngIf="availableIzvedbe.length > 0" class="form-group">
-  <label>Izvedbe u ovom periodu</label>
-  <div class="glumci-list">
-    <div class="glumac-item" *ngFor="let i of availableIzvedbe">
-      <label>
-        {{ i.nazivPredstave }} ({{ i.datumVrijemeIzvodjenja | date:'dd.MM.yyyy HH:mm' }})
-      </label>
-      <input type="checkbox" [(ngModel)]="i.odabrano"
-             [ngModelOptions]="{standalone: true}"
-             name="izvedba{{i.izvedbaId}}">
-    </div>
-  </div>
-</div>
+      <div class="izvedbe-section" *ngIf="availableIzvedbe.length > 0">
+        <label class="section-label">Izvedbe u odabranom periodu</label>
+        <div class="izvedbe-checklist">
+          <label
+            class="check-item"
+            *ngFor="let i of availableIzvedbe"
+            [class.checked]="i.odabrano"
+          >
+            <input
+              type="checkbox"
+              [(ngModel)]="i.odabrano"
+              [ngModelOptions]="{standalone: true}"
+              [name]="'izvedba' + i.izvedbaId"
+            />
+            <span class="check-box">
+              <i class="material-icons" *ngIf="i.odabrano">check</i>
+            </span>
+            <div class="check-info">
+              <span class="check-naziv">{{ i.nazivPredstave }}</span>
+              <span class="check-datum">{{ i.datumVrijemeIzvodjenja | date:'dd.MM.yyyy HH:mm' }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
 
-
-
-      <div class="popup-buttons">
-        <button type="submit" class="btn bordo" [disabled]="repertoarForm.invalid">
-          Dodaj
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" (click)="closeAddPopup()">Odustani</button>
+        <button type="submit" class="btn-primary" [disabled]="repertoarForm.invalid">
+          <i class="material-icons">save</i>
+          {{ editingRepertoar ? 'Spremi izmjene' : 'Dodaj repertoar' }}
         </button>
-        <button type="button" class="btn text-btn" (click)="closeAddPopup()">Otkaži</button>
       </div>
 
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showReportPopup" (click)="closeReportPopup()">
+  <div class="modal modal-report" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-icon report-icon">
+        <i class="material-icons">bar_chart</i>
+      </div>
+      <h2>Izvještaj prodaje karata</h2>
+      <button class="modal-close" (click)="closeReportPopup()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="loading-area small" *ngIf="reportLoading">
+        <div class="spinner"></div>
+        <span>Učitavanje izvještaja...</span>
+      </div>
+
+      <ng-container *ngIf="!reportLoading && selectedReport">
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <i class="material-icons">confirmation_number</i>
+            <div class="stat-value">{{ selectedReport.ukupnoRezervacija }}</div>
+            <div class="stat-label">Rezervacija</div>
+          </div>
+          <div class="stat-card highlight">
+            <i class="material-icons">payments</i>
+            <div class="stat-value">{{ selectedReport.ukupniPrihod }} BAM</div>
+            <div class="stat-label">Ukupni prihod</div>
+          </div>
+          <div class="stat-card">
+            <i class="material-icons">chair</i>
+            <div class="stat-value">{{ selectedReport.zauzetaMjesta }}/{{ selectedReport.ukupnoMjesta }}</div>
+            <div class="stat-label">Zauzeta mjesta</div>
+          </div>
+        </div>
+
+        <div class="report-info">
+          <div class="info-row">
+            <span class="info-label">Predstava</span>
+            <span class="info-value">{{ selectedReport.nazivPredstave }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Datum i vrijeme</span>
+            <span class="info-value">{{ selectedReport.datumVrijeme | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ID izvedbe</span>
+            <span class="info-value muted">#{{ selectedReport.izvedbaId }}</span>
+          </div>
+        </div>
+
+        <div class="occupancy-wrap">
+          <div class="occ-header">
+            <span class="occ-title">Popunjenost sale</span>
+            <span class="occ-percent">
+              {{ ((selectedReport.zauzetaMjesta / selectedReport.ukupnoMjesta) * 100) | number:'1.0-0' }}%
+            </span>
+          </div>
+          <div class="occ-bar">
+            <div
+              class="occ-fill"
+              [style.width.%]="(selectedReport.zauzetaMjesta / selectedReport.ukupnoMjesta) * 100"
+            ></div>
+          </div>
+          <div class="occ-legend">
+            <span><span class="leg-dot occupied"></span>Zauzeto ({{ selectedReport.zauzetaMjesta }})</span>
+            <span><span class="leg-dot free"></span>Slobodno ({{ selectedReport.ukupnoMjesta - selectedReport.zauzetaMjesta }})</span>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+
+    <div class="modal-footer" *ngIf="!reportLoading && selectedReport">
+      <button class="btn-ghost" (click)="closeReportPopup()">Zatvori</button>
+      <button class="btn-primary" (click)="printReport()">
+        <i class="material-icons">print</i>
+        Štampaj izvještaj
+      </button>
+    </div>
+
   </div>
 </div>

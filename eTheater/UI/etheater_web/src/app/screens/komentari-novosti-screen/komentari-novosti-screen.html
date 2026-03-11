@@ -1,1 +1,300 @@
-<p>komentari-novosti-screen works!</p>
+<div class="page-wrapper">
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Komentari novosti</h1>
+      <span class="page-count" *ngIf="!isLoadingNovosti">
+        {{ obavijesti.length }} prikazano
+      </span>
+    </div>
+  </div>
+
+  <div class="filter-card">
+    <div class="search-field">
+      <i class="material-icons search-ico">search</i>
+      <input
+        type="text"
+        placeholder="Pretraži po naslovu novosti..."
+        (input)="onSearchChange($event.target.value)"
+      />
+    </div>
+  </div>
+
+  <div class="loading-area" *ngIf="isLoadingNovosti">
+    <div class="spinner"></div>
+    <span>Učitavanje novosti...</span>
+  </div>
+
+  <div class="error-state" *ngIf="!isLoadingNovosti && errorNovosti">
+    <i class="material-icons">error_outline</i>
+    <p>{{ errorNovosti }}</p>
+  </div>
+
+  <div class="empty-state"
+    *ngIf="!isLoadingNovosti && !errorNovosti && obavijesti.length === 0">
+    <i class="material-icons">article</i>
+    <p>Nema dostupnih novosti</p>
+  </div>
+
+  <div
+    class="novosti-list"
+    *ngIf="!isLoadingNovosti && !errorNovosti && obavijesti.length > 0"
+  >
+    <div
+      class="novost-card"
+      *ngFor="let obavijest of obavijesti"
+      [class.expanded]="isExpanded(obavijest.id)"
+    >
+
+      <div class="ncard-header" (click)="toggleExpand(obavijest.id)">
+        <div class="ncard-icon">
+          <i class="material-icons">article</i>
+        </div>
+
+        <div class="ncard-info">
+          <span class="ncard-title">{{ obavijest.naslov }}</span>
+          <div class="ncard-meta">
+            <i class="material-icons" style="font-size:14px;">calendar_today</i>
+            <span>{{ obavijest.datumObjave | date:'dd.MM.yyyy.' }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="toggle-btn"
+          (click)="$event.stopPropagation(); toggleExpand(obavijest.id)"
+          [class.active]="isExpanded(obavijest.id)"
+        >
+          <i class="material-icons">comment</i>
+          <span>{{ isExpanded(obavijest.id) ? 'Sakrij' : 'Komentari' }}</span>
+          <div class="chevron" [class.open]="isExpanded(obavijest.id)">
+            <i class="material-icons">expand_more</i>
+          </div>
+        </button>
+      </div>
+
+      <div class="ncard-preview" *ngIf="!isExpanded(obavijest.id)">
+        <p class="ncard-sadrzaj">{{ obavijest.sadrzaj }}</p>
+      </div>
+
+      <div class="komentari-section" *ngIf="isExpanded(obavijest.id)">
+
+        <div class="loading-area small" *ngIf="komentariLoading[obavijest.id]">
+          <div class="spinner small"></div>
+          <span>Učitavanje komentara...</span>
+        </div>
+
+        <ng-container *ngIf="!komentariLoading[obavijest.id]">
+
+          <div class="no-komentari"
+            *ngIf="(komentariMap[obavijest.id]?.resultList || []).length === 0">
+            <i class="material-icons">chat_bubble_outline</i>
+            <span>Nema komentara za ovu novost</span>
+          </div>
+
+          <div
+            class="komentari-list"
+            *ngIf="(komentariMap[obavijest.id]?.resultList || []).length > 0"
+          >
+            <div
+              class="komentar-row"
+              *ngFor="let komentar of komentariMap[obavijest.id]?.resultList || []"
+            >
+              <div class="komentar-avatar">
+                <i class="material-icons">person</i>
+              </div>
+
+              <div class="komentar-body">
+                <div class="komentar-top">
+                  <span class="komentar-user">
+                    {{ komentar.imeKorisnika }} {{ komentar.prezimeKorisnika }}
+                  </span>
+                  <span class="komentar-date">
+                    {{ komentar.datum | date:'dd.MM.yyyy. HH:mm' }}
+                  </span>
+                  <button
+                    type="button"
+                    class="komentar-delete-btn"
+                    title="Obriši komentar"
+                    (click)="$event.stopPropagation(); openDeleteKomentarModal(obavijest.id, komentar.id)"
+                  >
+                    <i class="material-icons">delete_outline</i>
+                  </button>
+                </div>
+
+                <p class="komentar-text">{{ komentar.text }}</p>
+
+                <div class="odgovori-toggle-wrap">
+                  <button
+                    type="button"
+                    class="odgovori-toggle-btn"
+                    [class.active]="isOdgovoriExpanded(komentar.id)"
+                    [disabled]="komentar.brojOdgovora <= 0"
+                    (click)="$event.stopPropagation(); toggleOdgovori(komentar.id, komentar.brojOdgovora)"
+                  >
+                    <i class="material-icons">
+                      {{ isOdgovoriExpanded(komentar.id) ? 'expand_less' : 'subdirectory_arrow_right' }}
+                    </i>
+                    <span>
+                      {{ komentar.brojOdgovora }}
+                      {{ komentar.brojOdgovora === 1 ? 'odgovor' : 'odgovora' }}
+                    </span>
+                  </button>
+                </div>
+
+                <div
+                  class="odgovori-section"
+                  *ngIf="isOdgovoriExpanded(komentar.id)"
+                  (click)="$event.stopPropagation()"
+                >
+                  <div class="loading-area small" *ngIf="odgovoriLoading[komentar.id]">
+                    <div class="spinner small"></div>
+                    <span>Učitavanje odgovora...</span>
+                  </div>
+
+                  <ng-container *ngIf="!odgovoriLoading[komentar.id]">
+                    <div class="no-odgovori"
+                      *ngIf="(odgovoriMap[komentar.id]?.resultList || []).length === 0">
+                      <i class="material-icons">chat_bubble_outline</i>
+                      <span>Nema odgovora</span>
+                    </div>
+
+                    <div
+                      class="odgovori-list"
+                      *ngIf="(odgovoriMap[komentar.id]?.resultList || []).length > 0"
+                    >
+                      <div
+                        class="odgovor-row"
+                        *ngFor="let odgovor of odgovoriMap[komentar.id]?.resultList || []"
+                      >
+                        <div class="odgovor-avatar">
+                          <i class="material-icons">person</i>
+                        </div>
+                        <div class="odgovor-body">
+                          <div class="odgovor-top">
+                            <span class="odgovor-user">
+                              {{ odgovor.imeKorisnika }} {{ odgovor.prezimeKorisnika }}
+                            </span>
+                            <span class="odgovor-date">
+                              {{ odgovor.datum | date:'dd.MM.yyyy. HH:mm' }}
+                            </span>
+                            <button
+                              type="button"
+                              class="komentar-delete-btn"
+                              title="Obriši odgovor"
+                              (click)="$event.stopPropagation(); openDeleteOdgovorModal(komentar.id, odgovor.id)"
+                            >
+                              <i class="material-icons">delete_outline</i>
+                            </button>
+                          </div>
+                          <p class="odgovor-text">{{ odgovor.textOdgovora }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kom-pagination"
+                      *ngIf="(odgovoriMap[komentar.id]?.count || 0) > odgovoriPageSize"
+                    >
+                      <button
+                        class="pag-btn-sm"
+                        type="button"
+                        (click)="$event.stopPropagation(); prevOdgovoriPage(komentar.id)"
+                        [disabled]="(odgovoriPageMap[komentar.id] || 1) === 1"
+                      >
+                        <i class="material-icons">chevron_left</i>
+                      </button>
+                      <span class="pag-info-sm">
+                        {{ odgovoriPageMap[komentar.id] || 1 }} /
+                        {{ getTotalOdgovoriPages(komentar.id) }}
+                      </span>
+                      <button
+                        class="pag-btn-sm"
+                        type="button"
+                        (click)="$event.stopPropagation(); nextOdgovoriPage(komentar.id)"
+                        [disabled]="(odgovoriPageMap[komentar.id] || 1) >= getTotalOdgovoriPages(komentar.id)"
+                      >
+                        <i class="material-icons">chevron_right</i>
+                      </button>
+                    </div>
+                  </ng-container>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="kom-pagination"
+            *ngIf="(komentariMap[obavijest.id]?.count || 0) > komentariPageSize"
+          >
+            <button
+              class="pag-btn-sm"
+              type="button"
+              (click)="$event.stopPropagation(); prevKomentariPage(obavijest.id)"
+              [disabled]="(komentariPageMap[obavijest.id] || 1) === 1"
+            >
+              <i class="material-icons">chevron_left</i>
+            </button>
+            <span class="pag-info-sm">
+              {{ komentariPageMap[obavijest.id] || 1 }} /
+              {{ getTotalKomentariPages(obavijest.id) }}
+            </span>
+            <button
+              class="pag-btn-sm"
+              type="button"
+              (click)="$event.stopPropagation(); nextKomentariPage(obavijest.id)"
+              [disabled]="(komentariPageMap[obavijest.id] || 1) >= getTotalKomentariPages(obavijest.id)"
+            >
+              <i class="material-icons">chevron_right</i>
+            </button>
+          </div>
+
+        </ng-container>
+      </div>
+
+    </div>
+  </div>
+
+  <div
+    class="pagination-bar"
+    *ngIf="!isLoadingNovosti && !errorNovosti && totalPages > 1"
+  >
+    <button class="pag-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+      <i class="material-icons">chevron_left</i>
+    </button>
+    <span class="pag-info">
+      Stranica <strong>{{ currentPage }}</strong> od
+      <strong>{{ totalPages }}</strong>
+    </span>
+    <button class="pag-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages">
+      <i class="material-icons">chevron_right</i>
+    </button>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-icon danger">
+        <i class="material-icons">delete_outline</i>
+      </div>
+      <h2 class="modal-title">
+        {{ deleteType === 'komentar' ? 'Obriši komentar' : 'Obriši odgovor' }}
+      </h2>
+      <p class="modal-sub">
+        Da li ste sigurni da želite obrisati
+        {{ deleteType === 'komentar' ? 'ovaj komentar' : 'ovaj odgovor' }}?
+        Ova akcija se ne može poništiti.
+      </p>
+      <div class="modal-footer">
+        <button class="btn-ghost" type="button" (click)="cancelDelete()" [disabled]="isDeleting">
+          Otkaži
+        </button>
+        <button class="btn-danger" type="button" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="!isDeleting">Obriši</span>
+          <span *ngIf="isDeleting" class="btn-spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
