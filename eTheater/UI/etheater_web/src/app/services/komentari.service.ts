@@ -30,7 +30,6 @@ export class KomentariService {
     return { headers: { Authorization: `Basic ${token}` } };
   }
 
-  // Dohvati komentare za određenu predstavu s paginacijom
   getKomentari(predstavaId: number, page: number, pageSize = 3): Observable<PagedResult<KomentarPredstava>> {
     let params = new HttpParams()
       .set('PredstavaId', predstavaId)
@@ -41,7 +40,6 @@ export class KomentariService {
       .pipe(map(res => ({ resultList: res.resultList || [], count: res.count || 0 })));
   }
 
-  // Brisanje komentara
   deleteKomentar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, this.authHeader());
   }

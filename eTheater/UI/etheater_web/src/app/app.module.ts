@@ -19,6 +19,7 @@ import { IzvedbaScreen } from './screens/izvedba-screen/izvedba-screen';
 import { RepertoarScreen } from './screens/repertoar-screen/repertoar-screen';
 import { KomentariPredstaveScreen } from './screens/komentari-predstave-screen/komentari-predstave-screen';
 import { KomentariNovostiScreen } from './screens/komentari-novosti-screen/komentari-novosti-screen';
+import { ChatWidgetComponent } from './screens/shared/chat-widget/chat-widget';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { KomentariNovostiScreen } from './screens/komentari-novosti-screen/komen
     IzvedbaScreen,
     RepertoarScreen,
     KomentariPredstaveScreen,
-    KomentariNovostiScreen
+    KomentariNovostiScreen,
+    ChatWidgetComponent
   ],
   imports: [
     BrowserModule,

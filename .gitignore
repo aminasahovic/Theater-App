@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Secrets — never commit API keys or connection strings
+eTheater/eTheater.API/appsettings.json
+
 # User-specific files
 *.rsuser
 *.suo

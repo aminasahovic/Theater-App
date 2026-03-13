@@ -22,6 +22,7 @@ builder.Services.AddHttpClient();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 builder.Services.AddTransient<IChatRepository, ChatRepository>();
+builder.Services.AddTransient<IAdminChatRepository, AdminChatRepository>();
 builder.Services.AddTransient<IZanrService, ZanrService>();
 builder.Services.AddTransient<ITipKorisnikService, TipKorisnikaService>();
 builder.Services.AddTransient<ISjedisteService, SjedisteService>();

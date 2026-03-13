@@ -1,0 +1,83 @@
+<div class="chat-widget">
+
+  <button class="chat-toggle" (click)="toggleChat()" [class.open]="isOpen" title="AI Asistent">
+    <i class="material-icons">{{ isOpen ? 'close' : 'smart_toy' }}</i>
+  </button>
+
+  <div class="chat-panel" [class.open]="isOpen">
+
+    <div class="chat-header">
+      <div class="header-info">
+        <div class="ai-avatar">
+          <i class="material-icons">smart_toy</i>
+        </div>
+        <div>
+          <div class="ai-name">AI Asistent</div>
+          <div class="ai-status">eTheater Admin</div>
+        </div>
+      </div>
+      <button class="close-btn" (click)="toggleChat()">
+        <i class="material-icons">close</i>
+      </button>
+    </div>
+
+    <div class="messages" #messagesContainer>
+
+      <div *ngIf="messages.length === 0" class="welcome-bubble">
+        <div class="ai-avatar-small">
+          <i class="material-icons">smart_toy</i>
+        </div>
+        <div class="bubble ai-bubble">
+          <p>Zdravo! Ja sam vaš AI asistent. Mogu vam pomoći u analizi podataka, planiranju repertoara i navigaciji kroz panel.</p>
+          <span class="time">{{ 'sada' }}</span>
+        </div>
+      </div>
+
+      <div
+        *ngFor="let msg of messages"
+        class="message-row"
+        [class.admin-row]="msg.isAdmin"
+      >
+        <div *ngIf="!msg.isAdmin" class="ai-avatar-small">
+          <i class="material-icons">smart_toy</i>
+        </div>
+        <div class="bubble" [class.ai-bubble]="!msg.isAdmin" [class.admin-bubble]="msg.isAdmin">
+          <p [innerHTML]="formatMessage(msg.text)"></p>
+          <span class="time">{{ msg.time | date:'HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="message-row">
+        <div class="ai-avatar-small">
+          <i class="material-icons">smart_toy</i>
+        </div>
+        <div class="bubble ai-bubble typing">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-area">
+      <input
+        type="text"
+        class="chat-input"
+        [(ngModel)]="inputText"
+        (keydown)="onKeydown($event)"
+        placeholder="Postavite pitanje..."
+        [disabled]="isLoading"
+        autocomplete="off"
+      />
+      <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="isLoading || !inputText.trim()"
+      >
+        <i class="material-icons">send</i>
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -6,6 +6,7 @@ using System.Text;
 using eTheater.Model.SearchObjects;
 using eTheater.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 
 namespace eTheater.Services
@@ -25,7 +26,6 @@ namespace eTheater.Services
         private readonly ETheaterContext _db;
         private readonly HttpClient _httpClient;
 
-        private const string ApiKey = "AIzaSyAjMTo82t3GxlD1U_eBE_9RlgPCioHqXuA";
         private const string GeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
         private readonly string systemPrompt = @"
@@ -37,11 +37,13 @@ namespace eTheater.Services
         Odgovaraj kratko, jasno i prijateljski. Ako konverzacija ima prethodnu poruku ponašaj se tako, nemoj opet pozdravljati korisnika.
     ";
 
-        public ChatRepository(ETheaterContext db, HttpClient httpClient)
+        public ChatRepository(ETheaterContext db, HttpClient httpClient, IConfiguration configuration)
         {
             _db = db;
             _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Add("x-goog-api-key", ApiKey);
+            var apiKey = configuration["Gemini:ApiKey"] ?? "";
+            if (!_httpClient.DefaultRequestHeaders.Contains("x-goog-api-key"))
+                _httpClient.DefaultRequestHeaders.Add("x-goog-api-key", apiKey);
         }
 
         public async Task<string> GetResponseAsync(string prompt, string previousResponse = "")
@@ -94,19 +96,12 @@ namespace eTheater.Services
             var today = DateTime.Today;
             string lower = prompt.ToLower();
 
-            // ===============================
-            // 0) Prethodna komunikacija
-            // ===============================
             if (!string.IsNullOrEmpty(previousResponse))
             {
                 sb.AppendLine("Prethodna komunikacija:");
                 sb.AppendLine(previousResponse);
                 sb.AppendLine();
             }
-
-            // ===============================
-            // 1) Aktuelni repertoar i izvedbe
-            // ===============================
             var izvedbe = await _db.Izvedbas
                 .Include(i => i.Predstava)
                     .ThenInclude(p => p.Zanr)
@@ -126,9 +121,6 @@ namespace eTheater.Services
                 sb.AppendLine();
             }
 
-            // ===============================
-            // 2) Sve predstave sa detaljima i glumcima
-            // ===============================
             var predstave = await _db.Predstavas
                 .Include(p => p.Zanr)
                 .Include(p => p.Reziser)
@@ -150,9 +142,6 @@ Glumci: {string.Join(", ", p.GlumacPredstavas.Select(g => g.Glumac.Ime + " " + g
 ");
             }
 
-            // ===============================
-            // 3) Najgledanije / preporučene
-            // ===============================
             var topPredstave = await _db.Predstavas
                 .Where(p => (bool)p.IsActive)
                 .Select(p => new
@@ -174,9 +163,6 @@ Glumci: {string.Join(", ", p.GlumacPredstavas.Select(g => g.Glumac.Ime + " " + g
             foreach (var p in topPredstave)
                 sb.AppendLine($"{p.Naziv} – rezervacije: {p.Rezervacije}, prosječna ocjena: {p.Ocjena:F1}");
 
-            // ===============================
-            // 4) Kupovina karata
-            // ===============================
             sb.AppendLine(@"
 Kupovina karata:
 - Karte možete rezervisati online.
@@ -184,9 +170,7 @@ Kupovina karata:
 - Blagajna radi od 10:00 do 14:00.
 ");
 
-            // ===============================
-            // 5) Kontakt i lokacija
-            // ===============================
+
             sb.AppendLine("Kontakt:");
             sb.AppendLine("Email: etheater209@gmail.com");
             sb.AppendLine("Telefon: 033/123-456");
