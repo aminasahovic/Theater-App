@@ -16,20 +16,18 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class KomentariPredstaveScreen implements OnInit {
 
-  // PREDSTAVE
   allPredstave: Predstava[] = [];
   displayedPredstave: Predstava[] = [];
 
   currentPagePredstave = 1;
   totalPagesPredstave = 1;
-  pageSizePredstave = 5;
+  pageSizePredstave = 7;
 
   searchNaziv = '';
 
   isLoadingPredstave = false;
   errorPredstave: string | null = null;
 
-  // KOMENTARI
   expandedIds: Set<number> = new Set();
 
   komentariMap: { [predstavaId: number]: PagedKomentarResult<KomentarPredstava> } = {};
@@ -48,7 +46,6 @@ constructor(
     this.loadPredstave();
   }
 
-  // ---------------- PREDSTAVE ----------------
 
   loadPredstave(): void {
     this.isLoadingPredstave = true;
@@ -61,13 +58,13 @@ constructor(
         this.applyPredstaveFiltersAndPaging();
         this.isLoadingPredstave = false;
 
-        this.cd.detectChanges();  // 🔴 FORCE UI REFRESH
+        this.cd.detectChanges(); 
       },
       error: (err) => {
         this.errorPredstave = `Greška pri dohvaćanju podataka: ${err?.message || err}`;
         this.isLoadingPredstave = false;
 
-        this.cd.detectChanges();  // 🔴 FORCE UI REFRESH
+        this.cd.detectChanges();  
       }
     });
   }
@@ -123,7 +120,6 @@ constructor(
     }
   }
 
-  // ---------------- KOMENTARI ----------------
 
   isExpanded(predstavaId: number): boolean {
     return this.expandedIds.has(predstavaId);
@@ -161,7 +157,7 @@ constructor(
         this.komentariPageMap[predstavaId] = page;
         this.komentariLoading[predstavaId] = false;
 
-        this.cd.detectChanges();   // 🔴 OVO FALI
+        this.cd.detectChanges();   
       },
       error: () => {
 
@@ -173,7 +169,7 @@ constructor(
         this.komentariPageMap[predstavaId] = page;
         this.komentariLoading[predstavaId] = false;
 
-        this.cd.detectChanges();   // 🔴 I OVDJE
+        this.cd.detectChanges();   
       }
     });
 }
@@ -206,7 +202,6 @@ constructor(
     }
   }
 
-  // DELETE MODAL
   showDeleteModal = false;
   pendingDeletePredstavaId: number | null = null;
   pendingDeleteKomentarId: number | null = null;
@@ -256,7 +251,6 @@ constructor(
     this.openDeleteModal(predstavaId, komentarId);
   }
 
-  // ── OCJENA helpers ──
   getStars(ocjena: number | undefined): boolean[] {
     const max = 5;
     const val = Math.round(ocjena ?? 0);

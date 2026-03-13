@@ -1,9 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { IzvedbaService } from '../../services/izvedba-service ';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SalaService } from '../../services/sala.service';
 import { PredstaveService } from '../../services/predstava.service ';
 import { ToastService } from '../../services/toast.service';
+import { Subject, switchMap } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-izvedba-screen',
@@ -11,7 +13,7 @@ import { ToastService } from '../../services/toast.service';
   styleUrls: ['./izvedba-screen.css'],
   standalone: false
 })
-export class IzvedbaScreen implements OnInit {
+export class IzvedbaScreen implements OnInit, OnDestroy {
 
   showAddEditPopup = false;
   editMode = false;
@@ -37,6 +39,9 @@ export class IzvedbaScreen implements OnInit {
 
   showAddPopup = false;
 
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+
   constructor(
     private api: IzvedbaService,
     private apiPredstave: PredstaveService,
@@ -48,11 +53,47 @@ export class IzvedbaScreen implements OnInit {
 
   ngOnInit(): void {
     this.generateGodine();
-    this.loadFilterData();
     this.initDodajForm();
     this.loadPredstave();
     this.loadSale();
+    this.setupIzvedbePipeline();
+    this.reload$.next();
+  }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupIzvedbePipeline(): void {
+    this.reload$.pipe(
+      tap(() => {
+        this.loading = true;
+        this.cd.detectChanges();
+      }),
+      switchMap(() => {
+        const filter: any = { page: this.page, pageSize: this.pageSize };
+        if (this.search) filter.search = this.search;
+        if (this.salaId) filter.salaId = this.salaId;
+        if (this.godina) filter.godina = this.godina;
+        if (this.datumIzvodjenja) filter.datumIzvodjenja = this.datumIzvodjenja;
+        return this.api.getIzvedbe(filter);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: res => {
+        this.izvedbe = res.resultList || [];
+        this.total = res.count || 0;
+        this.loading = false;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.izvedbe = [];
+        this.total = 0;
+        this.loading = false;
+        this.cd.detectChanges();
+      }
+    });
   }
 
   openAddEditPopup(izvedba?: any) {
@@ -96,11 +137,6 @@ export class IzvedbaScreen implements OnInit {
     this.godine = Array.from({ length: 50 }, (_, i) => year - i);
   }
 
-  loadFilterData() {
-    this.api.getIzvedbe({ page: 1, pageSize: 1000 }).subscribe(res => {
-      this.loadIzvedbe();
-    });
-  }
   loadSale() {
     this.apiSale.getSale().subscribe(res => {
       this.sale = res.resultList;
@@ -112,18 +148,8 @@ export class IzvedbaScreen implements OnInit {
     });
   }
 
-  loadIzvedbe() {
-    this.loading = true;
-    const filter: any = { page: this.page, pageSize: this.pageSize };
-    if (this.search) filter.search = this.search;
-    if (this.salaId) filter.salaId = this.salaId;
-    if (this.godina) filter.godina = this.godina;
-    if (this.datumIzvodjenja)
-      filter.datumIzvodjenja = this.datumIzvodjenja;
-    this.api.getIzvedbe(filter).subscribe({
-      next: res => { this.izvedbe = res.resultList || []; this.total = res.count || 0; this.loading = false; this.cd.detectChanges(); },
-      error: () => { this.izvedbe = []; this.total = 0; this.loading = false; this.cd.detectChanges(); }
-    });
+  loadIzvedbe(): void {
+    this.reload$.next();
   }
   datumIzvodjenja: string | null = null;
 

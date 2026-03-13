@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Korisnik, TipKorisnika, UserService } from '../../services/user.service';
@@ -11,7 +11,7 @@ import { ToastService } from '../../services/toast.service';
   styleUrls: ['./user-list-component.css'],
   standalone: false
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, OnDestroy {
 
   korisnici: Korisnik[] = [];
   tipovi: TipKorisnika[] = [];
@@ -19,7 +19,7 @@ export class UserListComponent implements OnInit {
   loading = false;
 
   page = 1;
-  pageSize = 12;
+  pageSize = 15;
   totalCount = 0;
   get totalPages() { return Math.ceil(this.totalCount / this.pageSize); }
 
@@ -32,6 +32,9 @@ export class UserListComponent implements OnInit {
   imeTimeout: any;
   prezimeTimeout: any;
   usernameTimeout: any;
+
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   showFilterPopup = false;
 
@@ -63,7 +66,14 @@ export class UserListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadFilterDataAndUsers();
+    this.loadTipovi();
+    this.setupUserPipeline();
+    this.reload$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @HostListener('document:click', ['$event'])
@@ -74,21 +84,53 @@ export class UserListComponent implements OnInit {
     }
   }
 
-  loadFilterDataAndUsers() {
-    this.loading = true;
+  private loadTipovi(): void {
+    this.userService.getTipovi()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: tipovi => {
+          this.tipovi = Array.isArray(tipovi) ? tipovi : [];
+          this.tipMap = this.tipovi.reduce((acc, t) => ({ ...acc, [t.id]: t.naziv }), {});
+        },
+        error: () => {
+          this.tipovi = [];
+          this.tipMap = {};
+        }
+      });
+  }
 
-    forkJoin({
-      tipovi: this.userService.getTipovi()
-    }).subscribe({
-      next: ({ tipovi }) => {
-        this.tipovi = Array.isArray(tipovi) ? tipovi : [];
-        this.tipMap = this.tipovi.reduce((acc, t) => ({ ...acc, [t.id]: t.naziv }), {});
-        this.loadUsers();
+  private setupUserPipeline(): void {
+    this.reload$.pipe(
+      tap(() => {
+        this.loading = true;
+        this.cd.detectChanges();
+      }),
+      switchMap(() => {
+        const ime = this.ime || undefined;
+        const prezime = this.prezime || undefined;
+        const username = this.username || undefined;
+        const tipId = this.tipId ?? undefined;
+        const isActive = (this.isActive !== null && this.isActive !== undefined)
+          ? this.isActive : undefined;
+
+        return this.userService.getKorisnici(
+          ime, prezime, username, tipId as any, isActive as any,
+          this.page, this.pageSize
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: res => {
+        this.korisnici = Array.isArray(res.data) ? res.data : [];
+        this.totalCount = typeof res.total === 'number' ? res.total : 0;
+        this.loading = false;
+        this.cd.detectChanges();
       },
       error: () => {
-        this.tipovi = [];
-        this.tipMap = {};
-        this.loadUsers();
+        this.korisnici = [];
+        this.totalCount = 0;
+        this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -111,30 +153,8 @@ export class UserListComponent implements OnInit {
     this.usernameTimeout = setTimeout(() => this.applyFilters(), 300);
   }
 
-  loadUsers() {
-    this.loading = true;
-
-    const ime = this.ime || undefined;
-    const prezime = this.prezime || undefined;
-    const username = this.username || undefined;
-    const tipId = this.tipId ?? undefined;
-    const isActive = (this.isActive !== null && this.isActive !== undefined) ? this.isActive : undefined;
-
-    this.userService.getKorisnici(ime, prezime, username, tipId as any, isActive as any, this.page, this.pageSize)
-      .subscribe({
-        next: res => {
-          this.korisnici = Array.isArray(res.data) ? res.data : [];
-          this.totalCount = typeof res.total === 'number' ? res.total : 0;
-          this.loading = false;
-          this.cd.detectChanges();
-        },
-        error: () => {
-          this.korisnici = [];
-          this.totalCount = 0;
-          this.loading = false;
-          this.cd.detectChanges();
-        }
-      });
+  loadUsers(): void {
+    this.reload$.next();
   }
 
   applyFilters() {

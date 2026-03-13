@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { Novost, NovostiService } from '../../services/novosti.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { debounceTime } from 'rxjs';
+import { debounceTime, Subject, switchMap } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -10,7 +11,7 @@ import { ToastService } from '../../services/toast.service';
   styleUrls: ['./novosti-screen-component.css'],
   standalone: false
 })
-export class NovostiScreenComponent implements OnInit {
+export class NovostiScreenComponent implements OnInit, OnDestroy {
   novosti: Novost[] = [];
   loading = false;
   total = 0;
@@ -18,6 +19,9 @@ export class NovostiScreenComponent implements OnInit {
   pageSize = 8;
   searchForm: FormGroup;
   selectedDate?: string | null;
+
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   showPopup = false;
   popupForm!: FormGroup;
@@ -39,38 +43,41 @@ export class NovostiScreenComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadNovosti();
+    this.setupNovostiPipeline();
 
-    this.naslov.valueChanges.pipe(debounceTime(300)).subscribe(() => {
+    this.naslov.valueChanges.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => {
       this.page = 1;
-      this.loadNovosti();
+      this.reload$.next();
     });
 
-    this.datumObjave.valueChanges.subscribe(() => {
+    this.datumObjave.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.page = 1;
       this.selectedDate = this.datumObjave.value || null;
-      this.loadNovosti();
+      this.reload$.next();
     });
+
+    this.reload$.next();
   }
 
-  get naslov(): FormControl {
-    return this.searchForm.get('naslov') as FormControl;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  get datumObjave(): FormControl {
-    return this.searchForm.get('datumObjave') as FormControl;
-  }
-
-  loadNovosti(): void {
-    this.loading = true;
-    const filter = {
-      page: this.page,
-      pageSize: this.pageSize,
-      naslov: this.naslov.value,
-      datumObjave: this.selectedDate || null
-    };
-
-    this.novostiService.getNovosti(filter).subscribe({
+  private setupNovostiPipeline(): void {
+    this.reload$.pipe(
+      tap(() => {
+        this.loading = true;
+        this.cd.detectChanges();
+      }),
+      switchMap(() => this.novostiService.getNovosti({
+        page: this.page,
+        pageSize: this.pageSize,
+        naslov: this.naslov.value,
+        datumObjave: this.selectedDate || null
+      })),
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: res => {
         this.novosti = res.data;
         this.total = res.count;
@@ -84,6 +91,18 @@ export class NovostiScreenComponent implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+
+  get naslov(): FormControl {
+    return this.searchForm.get('naslov') as FormControl;
+  }
+
+  get datumObjave(): FormControl {
+    return this.searchForm.get('datumObjave') as FormControl;
+  }
+
+  loadNovosti(): void {
+    this.reload$.next();
   }
 
   resetFilters(): void {

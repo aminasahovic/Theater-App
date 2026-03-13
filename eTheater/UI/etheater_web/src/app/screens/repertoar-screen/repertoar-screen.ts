@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { RepertoarService } from '../../services/repertoar.service';
 import { IzvedbaService } from '../../services/izvedba-service ';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, switchMap } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 
@@ -12,7 +13,7 @@ import { ToastService } from '../../services/toast.service';
   styleUrls: ['./repertoar-screen.css'],
   standalone: false
 })
-export class RepertoarScreen implements OnInit {
+export class RepertoarScreen implements OnInit, OnDestroy {
   repertoarForm!: FormGroup;
 
   repertoari: any[] = [];
@@ -32,6 +33,9 @@ export class RepertoarScreen implements OnInit {
   loading = false;
   canLoadIzvedbe = false;
 
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+
   // Sales report popup
   showReportPopup = false;
   reportLoading = false;
@@ -47,21 +51,29 @@ export class RepertoarScreen implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.loadRepertoari();
+    this.setupRepertoarPipeline();
+    this.reload$.next();
   }
 
-  get totalPages() {
-    return Math.ceil(this.total / this.pageSize);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  loadRepertoari() {
-    this.loading = true;
-
-    const filter: any = { page: this.page, pageSize: this.pageSize };
-    if (this.searchNaziv) filter.naziv = this.searchNaziv;
-    if (this.datumFilter) filter.pocetakDatum = this.datumFilter;
-
-    this.api.getRepertoari(filter).subscribe({
+  private setupRepertoarPipeline(): void {
+    this.reload$.pipe(
+      tap(() => {
+        this.loading = true;
+        this.cd.detectChanges();
+      }),
+      switchMap(() => {
+        const filter: any = { page: this.page, pageSize: this.pageSize };
+        if (this.searchNaziv) filter.naziv = this.searchNaziv;
+        if (this.datumFilter) filter.pocetakDatum = this.datumFilter;
+        return this.api.getRepertoari(filter);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe({
       next: res => {
         this.repertoari = res.resultList || [];
         this.total = res.count || 0;
@@ -75,6 +87,14 @@ export class RepertoarScreen implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+
+  get totalPages() {
+    return Math.ceil(this.total / this.pageSize);
+  }
+
+  loadRepertoari(): void {
+    this.reload$.next();
   }
 
   toggleExpand(repertoar: any) {

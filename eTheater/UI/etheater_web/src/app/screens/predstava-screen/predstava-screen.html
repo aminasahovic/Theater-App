@@ -3,7 +3,7 @@
   <div class="page-header">
     <div class="page-header-left">
       <h1 class="page-title">Predstave</h1>
-      <span class="page-count" *ngIf="!loading">{{ total }} ukupno</span>
+      <span class="page-count" *ngIf="!loading">{{ predstave.length }} prikazano</span>
     </div>
     <button class="btn-primary" (click)="openDodajPopup()">
       <i class="material-icons">add</i>

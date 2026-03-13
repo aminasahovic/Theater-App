@@ -3,7 +3,7 @@
   <div class="page-header">
     <div class="page-header-left">
       <h1 class="page-title">Korisnici</h1>
-      <span class="page-count" *ngIf="!loading">{{ totalCount }} ukupno</span>
+      <span class="page-count" *ngIf="!loading">{{ korisnici.length }} prikazano</span>
     </div>
     <button class="btn-primary" (click)="openEditPopup()">
       <i class="material-icons">person_add</i>

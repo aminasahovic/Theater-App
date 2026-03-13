@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { forkJoin, Subject } from 'rxjs';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PredstaveService } from '../../services/predstava.service ';
 import { Router } from '@angular/router';
@@ -11,7 +12,7 @@ import { ToastService } from '../../services/toast.service';
   styleUrls: ['./predstava-screen.css'],
   standalone: false
 })
-export class PredstavaScreen implements OnInit {
+export class PredstavaScreen implements OnInit, OnDestroy {
 
   loading = false;
   naziv = '';
@@ -38,6 +39,9 @@ export class PredstavaScreen implements OnInit {
   showDodajPopup = false;
   searchTimeout: any;
 
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+
   dodajForm: FormGroup;
   plakatBase64 = '';
 
@@ -62,7 +66,14 @@ export class PredstavaScreen implements OnInit {
 
   ngOnInit(): void {
     this.generateGodine();
-    this.loadFilterDataAndPredstave();
+    this.loadFilterData();
+    this.setupPredstavePipeline();
+    this.reload$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   generateGodine() {
@@ -70,20 +81,50 @@ export class PredstavaScreen implements OnInit {
     this.godine = Array.from({ length: 50 }, (_, i) => year - i);
   }
 
-  loadFilterDataAndPredstave() {
+  private loadFilterData(): void {
     forkJoin({
       zanrovi: this.api.getZanrovi(),
       reziseri: this.api.getReziseri(),
       glumci: this.api.getGlumci()
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ zanrovi, reziseri, glumci }) => {
         this.zanrovi = zanrovi;
         this.reziseri = reziseri;
         this.glumci = glumci;
-        this.loadPredstave();
       }
     });
+  }
 
+  private setupPredstavePipeline(): void {
+    this.reload$.pipe(
+      tap(() => {
+        this.loading = true;
+        this.cd.detectChanges();
+      }),
+      switchMap(() => this.api.getPredstave({
+        naziv: this.naziv,
+        zanrId: this.zanrId,
+        reziserId: this.reziserId,
+        godina: this.godina,
+        isActive: this.isActive,
+        page: this.page,
+        pageSize: this.pageSize
+      })),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: res => {
+        this.predstave = Array.isArray(res.resultList) ? res.resultList : [];
+        this.total = typeof res.count === 'number' ? res.count : 0;
+        this.loading = false;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.predstave = [];
+        this.total = 0;
+        this.loading = false;
+        this.cd.detectChanges();
+      }
+    });
   }
   onGlumacOdabran(event: any) {
     const id = Number(event.target.value);
@@ -102,33 +143,8 @@ export class PredstavaScreen implements OnInit {
   }
 
 
-  loadPredstave() {
-    this.loading = true;
-    const filter = {
-      naziv: this.naziv,
-      zanrId: this.zanrId,
-      reziserId: this.reziserId,
-      godina: this.godina,
-      isActive: this.isActive,
-      page: this.page,
-      pageSize: this.pageSize
-    };
-
-    this.api.getPredstave(filter).subscribe({
-      next: res => {
-        this.predstave = Array.isArray(res.resultList) ? res.resultList : [];
-        this.total = typeof res.count === 'number' ? res.count : 0;
-        this.loading = false;
-        this.cd.detectChanges();
-      },
-      error: () => {
-        console.error("Greška pri učitavanju predstava");
-        this.predstave = [];
-        this.total = 0;
-        this.loading = false;
-        this.cd.detectChanges();
-      }
-    });
+  loadPredstave(): void {
+    this.reload$.next();
   }
 
   applyFilters() {
