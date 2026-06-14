@@ -214,7 +214,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
+        OutlinedButton(
           onPressed:
               _currentPage > 1
                   ? () {
@@ -229,7 +229,7 @@ class _GlumciScreenState extends State<GlumciScreen> {
         const SizedBox(width: 16),
         Text('Stranica $_currentPage od $ukupnoStranica'),
         const SizedBox(width: 16),
-        ElevatedButton(
+        OutlinedButton(
           onPressed:
               _currentPage < ukupnoStranica
                   ? () {
@@ -257,9 +257,26 @@ class _GlumciScreenState extends State<GlumciScreen> {
               children: [
                 Expanded(
                   child: TextField(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Pretraži po imenu ili prezimenu...',
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF800020),
+                          width: 1.4,
+                        ),
+                      ),
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -272,99 +289,128 @@ class _GlumciScreenState extends State<GlumciScreen> {
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF800020),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () => _showGlumacDialog(),
                   icon: const Icon(Icons.add),
                   label: const Text("Dodaj glumca"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF800000),
-                  ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return GridView.builder(
-                      itemCount: _glumci.length,
-                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 300, // prilagodi prema potrebi
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.65, // možeš mijenjati po potrebi
-                      ),
-                      itemBuilder: (context, index) {
-                        final glumac = _glumci[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 6,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                AspectRatio(
-                                  aspectRatio: 1,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.grey[200],
-                                    ),
-                                    child:
-                                        glumac.slika.isNotEmpty
-                                            ? ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              child: Image.memory(
-                                                base64Decode(glumac.slika),
-                                                fit: BoxFit.cover,
-                                              ),
-                                            )
-                                            : const Center(
-                                              child: Icon(
-                                                Icons.person_off,
-                                                size: 40,
-                                              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return GridView.builder(
+                    itemCount: _glumci.length,
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 300,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.68,
+                    ),
+                    itemBuilder: (context, index) {
+                      final glumac = _glumci[index];
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: Colors.white,
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              AspectRatio(
+                                aspectRatio: 1,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: Colors.grey[200]?.withOpacity(0.5),
+                                  ),
+                                  child:
+                                      glumac.slika.isNotEmpty
+                                          ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
-                                  ),
+                                            child: Image.memory(
+                                              base64Decode(glumac.slika),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                          : const Center(
+                                            child: Icon(
+                                              Icons.person_off,
+                                              size: 40,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${glumac.ime} ${glumac.prezime}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                  textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '${glumac.ime} ${glumac.prezime}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 20),
-                                      onPressed:
-                                          () =>
-                                              _showGlumacDialog(glumac: glumac),
+                                textAlign: TextAlign.center,
+                              ),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed:
+                                        () => _showGlumacDialog(glumac: glumac),
+                                    icon: const Icon(Icons.edit, size: 16),
+                                    label: const Text('Uredi'),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      textStyle: const TextStyle(fontSize: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, size: 20),
-                                      onPressed: () => _deleteGlumac(glumac.id),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () => _deleteGlumac(glumac.id),
+                                    icon: const Icon(Icons.delete, size: 18),
+                                    label: const Text('Obriši'),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      textStyle: const TextStyle(fontSize: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      foregroundColor: Colors.red,
+                                      side: const BorderSide(color: Colors.red),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
+
             const SizedBox(height: 10),
             _buildPaginationControls(),
           ],

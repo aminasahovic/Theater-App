@@ -22,32 +22,40 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
   Uint8List? _slikaBytes;
   bool _uspjesnoDodano = false;
 
-  // Poziv na instancu ApiService klase
   Future<int?> _getKorisnikId() async {
-    // Kreiranje instance ApiService
     final apiService = ApiService();
-    final korisnik =
-        await apiService.getLogovaniKorisnik(); // Poziv na instancu metode
-    return korisnik?.id; // Pretpostavljamo da 'id' postoji u Korisnik modelu
+    final korisnik = await apiService.getLogovaniKorisnik();
+    return korisnik?.id;
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Dodaj novu novost'),
+      title: const Text(
+        'Dodaj novu novost',
+        style: TextStyle(
+          fontWeight: FontWeight.w500, // srednja težina, manje napadno
+          fontSize: 18, // smanjen font
+          color: Colors.black87, // neutralnija boja
+        ),
+      ),
+
       content: SizedBox(
         width: 800,
         height: 600,
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // Slika
               Container(
-                height: 300,
+                height: 250,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300),
+                  color: Colors.grey.shade100,
                 ),
+                clipBehavior: Clip.hardEdge,
                 child:
                     _slikaBytes != null
                         ? Image.memory(
@@ -55,10 +63,23 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
                           fit: BoxFit.cover,
                           width: double.infinity,
                         )
-                        : const Center(child: Text('Nema slike')),
+                        : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.image, size: 60, color: Colors.grey),
+                              SizedBox(height: 8),
+                              Text(
+                                'Nema odabrane slike',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
               ),
               const SizedBox(height: 12),
-              ElevatedButton.icon(
+              // Dugme za upload slike
+              OutlinedButton.icon(
                 onPressed: () async {
                   FilePickerResult? result = await FilePicker.platform
                       .pickFiles(type: FileType.image);
@@ -72,16 +93,34 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
                     });
                   }
                 },
-                icon: const Icon(Icons.image),
-                label: const Text('Odaberi sliku'),
+                icon: const Icon(Icons.upload_file),
+                label: const Text("Odaberi sliku"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blueGrey,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  side: const BorderSide(color: Colors.blueGrey),
+                ),
               ),
               const SizedBox(height: 24),
+              // Forma
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Naslov'),
+                      decoration: const InputDecoration(
+                        labelText: 'Naslov',
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                      ),
                       validator:
                           (value) =>
                               value == null || value.isEmpty
@@ -89,9 +128,15 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
                                   : null,
                       onSaved: (value) => naslov = value!,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Sadržaj'),
+                      decoration: const InputDecoration(
+                        labelText: 'Sadržaj',
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                      ),
                       maxLines: 4,
                       validator:
                           (value) =>
@@ -117,11 +162,17 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        OutlinedButton(
           onPressed: () => Navigator.pop(context, false),
           child: const Text('Otkaži'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         ),
-        ElevatedButton(
+        ElevatedButton.icon(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
@@ -165,7 +216,14 @@ class _DodajNovostDialogState extends State<DodajNovostDialog> {
               }
             }
           },
-          child: const Text('Spremi'),
+          icon: const Icon(Icons.save),
+          label: const Text('Spremi'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         ),
       ],
     );

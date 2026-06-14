@@ -15,7 +15,6 @@ import { ChangeDetectorRef } from '@angular/core';
   standalone: false,
 })
 export class KomentariNovostiScreen implements OnInit {
-  // Novosti (obavijesti) listing + search/pagination
   obavijesti: Novost[] = [];
   currentPage = 1;
   totalCount = 0;
@@ -24,16 +23,13 @@ export class KomentariNovostiScreen implements OnInit {
   isLoadingNovosti = false;
   errorNovosti: string | null = null;
 
-  // Expanded cards state (which news' comments are visible)
   expandedObavijestId: number | null = null;
 
-  // Komentari per obavijest
   komentariMap: { [obavijestId: number]: PagedResult<KomentarObavijest> } = {};
   komentariPageMap: { [obavijestId: number]: number } = {};
   komentariLoading: { [obavijestId: number]: boolean } = {};
   komentariPageSize = 2;
 
-  // Odgovori na komentare
   expandedOdgovoriIds: Set<number> = new Set();
   odgovoriMap: { [komentarId: number]: PagedResult<OdgovorKomentar> } = {};
   odgovoriPageMap: { [komentarId: number]: number } = {};
@@ -66,7 +62,6 @@ loadNovosti(): void {
         this.totalCount = res.count || 0;
         this.isLoadingNovosti = false;
 
-        // Force UI refresh odmah nakon učitavanja
         this.cd.detectChanges();
       },
       error: (err) => {
@@ -77,7 +72,6 @@ loadNovosti(): void {
         this.totalCount = 0;
         this.isLoadingNovosti = false;
 
-        // Force UI refresh i kod greške
         this.cd.detectChanges();
       },
     });
@@ -101,7 +95,6 @@ loadNovosti(): void {
     this.loadNovosti();
   }
 
-  // ---------- Komentari (comments) ----------
 
   isExpanded(obavijestId: number): boolean {
     return this.expandedObavijestId === obavijestId;
@@ -134,7 +127,6 @@ loadNovosti(): void {
         this.komentariPageMap[obavijestId] = page;
         this.komentariLoading[obavijestId] = false;
 
-        // 🔴 FORCE UI refresh odmah
         this.cd.detectChanges();
       },
       error: () => {
@@ -142,7 +134,6 @@ loadNovosti(): void {
         this.komentariPageMap[obavijestId] = page;
         this.komentariLoading[obavijestId] = false;
 
-        // 🔴 FORCE UI refresh i kod greške
         this.cd.detectChanges();
       },
     });
@@ -169,7 +160,6 @@ loadNovosti(): void {
     }
   }
 
-  // ── DELETE MODAL ──
   showDeleteModal = false;
   deleteType: 'komentar' | 'odgovor' = 'komentar';
   isDeleting = false;
@@ -240,7 +230,6 @@ loadNovosti(): void {
     this.openDeleteKomentarModal(obavijestId, komentarId);
   }
 
-  // ---------------- ODGOVORI NA KOMENTARE ----------------
 
   isOdgovoriExpanded(komentarId: number): boolean {
     return this.expandedOdgovoriIds.has(komentarId);

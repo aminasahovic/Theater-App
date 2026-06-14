@@ -42,28 +42,41 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Uredi novost'),
+      title: const Text(
+        'Uredi novost',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       content: SizedBox(
         width: 800,
         height: 600,
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // Slika
               Container(
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
                   color: Colors.grey[200],
                 ),
-                child:
-                    _slikaBytes != null
-                        ? Image.memory(
-                          _slikaBytes!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        )
-                        : const Center(child: Text('Nema slike')),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      _slikaBytes != null
+                          ? Image.memory(
+                            _slikaBytes!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )
+                          : const Center(child: Text('Nema slike')),
+                ),
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
@@ -81,8 +94,22 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
                     });
                   }
                 },
-                icon: const Icon(Icons.image),
-                label: const Text('Promijeni sliku'),
+                icon: const Icon(Icons.image, color: Colors.black87),
+                label: const Text(
+                  'Odaberi sliku',
+                  style: TextStyle(color: Colors.black87),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey.shade200,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
               ),
               const SizedBox(height: 24),
               Form(
@@ -99,7 +126,7 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
                                   : null,
                       onSaved: (value) => naslov = value!,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     TextFormField(
                       initialValue: sadrzaj,
                       decoration: const InputDecoration(labelText: 'Sadržaj'),
@@ -119,9 +146,13 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        OutlinedButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Otkaži'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            textStyle: const TextStyle(fontSize: 14),
+          ),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -142,24 +173,33 @@ class _EditNovostDialogState extends State<EditNovostDialog> {
 
               try {
                 await ApiService.updateNovost(widget.novost.id, updateModel);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Novost uspješno ažurirana!'),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                Navigator.pop(context, true);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Novost uspješno ažurirana!'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  Navigator.pop(context, true);
+                }
               } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Greška: $e')));
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Greška: $e')));
+                }
               }
             }
           },
           child: const Text('Spremi izmjene'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         ),
       ],
     );

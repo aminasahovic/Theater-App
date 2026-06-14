@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:etheater_admin/models/models.dart';
 import 'package:etheater_admin/screens/dodaj_novost_dialog.dart';
 import 'package:etheater_admin/screens/edit_novost_dialog.dart';
-import 'package:etheater_admin/screens/novosti_details.dart';
 import 'package:flutter/material.dart';
 import 'package:etheater_admin/services/services.dart';
 import 'package:etheater_admin/layouts/master_screen.dart';
@@ -20,7 +19,7 @@ class _NovostiScreenState extends State<NovostiScreen> {
   bool _isLoading = true;
   int _totalCount = 0;
   int _currentPage = 1;
-  final int _pageSize = 10;
+  final int _pageSize = 8;
   final DateFormat formatter = DateFormat('dd.MM.yyyy.');
 
   final TextEditingController _searchController = TextEditingController();
@@ -71,16 +70,48 @@ class _NovostiScreenState extends State<NovostiScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Potvrda brisanja'),
-            content: const Text('Sigurno želite obrisati ovu novost?'),
+            title: const Text(
+              'Potvrda brisanja',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 18,
+                color: Colors.black87,
+              ),
+            ),
+            content: const Text(
+              'Sigurno želite obrisati ovu novost?',
+              style: TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             actions: [
-              TextButton(
+              OutlinedButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: const Text('Otkaži'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 14),
+                ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: const Text('Obriši'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ],
           ),
@@ -104,7 +135,6 @@ class _NovostiScreenState extends State<NovostiScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return MasterScreen(
       "Novosti",
@@ -121,8 +151,7 @@ class _NovostiScreenState extends State<NovostiScreen> {
                       child: TextField(
                         controller: _searchController,
                         decoration: const InputDecoration(
-                          labelText: "Pretraži po nazivu",
-                          prefixIcon: Icon(Icons.title),
+                          labelText: "Pretraži po nazivu...",
                         ),
                       ),
                     ),
@@ -174,20 +203,34 @@ class _NovostiScreenState extends State<NovostiScreen> {
                         _loadNovosti();
                       },
                     ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        _openAddDialog(context);
-                      },
-                      child: const Text("Dodaj novost"),
+                    // **Dodano Padding s desne strane da bude usklađeno sa karticama**
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        right: 16,
+                      ), // isto kao kod kartica
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF800020),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          _openAddDialog(context);
+                        },
+                        child: const Text("Dodaj novost"),
+                      ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       int crossAxisCount = constraints.maxWidth ~/ 300;
+                      crossAxisCount = crossAxisCount > 0 ? crossAxisCount : 1;
+
                       return SingleChildScrollView(
                         child: Wrap(
                           spacing: 12,
@@ -196,138 +239,158 @@ class _NovostiScreenState extends State<NovostiScreen> {
                               _novosti.map((obavijest) {
                                 return SizedBox(
                                   width:
-                                      constraints.maxWidth / crossAxisCount -
+                                      (constraints.maxWidth / crossAxisCount) -
                                       12,
                                   child: Card(
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
                                     elevation: 4,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(12),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    NovostiDetailsScreen(
-                                                      obavijest: obavijest,
-                                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Slika
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(16),
+                                            topRight: Radius.circular(16),
                                           ),
-                                        );
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                                  topLeft: Radius.circular(12),
-                                                  topRight: Radius.circular(12),
-                                                ),
-                                            child:
-                                                isValidBase64(obavijest.slika)
-                                                    ? Image.memory(
-                                                      base64Decode(
-                                                        obavijest.slika!,
-                                                      ),
-                                                      height: 140,
-                                                      width: double.infinity,
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                    : Container(
-                                                      height: 140,
-                                                      width: double.infinity,
-                                                      color:
-                                                          Colors.grey.shade200,
-                                                      child: Center(
-                                                        child: Icon(
-                                                          Icons
-                                                              .image_not_supported,
-                                                          size: 60,
-                                                          color:
-                                                              Colors
-                                                                  .grey
-                                                                  .shade500,
-                                                        ),
+                                          child:
+                                              isValidBase64(obavijest.slika)
+                                                  ? Image.memory(
+                                                    base64Decode(
+                                                      obavijest.slika!,
+                                                    ),
+                                                    height: 150,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                  : Container(
+                                                    height: 150,
+                                                    color: Colors.grey.shade200,
+                                                    child: const Center(
+                                                      child: Icon(
+                                                        Icons
+                                                            .image_not_supported,
+                                                        size: 60,
+                                                        color: Colors.grey,
                                                       ),
                                                     ),
-                                          ),
-
-                                          Padding(
-                                            padding: const EdgeInsets.all(12),
-                                            child: Column(
-                                              children: [
-                                                Text(
-                                                  obavijest.naslov,
-                                                  textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
                                                   ),
+                                        ),
+                                        // Sadržaj kartice
+                                        Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                obavijest.naslov,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
                                                 ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  "Datum: ${formatter.format(obavijest.datumObjave.toLocal())}",
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                formatter.format(
+                                                  obavijest.datumObjave
+                                                      .toLocal(),
                                                 ),
-                                                const SizedBox(height: 6),
-                                                Text(
-                                                  obavijest.sadrzaj,
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                  ),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey.shade600,
                                                 ),
-                                                const SizedBox(height: 8),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      IconButton(
-                                                        onPressed:
-                                                            () =>
-                                                                _openEditDialog(
-                                                                  context,
-                                                                  obavijest,
-                                                                ),
-                                                        icon: const Icon(
-                                                          Icons.edit,
-                                                          size: 20,
-                                                          color: Colors.black,
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                obavijest.sadrzaj,
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  // Uredi dugme
+                                                  OutlinedButton.icon(
+                                                    onPressed:
+                                                        () => _openEditDialog(
+                                                          context,
+                                                          obavijest,
                                                         ),
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      size: 16,
+                                                    ),
+                                                    label: const Text("Uredi"),
+                                                    style: OutlinedButton.styleFrom(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 6,
+                                                          ),
+                                                      textStyle:
+                                                          const TextStyle(
+                                                            fontSize: 12,
+                                                          ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
                                                       ),
-                                                      IconButton(
-                                                        onPressed:
-                                                            () =>
-                                                                _confirmDelete(
-                                                                  obavijest.id,
-                                                                ),
-                                                        icon: const Icon(
-                                                          Icons.delete,
-                                                          size: 20,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
+                                                  const SizedBox(width: 8),
+                                                  // Obriši dugme
+                                                  OutlinedButton.icon(
+                                                    onPressed:
+                                                        () => _confirmDelete(
+                                                          obavijest.id,
+                                                        ),
+                                                    icon: const Icon(
+                                                      Icons.delete,
+                                                      size: 16,
+                                                    ),
+                                                    label: const Text("Obriši"),
+                                                    style: OutlinedButton.styleFrom(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 6,
+                                                          ),
+                                                      textStyle:
+                                                          const TextStyle(
+                                                            fontSize: 12,
+                                                          ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                      foregroundColor:
+                                                          Colors.red,
+                                                      side: const BorderSide(
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );
@@ -337,13 +400,16 @@ class _NovostiScreenState extends State<NovostiScreen> {
                     },
                   ),
                 ),
-                if (_totalPages > 1)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+
+                if (_totalPages > 1) const SizedBox(height: 12),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton(
+                        OutlinedButton(
                           onPressed:
                               _currentPage > 1
                                   ? () {
@@ -353,18 +419,12 @@ class _NovostiScreenState extends State<NovostiScreen> {
                                     _loadNovosti();
                                   }
                                   : null,
-                          child: const Text("Prethodna"),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                          ),
+                          child: const Text('Prethodna'),
                         ),
                         const SizedBox(width: 16),
-                        Text("Stranica $_currentPage od $_totalPages"),
+                        Text('Stranica $_currentPage od $_totalPages'),
                         const SizedBox(width: 16),
-                        ElevatedButton(
+                        OutlinedButton(
                           onPressed:
                               _currentPage < _totalPages
                                   ? () {
@@ -374,17 +434,12 @@ class _NovostiScreenState extends State<NovostiScreen> {
                                     _loadNovosti();
                                   }
                                   : null,
-                          child: const Text("Sljedeća"),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                          ),
+                          child: const Text('Sljedeća'),
                         ),
                       ],
                     ),
                   ),
+                ),
               ],
             ),
           ),

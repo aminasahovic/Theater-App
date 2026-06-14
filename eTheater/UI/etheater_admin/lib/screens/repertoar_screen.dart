@@ -81,323 +81,349 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
           children: [
             Row(
               children: [
+                // 1. TextField - popunjava sav prostor do kraja
                 Expanded(
                   child: TextField(
                     controller: _nazivController,
-                    decoration: const InputDecoration(labelText: 'Naziv'),
+                    decoration: InputDecoration(
+                      labelText: 'Naziv',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                    onSubmitted: (_) {
+                      _nazivFilter = _nazivController.text;
+                      _currentPage = 1;
+                      _loadData();
+                    },
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) {
-                      setState(() {
-                        _datumFilter = picked;
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.date_range),
-                  label: Text(
-                    _datumFilter == null
-                        ? 'Datum'
-                        : DateFormat('dd.MM.yyyy').format(_datumFilter!),
+
+                const SizedBox(width: 12),
+
+                // 2. Datum picker - fiksna širina
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _datumFilter ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _datumFilter = picked;
+                          _currentPage = 1;
+                          _loadData();
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.date_range, size: 18),
+                    label: Text(
+                      _datumFilter == null
+                          ? 'Datum'
+                          : DateFormat('dd.MM.yyyy').format(_datumFilter!),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
+
                 const SizedBox(width: 8),
+
+                // 3. Search i Clear - mali gumbi
                 IconButton(
                   onPressed: () {
                     _nazivFilter = _nazivController.text;
                     _currentPage = 1;
                     _loadData();
                   },
-                  icon: const Icon(Icons.search),
+                  icon: const Icon(Icons.search, size: 20),
+                  tooltip: 'Pretraži',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.grey[100],
+                    padding: const EdgeInsets.all(10),
+                  ),
                 ),
+
+                const SizedBox(width: 4),
+
                 IconButton(
                   onPressed: _resetFilters,
-                  icon: const Icon(Icons.clear),
+                  icon: const Icon(Icons.clear, size: 20),
+                  tooltip: 'Očisti filtere',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.grey[100],
+                    padding: const EdgeInsets.all(10),
+                  ),
                 ),
+
+                // OVO JE KLJUČNO: Spacer gura "Dodaj" na KRAJ
                 const Spacer(),
+
+                // 4. Dodaj Repertoar - fiksni gumb
                 ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF800020),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () async {
                     await showAddRepertoarDialog(context);
                     _loadData();
                   },
-                  icon: Icon(Icons.add),
+                  icon: const Icon(Icons.add),
                   label: const Text("Dodaj Repertoar"),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: _repertoari.length,
-                itemBuilder: (context, index) {
-                  final repertoar = _repertoari[index];
-                  bool isExpanded = _expandedRepertoarId == repertoar.id;
+              child: Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _repertoari.length,
+                  itemBuilder: (context, index) {
+                    final repertoar = _repertoari[index];
+                    final isExpanded = _expandedRepertoarId == repertoar.id;
 
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
+                    return Card(
+                      elevation: 0,
                       color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey[200]!, width: 1),
+                      ),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: ExpansionTile(
+                          collapsedBackgroundColor: Colors.transparent,
+                          backgroundColor: Colors.grey[50],
+                          leading: CircleAvatar(
+                            backgroundColor: const Color(
+                              0xFFB71C1C,
+                            ).withOpacity(0.1),
+                            child: const Icon(
+                              Icons.theater_comedy_outlined,
+                              color: Color(0xFFB71C1C),
+                            ),
+                          ),
                           title: Text(
                             repertoar.naziv,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFB71C1C),
                             ),
                           ),
-                          subtitle: Row(
-                            children: [
-                              Text(
-                                "Od: ${DateFormat('dd.MM.yyyy').format(repertoar.pocetakDatum)}",
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.date_range_outlined,
+                                  size: 16,
+                                  color: Colors.grey,
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Do: ${DateFormat('dd.MM.yyyy').format(repertoar.krajDatum)}",
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
+                                const SizedBox(width: 4),
+                                Text(
+                                  "${DateFormat('dd.MM.yyyy').format(repertoar.pocetakDatum)} - ${DateFormat('dd.MM.yyyy').format(repertoar.krajDatum)}",
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          childrenPadding: const EdgeInsets.all(16),
+                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                          onExpansionChanged: (expanded) {
+                            if (expanded && !isExpanded) {
+                              _expandedRepertoarId = repertoar.id;
+                              _loadRepertoarDetails(repertoar.id);
+                            } else if (!expanded) {
+                              _expandedRepertoarId = null;
+                            }
+                            setState(() {});
+                          },
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: Icon(
-                                  isExpanded
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                  color: Colors.black,
-                                ),
-                                tooltip:
-                                    isExpanded
-                                        ? 'Sakrij detalje'
-                                        : 'Prikaži detalje',
-                                onPressed: () {
-                                  setState(() {
-                                    if (_expandedRepertoarId == repertoar.id) {
-                                      _expandedRepertoarId = null;
-                                    } else {
-                                      _expandedRepertoarId = repertoar.id;
-                                      _loadRepertoarDetails(repertoar.id);
-                                    }
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.black,
-                                ),
+                                icon: const Icon(Icons.edit_outlined),
                                 tooltip: 'Uredi',
-                                onPressed: () async {
-                                  await showEditRepertoarDialog(
-                                    context,
-                                    repertoar,
-                                    _loadData,
-                                  );
-                                  _loadData();
-                                },
+                                onPressed:
+                                    () => showEditRepertoarDialog(
+                                      context,
+                                      repertoar,
+                                      _loadData,
+                                    ),
                               ),
                               IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.black,
-                                ),
+                                icon: const Icon(Icons.delete_outline),
                                 tooltip: 'Obriši',
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder:
-                                        (context) => AlertDialog(
-                                          title: const Text('Potvrda'),
-                                          content: const Text(
-                                            'Da li ste sigurni da želite obrisati ovaj repertoar?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed:
-                                                  () => Navigator.of(
-                                                    context,
-                                                  ).pop(false),
-                                              child: const Text('Ne'),
-                                            ),
-                                            TextButton(
-                                              onPressed:
-                                                  () => Navigator.of(
-                                                    context,
-                                                  ).pop(true),
-                                              child: const Text('Da'),
-                                            ),
-                                          ],
-                                        ),
-                                  );
-
-                                  if (confirm == true) {
-                                    await ApiService.deleteRepertoar(
-                                      repertoar.id,
-                                    );
-                                    _loadData();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Repertoar je uspješno obrisan.',
-                                        ),
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
+                                onPressed: () => {},
+                              ),
+                              AnimatedRotation(
+                                turns: isExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: const Icon(Icons.expand_more),
                               ),
                             ],
                           ),
-                        ),
-                        if (isExpanded)
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Detalji repertoara:",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                          children: [
+                            if (_repertoarIzvedbe.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Nema izvedbi u ovom periodu.',
+                                  style: TextStyle(color: Colors.grey),
                                 ),
-                                const SizedBox(height: 8),
-                                if (_repertoarIzvedbe.isNotEmpty)
-                                  Column(
-                                    children:
-                                        _repertoarIzvedbe.map((izvedba) {
-                                          return ListTile(
-                                            title: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    izvedba.nazivPredstave,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.visibility,
-                                                    color: Color(0xFFB71C1C),
-                                                  ),
-                                                  tooltip:
-                                                      'Pregledaj predstavu',
-                                                  onPressed: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder:
-                                                            (
-                                                              context,
-                                                            ) => PredstavaDetailsScreen(
-                                                              predstavaId:
-                                                                  izvedba
-                                                                      .predstavaId,
-                                                            ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.description,
-                                                    color: Color(0xFFB71C1C),
-                                                  ),
-                                                  tooltip: 'Prikaži izveštaj',
-                                                  onPressed: () {
-                                                    _showSalesReportDialog(
-                                                      izvedba,
-                                                    );
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            subtitle: Text(
-                                              'Datum: ${DateFormat('dd.MM.yyyy').format(izvedba.datumVrijemeIzvedbe)}',
-                                            ),
-                                          );
-                                        }).toList(),
-                                  ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
+                              )
+                            else
+                              ..._repertoarIzvedbe.map(
+                                (izvedba) => _buildIzvedbaCard(izvedba),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-            if (_totalCount > _pageSize)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed:
-                        _currentPage > 1
-                            ? () {
-                              setState(() {
-                                _currentPage--;
-                                _loadData();
-                              });
-                            }
-                            : null,
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  Text(
-                    'Stranica $_currentPage',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  IconButton(
-                    onPressed:
-                        (_currentPage * _pageSize) < _totalCount
-                            ? () {
-                              setState(() {
-                                _currentPage++;
-                                _loadData();
-                              });
-                            }
-                            : null,
-                    icon: const Icon(Icons.arrow_forward),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+
+            if (_totalCount > _pageSize) _buildPagination(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIzvedbaCard(RepertoarIzvedba izvedba) {
+    return Card(
+      elevation: 0,
+      color: Colors.grey[50], // Svijetlo siva pozadina
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[300]!, width: 1), // Suptilna ivica
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Icon(
+          Icons.event_available_outlined,
+          color: Colors.grey[700], // Tamnija siva za ikonicu
+        ),
+        title: Text(
+          izvedba.nazivPredstave,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          'Datum: ${DateFormat('dd.MM.yyyy HH:mm').format(izvedba.datumVrijemeIzvedbe)}',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.visibility_outlined,
+                color: Color(0xFFB71C1C),
+              ),
+              tooltip: 'Pregledaj predstavu',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => PredstavaDetailsScreen(
+                          predstavaId: izvedba.predstavaId,
+                        ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.bar_chart_outlined,
+                color: Color(0xFFB71C1C),
+              ),
+              tooltip: 'Izveštaj prodaje',
+              onPressed: () => _showSalesReportDialog(izvedba),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
+    int totalPages = (_totalCount / _pageSize).ceil();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        OutlinedButton(
+          onPressed:
+              _currentPage > 1
+                  ? () {
+                    setState(() {
+                      _currentPage--;
+                      _loadData();
+                    });
+                  }
+                  : null,
+          child: const Text('Prethodna'),
+        ),
+        const SizedBox(width: 16),
+        Text('Stranica $_currentPage od $totalPages'),
+        const SizedBox(width: 16),
+        OutlinedButton(
+          onPressed:
+              _currentPage < totalPages
+                  ? () {
+                    setState(() {
+                      _currentPage++;
+                      _loadData();
+                    });
+                  }
+                  : null,
+          child: const Text('Sljedeća'),
+        ),
+      ],
     );
   }
 

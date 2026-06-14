@@ -75,9 +75,26 @@ class _KomentariNovostiScreenState extends State<KomentariNovostiScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   controller: _naslovController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Pretraga po naslovu',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF800020),
+                        width: 1.4,
+                      ),
+                    ),
                   ),
                   onChanged: (value) {
                     if (_debounce?.isActive ?? false) _debounce!.cancel();

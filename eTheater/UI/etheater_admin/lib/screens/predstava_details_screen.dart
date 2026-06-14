@@ -172,7 +172,6 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     if (_predstava == null) {
       return Center(child: CircularProgressIndicator());
@@ -311,8 +310,8 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
                 ),
                 SizedBox(height: 12),
                 Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
+                  spacing: 20,
+                  runSpacing: 20,
                   children:
                       _glumci.map((glumac) {
                         Uint8List? slikaBytes;
@@ -322,66 +321,70 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
                           } catch (_) {}
                         }
 
-                        return SizedBox(
-                          width: 250,
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                  height: 300,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(10),
-                                    ),
-                                  ),
-                                  child:
-                                      slikaBytes != null
-                                          ? ClipRRect(
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(10),
-                                            ),
-                                            child: Image.memory(
-                                              slikaBytes,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                          : Icon(
-                                            Icons.person,
-                                            size: 60,
-                                            color: Colors.grey[500],
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: 220,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(14),
+                                ),
+                                child:
+                                    slikaBytes != null
+                                        ? Image.memory(
+                                          slikaBytes,
+                                          fit: BoxFit.cover,
+                                          height: 260,
+                                          width: double.infinity,
+                                          color: Colors.black.withOpacity(0.1),
+                                          colorBlendMode: BlendMode.darken,
+                                        )
+                                        : Container(
+                                          height: 260,
+                                          color: Colors.grey[200],
+                                          child: const Icon(
+                                            Icons.person_outline,
+                                            size: 70,
+                                            color: Colors.grey,
                                           ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        '${glumac.ime} ${glumac.prezime}',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
                                         ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '${glumac.ime} ${glumac.prezime}',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
                                       ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        glumac.uloga,
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                        ),
-                                        textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      glumac.uloga,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 14,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         );
                       }).toList(),
@@ -456,68 +459,138 @@ class _PredstavaDetailsScreenState extends State<PredstavaDetailsScreen> {
   Widget _buildPlakat() {
     return Container(
       width: 320,
-      height: 450,
+      height: 460,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
-        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child:
-          _slikaBytes != null
-              ? Image.memory(_slikaBytes!, fit: BoxFit.cover)
-              : Center(child: Icon(Icons.image_not_supported, size: 40)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child:
+            _slikaBytes != null
+                ? Image.memory(_slikaBytes!, fit: BoxFit.cover)
+                : Container(
+                  color: Colors.grey[100],
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 60,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+      ),
     );
   }
 
   Widget _buildSaveCancelButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _isEditing = false;
-              _plakatBase64 = _editedPredstava.plakat;
-              _slikaBytes =
-                  (_plakatBase64 != null && _plakatBase64!.isNotEmpty)
-                      ? base64Decode(_plakatBase64!)
-                      : null;
-            });
-          },
-          child: Text('Otkaži'),
-        ),
-        SizedBox(width: 10),
-        ElevatedButton(onPressed: _spasi, child: Text('Spasi')),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.close_outlined),
+            label: const Text('Otkaži'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              setState(() {
+                _isEditing = false;
+                _plakatBase64 = _editedPredstava.plakat;
+                _slikaBytes =
+                    (_plakatBase64 != null && _plakatBase64!.isNotEmpty)
+                        ? base64Decode(_plakatBase64!)
+                        : null;
+              });
+            },
+          ),
+          const SizedBox(width: 12),
+          FilledButton.icon(
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Sačuvaj'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: _spasi,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildEditDeleteButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        IconButton(
-          icon: Icon(Icons.delete, color: Colors.black),
-          onPressed: () async {
-            final confirmed = await showDeleteConfirmationDialog(
-              context: context,
-              predstavaId: widget.predstavaId,
-              onDeleted: _onPredstavaDeleted,
-            );
-          },
-        ),
-        SizedBox(width: 10),
-        IconButton(
-          icon: Icon(Icons.edit, color: Colors.black),
-
-          onPressed: () => setState(() => _isEditing = true),
-        ),
-        SizedBox(width: 10),
-        IconButton(
-          icon: Icon(Icons.add, color: Colors.black),
-
-          onPressed: _otvoriDodajPredstavuDialog,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.delete_outline),
+            label: const Text('Obriši'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed:
+                _isEditing
+                    ? null
+                    : () async {
+                      await showDeleteConfirmationDialog(
+                        context: context,
+                        predstavaId: widget.predstavaId,
+                        onDeleted: _onPredstavaDeleted,
+                      );
+                    },
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Uredi'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed:
+                _isEditing
+                    ? null
+                    : () {
+                      setState(() {
+                        _isEditing = true;
+                      });
+                    },
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('Nova predstava'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: _isEditing ? null : _otvoriDodajPredstavuDialog,
+          ),
+        ],
+      ),
     );
   }
 

@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 export class IzvedbaService {
 
   private baseUrl = `${ApiKonstante.baseUrl}/Izvedba`;
+  private addUrl = `${ApiKonstante.baseUrl}/add`;
   private baseUrlGetAll = `${ApiKonstante.baseUrl}/getall`;
 
   constructor(private http: HttpClient, private auth: AuthService) { }
@@ -38,7 +39,7 @@ export class IzvedbaService {
 
 
   dodajIzvedbu(data: any): Observable<any> {
-    return this.http.post(this.baseUrl, data, this.authHeader());
+    return this.http.post(this.addUrl, data, this.authHeader());
   }
 
   deleteIzvedba(id: number): Observable<any> {

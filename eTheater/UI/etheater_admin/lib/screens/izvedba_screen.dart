@@ -17,9 +17,10 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
   Sala? _selectedSala;
   DateTime? _selectedDate;
   int _currentPage = 1;
-  int _pageSize = 10;
+  final int _pageSize = 12;
   late Future<PagedResult<Izvedba>> _izvedbeFuture;
   List<Sala> _sale = [];
+  bool _showFilterPopup = false;
 
   @override
   void initState() {
@@ -65,257 +66,412 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     _fetchIzvedbe();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MasterScreen(
-      "Izvedbe",
-      Column(
-        children: [
-          _buildFilters(),
-          const SizedBox(height: 16),
-          Expanded(
-            child: FutureBuilder<PagedResult<Izvedba>>(
-              future: _izvedbeFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Greška: ${snapshot.error}'));
-                } else if (!snapshot.hasData ||
-                    snapshot.data!.resultList.isEmpty) {
-                  return const Center(child: Text('Nema dostupnih izvedbi.'));
-                }
-
-                final izvedbe = snapshot.data!.resultList;
-                final totalCount = snapshot.data!.count;
-                final totalPages = (totalCount / _pageSize).ceil();
-
-                return Column(
-                  children: [
-                    Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 5,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 0.65,
-                            ),
-                        itemCount: izvedbe.length,
-                        itemBuilder: (context, index) {
-                          final izvedba = izvedbe[index];
-                          return _buildIzvedbaCard(izvedba);
-                        },
-                      ),
-                    ),
-                    _buildPagination(totalPages),
-                  ],
-                );
-              },
+  Widget _buildFilterPopup() {
+    return Positioned(
+      right: 0,
+      top: 55,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: _showFilterPopup ? 1 : 0,
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 280,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilters() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _nazivController,
-              decoration: InputDecoration(labelText: 'Naziv predstave'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: DropdownButtonFormField<Sala>(
-              value: _selectedSala,
-              onChanged: (value) {
-                setState(() {
-                  _selectedSala = value;
-                });
-              },
-              items:
-                  _sale.map((sala) {
-                    return DropdownMenuItem(
-                      value: sala,
-                      child: Text(sala.naziv),
-                    );
-                  }).toList(),
-              decoration: InputDecoration(labelText: 'Sala'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextButton(
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2100),
-                );
-                if (picked != null) {
-                  setState(() {
-                    _selectedDate = picked;
-                  });
-                }
-              },
-              child: Text(
-                _selectedDate == null
-                    ? 'Odaberi datum'
-                    : '${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}.',
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(onPressed: _search, icon: const Icon(Icons.search)),
-          const SizedBox(width: 8),
-          IconButton(onPressed: _clearFilters, icon: const Icon(Icons.clear)),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await _openIzvedbaPopup();
-              if (result == true) {
-                setState(() {
-                  _fetchIzvedbe();
-                });
-              }
-            },
-            child: const Text('Dodaj izvedbu'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIzvedbaCard(Izvedba izvedba) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child:
-                izvedba.predstavaSlika.isNotEmpty
-                    ? ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      child: Image.memory(
-                        base64Decode(izvedba.predstavaSlika),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                    )
-                    : Container(
-                      decoration: const BoxDecoration(color: Colors.grey),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 50, color: Colors.white),
-                      ),
-                    ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  izvedba.nazivPredstave,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Sala: ${izvedba.salaNaziv}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Cijena: ${izvedba.cijenaKarte} KM',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Datum: ${_formatDate(izvedba.datumVrijeme)}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () async {
-                        final result = await _openIzvedbaPopup(
-                          updateData: izvedba,
-                        );
-                        if (result == true) {
-                          setState(() {
-                            _fetchIzvedbe();
-                          });
-                        }
-                      },
+                DropdownButtonFormField<Sala>(
+                  value: _selectedSala,
+                  decoration: const InputDecoration(labelText: 'Sala'),
+                  items: [
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text('Sve sale'),
                     ),
-
-                    IconButton(
-                      icon: const Icon(Icons.delete),
+                    ..._sale.map(
+                      (s) => DropdownMenuItem(value: s, child: Text(s.naziv)),
+                    ),
+                  ],
+                  onChanged: (v) => setState(() => _selectedSala = v),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  readOnly: true,
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) setState(() => _selectedDate = picked);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Datum',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 12,
+                    ),
+                    hintText:
+                        _selectedDate == null
+                            ? 'Odaberi datum'
+                            : '${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}.',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    OutlinedButton(
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text("Potvrda"),
-                              content: const Text(
-                                "Da li ste sigurni da želite obrisati ovu izvedbu?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text("Otkaži"),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    Navigator.of(context).pop();
-                                    await ApiService.deleteIzvedba(izvedba.id);
-                                    setState(() {
-                                      _fetchIzvedbe();
-                                    });
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Izvedba uspješno obrisana.",
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    "Obriši",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
+                        setState(() {
+                          _selectedSala = null;
+                          _selectedDate = null;
+                        });
+                        _search();
                       },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(
+                          color: Color(0xFF800020),
+                          width: 1.3,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Resetuj'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        _search();
+                        setState(() => _showFilterPopup = false);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF800020),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('Primijeni'),
                     ),
                   ],
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MasterScreen(
+      "Izvedbe",
+      Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _nazivController,
+                        decoration: InputDecoration(
+                          hintText: 'Pretraži po nazivu...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 16,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF800020),
+                              width: 1.4,
+                            ),
+                          ),
+                        ),
+                        onChanged: (_) => _search(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.filter_alt_outlined,
+                        color: Color(0xFF800020),
+                      ),
+                      tooltip: 'Napredno filtriranje',
+                      onPressed:
+                          () => setState(
+                            () => _showFilterPopup = !_showFilterPopup,
+                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ), // isto kao grid
+                      child: Align(
+                        alignment:
+                            Alignment
+                                .centerLeft, // ili Alignment.centerRight ako želiš desno
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF800020),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final result = await _openIzvedbaPopup();
+                            if (result == true) _fetchIzvedbe();
+                          },
+                          child: const Text('Dodaj izvedbu'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: FutureBuilder<PagedResult<Izvedba>>(
+                    future: _izvedbeFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Greška: ${snapshot.error}'));
+                      } else if (!snapshot.hasData ||
+                          snapshot.data!.resultList.isEmpty) {
+                        return const Center(
+                          child: Text('Nema dostupnih izvedbi.'),
+                        );
+                      }
+
+                      final izvedbe = snapshot.data!.resultList;
+                      final totalPages =
+                          (snapshot.data!.count / _pageSize).ceil();
+
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: GridView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: 250,
+                                    mainAxisSpacing: 16,
+                                    crossAxisSpacing: 16,
+                                    childAspectRatio: 0.55,
+                                  ),
+                              itemCount: izvedbe.length,
+                              itemBuilder:
+                                  (context, index) =>
+                                      _buildIzvedbaCard(izvedbe[index]),
+                            ),
+                          ),
+
+                          const SizedBox(height: 12), // razmak iznad paginacije
+
+                          _buildPagination(totalPages),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_showFilterPopup) _buildFilterPopup(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIzvedbaCard(Izvedba izvedba) {
+    return InkWell(
+      onTap: () async {
+        final result = await _openIzvedbaPopup(updateData: izvedba);
+        if (result == true) _fetchIzvedbe();
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 6,
+              child:
+                  izvedba.predstavaSlika.isNotEmpty
+                      ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.memory(
+                          base64Decode(izvedba.predstavaSlika),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      )
+                      : Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 30,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      izvedba.nazivPredstave,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Sala: ${izvedba.salaNaziv}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Cijena: ${izvedba.cijenaKarte} KM',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Datum: ${_formatDate(izvedba.datumVrijeme)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final result = await _openIzvedbaPopup(
+                              updateData: izvedba,
+                            );
+                            if (result == true) _fetchIzvedbe();
+                          },
+                          icon: const Icon(
+                            Icons.edit,
+                            size: 18,
+                            color: Color(0xFF800020),
+                          ),
+                          label: const Text(
+                            'Uredi',
+                            style: TextStyle(color: Color(0xFF800020)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (_) => AlertDialog(
+                                    title: const Text('Potvrda'),
+                                    content: const Text(
+                                      'Da li ste sigurni da želite obrisati ovu izvedbu?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.pop(context, false),
+                                        child: const Text('Otkaži'),
+                                      ),
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.pop(context, true),
+                                        child: const Text(
+                                          'Obriši',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                            if (confirm == true) {
+                              await ApiService.deleteIzvedba(izvedba.id);
+                              _fetchIzvedbe();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Izvedba uspješno obrisana.'),
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: Colors.red,
+                          ),
+                          label: const Text(
+                            'Obriši',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -324,21 +480,19 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextButton(
+        OutlinedButton(
           onPressed:
               _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
-          style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           child: const Text('Prethodna'),
         ),
         const SizedBox(width: 16),
-        Text('$_currentPage od $totalPages'),
+        Text('Stranica $_currentPage od $totalPages'),
         const SizedBox(width: 16),
-        TextButton(
+        OutlinedButton(
           onPressed:
               _currentPage < totalPages
                   ? () => _goToPage(_currentPage + 1)
                   : null,
-          style: TextButton.styleFrom(foregroundColor: AppColors.primary),
           child: const Text('Sljedeća'),
         ),
       ],
@@ -349,6 +503,7 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     return "${date.day}.${date.month}.${date.year}. ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
 
+  // --- Pop-up za dodavanje/uređivanje izvedbe ostaje isti ---
   Future<bool?> _openIzvedbaPopup({Izvedba? updateData}) async {
     final _formKey = GlobalKey<FormState>();
     PredstavaLov? _selectedPredstava;
@@ -361,7 +516,6 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
     try {
       final predstave = await ApiService.getPredstaveLov();
       _predstave = predstave.resultList;
-      print(_predstave);
       _sale = await ApiService().getSale();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -402,30 +556,26 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                         onChanged:
                             updateData != null
                                 ? null
-                                : (value) {
-                                  setState(() {
-                                    _selectedPredstava = value;
-                                  });
-                                },
+                                : (v) => setState(() => _selectedPredstava = v),
                         items:
-                            _predstave.map((predstava) {
-                              return DropdownMenuItem(
-                                value: predstava,
-                                child: Text(predstava.naziv),
-                              );
-                            }).toList(),
-
-                        decoration: InputDecoration(labelText: 'Predstava'),
+                            _predstave
+                                .map(
+                                  (p) => DropdownMenuItem(
+                                    value: p,
+                                    child: Text(p.naziv),
+                                  ),
+                                )
+                                .toList(),
+                        decoration: const InputDecoration(
+                          labelText: 'Predstava',
+                        ),
                         validator:
-                            (value) =>
-                                value == null ? 'Odaberite predstavu' : null,
+                            (v) => v == null ? 'Odaberite predstavu' : null,
                       ),
                       const SizedBox(height: 8),
-
                       DropdownButtonFormField<Sala>(
                         value: _selectedSala,
-                        onChanged:
-                            (value) => setState(() => _selectedSala = value),
+                        onChanged: (v) => setState(() => _selectedSala = v),
                         items:
                             _sale
                                 .map(
@@ -435,46 +585,35 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                                   ),
                                 )
                                 .toList(),
-                        decoration: InputDecoration(labelText: 'Sala'),
-                        validator:
-                            (value) => value == null ? 'Odaberite salu' : null,
+                        decoration: const InputDecoration(labelText: 'Sala'),
+                        validator: (v) => v == null ? 'Odaberite salu' : null,
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _cijenaController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Cijena karte (KM)',
-                          border: const OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Unesite cijenu';
-                          }
-                          final number = double.tryParse(value);
-                          if (number == null) {
-                            return 'Unesite validan broj';
-                          }
-                          if (number < 0) {
-                            return 'Cijena ne može biti negativna';
-                          }
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Unesite cijenu';
+                          final n = double.tryParse(v);
+                          if (n == null) return 'Unesite validan broj';
+                          if (n < 0) return 'Cijena ne može biti negativna';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 8),
-
                       TextButton(
                         onPressed: () async {
-                          final pickedDate = await showDatePicker(
+                          final picked = await showDatePicker(
                             context: context,
                             initialDate: _selectedDateTime ?? DateTime.now(),
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2100),
                           );
-                          if (pickedDate != null) {
-                            setState(() => _selectedDateTime = pickedDate);
-                          }
+                          if (picked != null)
+                            setState(() => _selectedDateTime = picked);
                         },
                         child: Text(
                           _selectedDateTime == null
@@ -484,30 +623,30 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                       ),
                       TextButton(
                         onPressed: () async {
-                          if (_selectedDateTime != null) {
-                            final pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.fromDateTime(
-                                _selectedDateTime!,
-                              ),
-                            );
-                            if (pickedTime != null) {
-                              setState(() {
-                                _selectedDateTime = DateTime(
-                                  _selectedDateTime!.year,
-                                  _selectedDateTime!.month,
-                                  _selectedDateTime!.day,
-                                  pickedTime.hour,
-                                  pickedTime.minute,
-                                );
-                              });
-                            }
-                          } else {
+                          if (_selectedDateTime == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Prvo odaberite datum'),
                               ),
                             );
+                            return;
+                          }
+                          final pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(
+                              _selectedDateTime!,
+                            ),
+                          );
+                          if (pickedTime != null) {
+                            setState(() {
+                              _selectedDateTime = DateTime(
+                                _selectedDateTime!.year,
+                                _selectedDateTime!.month,
+                                _selectedDateTime!.day,
+                                pickedTime.hour,
+                                pickedTime.minute,
+                              );
+                            });
                           }
                         },
                         child: Text(
@@ -527,36 +666,31 @@ class _IzvedbaScreenState extends State<IzvedbaScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    if (!_formKey.currentState!.validate() ||
+                        _selectedDateTime == null)
+                      return;
                     try {
                       if (updateData == null) {
-                        final izvedba = IzvedbaInsert(
-                          predstavaId: _selectedPredstava!.id,
-                          salaId: _selectedSala!.id,
-                          cijenaKarte: double.parse(_cijenaController.text),
-                          datumVrijeme: _selectedDateTime!.toIso8601String(),
-                        );
-
-                        await ApiService.dodajIzvedbu(izvedba);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Izvedba dodana!')),
+                        await ApiService.dodajIzvedbu(
+                          IzvedbaInsert(
+                            predstavaId: _selectedPredstava!.id,
+                            salaId: _selectedSala!.id,
+                            cijenaKarte: double.parse(_cijenaController.text),
+                            datumVrijeme: _selectedDateTime!.toIso8601String(),
+                          ),
                         );
                       } else {
-                        final izvedba = IzvedbaUpdateRequest(
-                          predstavaId: _selectedPredstava!.id,
-                          salaId: _selectedSala!.id,
-                          cijenaKarte: double.parse(_cijenaController.text),
-                          datumVrijeme: _selectedDateTime!,
-                        );
-
-                        await ApiService.updateIzvedba(izvedba, updateData.id);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Izvedba ažurirana!')),
+                        await ApiService.updateIzvedba(
+                          IzvedbaUpdateRequest(
+                            predstavaId: _selectedPredstava!.id,
+                            salaId: _selectedSala!.id,
+                            cijenaKarte: double.parse(_cijenaController.text),
+                            datumVrijeme: _selectedDateTime!,
+                          ),
+                          updateData.id,
                         );
                       }
-                      Navigator.pop(context);
-                      setState(() => _fetchIzvedbe());
+                      Navigator.pop(context, true);
                     } catch (e) {
                       ScaffoldMessenger.of(
                         context,

@@ -100,8 +100,25 @@ class _KomentariPredstaveScreenState extends State<KomentariPredstaveScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Pretraga po nazivu predstave',
+                labelText: 'Pretraga po nazivu predstave...',
                 prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 16,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF800020),
+                    width: 1.4,
+                  ),
+                ),
               ),
             ),
 
@@ -439,7 +456,8 @@ class _KomentariPredstaveScreenState extends State<KomentariPredstaveScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextButton.icon(
+                    const SizedBox(width: 16),
+                    OutlinedButton(
                       onPressed:
                           _currentPage > 1
                               ? () {
@@ -449,13 +467,12 @@ class _KomentariPredstaveScreenState extends State<KomentariPredstaveScreen> {
                                 _loadPredstave();
                               }
                               : null,
-                      icon: const Icon(Icons.arrow_back),
-                      label: const Text('Prethodna'),
+                      child: const Text('Prethodna'),
                     ),
                     const SizedBox(width: 16),
                     Text('$_currentPage od $_totalPages'),
                     const SizedBox(width: 16),
-                    TextButton.icon(
+                    OutlinedButton(
                       onPressed:
                           _currentPage < _totalPages
                               ? () {
@@ -465,8 +482,7 @@ class _KomentariPredstaveScreenState extends State<KomentariPredstaveScreen> {
                                 _loadPredstave();
                               }
                               : null,
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('Sljedeća'),
+                      child: const Text('Sljedeća'),
                     ),
                   ],
                 ),

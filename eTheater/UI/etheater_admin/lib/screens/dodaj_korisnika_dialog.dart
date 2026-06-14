@@ -78,86 +78,76 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Dodaj korisnika'),
+      title: const Text(
+        'Dodaj korisnika',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       content: SizedBox(
-        width: 500,
+        width: 480,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 8),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
-                        decoration: const InputDecoration(labelText: 'Ime'),
-                        onChanged: (val) => ime = val,
-                        validator: (val) {
-                          if (val!.isEmpty) return 'Unesite ime';
-                          if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(val))
-                            return 'Ime mora početi velikim slovom i ne smije sadržavati brojeve';
-                          return null;
-                        },
-                      ),
+                      child: _buildTextField('Ime', (v) => ime = v, (v) {
+                        if (v!.isEmpty) return 'Unesite ime';
+                        if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(v)) {
+                          return 'Počnite velikim slovom';
+                        }
+                        return null;
+                      }),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
-                        decoration: const InputDecoration(labelText: 'Prezime'),
-                        onChanged: (val) => prezime = val,
-                        validator: (val) {
-                          if (val!.isEmpty) return 'Unesite prezime';
-                          if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(val))
-                            return 'Prezime mora početi velikim slovom i ne smije sadržavati brojeve';
-                          return null;
-                        },
-                      ),
+                      child: _buildTextField('Prezime', (v) => prezime = v, (
+                        v,
+                      ) {
+                        if (v!.isEmpty) return 'Unesite prezime';
+                        if (!RegExp(r"^[A-ZČĆŽŠĐ][a-zčćžšđ]+$").hasMatch(v)) {
+                          return 'Počnite velikim slovom';
+                        }
+                        return null;
+                      }),
                     ),
                   ],
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  onChanged: (val) => username = val,
-                  validator: (val) => val!.isEmpty ? 'Unesite username' : null,
+                _buildTextField(
+                  'Username',
+                  (v) => username = v,
+                  (v) => v!.isEmpty ? 'Unesite username' : null,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  onChanged: (val) => password = val,
-                  validator:
-                      (val) => val!.length < 4 ? 'Min 4 karaktera' : null,
+                _buildTextField(
+                  'Password',
+                  (v) => password = v,
+                  (v) => v!.length < 4 ? 'Min 4 karaktera' : null,
+                  obscure: true,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Potvrdi password',
-                  ),
-                  obscureText: true,
-                  onChanged: (val) => passwordPotvrda = val,
-                  validator:
-                      (val) =>
-                          val != password ? 'Passwordi se ne poklapaju' : null,
+                _buildTextField(
+                  'Potvrdi password',
+                  (v) => passwordPotvrda = v,
+                  (v) => v != password ? 'Passwordi se ne poklapaju' : null,
+                  obscure: true,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Broj telefona'),
-                  keyboardType: TextInputType.phone,
-                  onChanged: (val) => brojTelefona = val,
+                _buildTextField(
+                  'Broj telefona',
+                  (v) => brojTelefona = v,
+                  (v) => v!.isEmpty ? 'Unesite broj telefona' : null,
+                  keyboard: TextInputType.phone,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  validator:
-                      (val) => val!.isEmpty ? 'Unesite broj telefona' : null,
                 ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  onChanged: (val) => email = val,
-                  validator: (val) {
-                    if (val!.isEmpty) return 'Unesite email';
-                    if (!RegExp(
-                      r'^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                    ).hasMatch(val)) {
-                      return 'Unesite validan email';
-                    }
-                    return null;
-                  },
-                ),
+                _buildTextField('Email', (v) => email = v, (v) {
+                  if (v!.isEmpty) return 'Unesite email';
+                  if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(v)) {
+                    return 'Neispravan email';
+                  }
+                  return null;
+                }),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<TipKorisnika>(
                   value: selectedTip,
@@ -171,7 +161,7 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                           )
                           .toList(),
                   onChanged: (val) => setState(() => selectedTip = val),
-                  decoration: const InputDecoration(labelText: 'Tip korisnika'),
+                  decoration: _fieldDecoration('Tip korisnika'),
                   validator:
                       (val) => val == null ? 'Odaberite tip korisnika' : null,
                 ),
@@ -179,25 +169,61 @@ class _DodajKorisnikaDialogState extends State<DodajKorisnikaDialog> {
                   title: const Text('Aktivan'),
                   value: isActive,
                   onChanged: (val) => setState(() => isActive = val),
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.secondary,
+          ),
           child: const Text("Otkaži"),
         ),
-        ElevatedButton(
+        FilledButton.icon(
           onPressed: _dodajKorisnika,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF800020),
-          ),
-          child: const Text("Dodaj"),
+          icon: const Icon(Icons.check_rounded, size: 18),
+          label: const Text("Dodaj"),
         ),
       ],
+    );
+  }
+
+  InputDecoration _fieldDecoration(String label) => InputDecoration(
+    labelText: label,
+    filled: true,
+    fillColor: const Color(0xFFF7F7F7),
+    border: OutlineInputBorder(
+      borderSide: BorderSide.none,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+  );
+
+  Widget _buildTextField(
+    String label,
+    Function(String) onChanged,
+    String? Function(String?) validator, {
+    bool obscure = false,
+    TextInputType keyboard = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        obscureText: obscure,
+        keyboardType: keyboard,
+        inputFormatters: inputFormatters,
+        onChanged: onChanged,
+        validator: validator,
+        decoration: _fieldDecoration(label),
+      ),
     );
   }
 }

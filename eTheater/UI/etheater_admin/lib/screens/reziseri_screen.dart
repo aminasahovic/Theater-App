@@ -107,7 +107,7 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                               try {
                                 if (isEdit) {
                                   await _apiService.updateReziser(
-                                    reziser.id,
+                                    reziser!.id,
                                     novi,
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -116,6 +116,8 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                                         'Režiser uspješno ažuriran!',
                                       ),
                                       backgroundColor: Colors.green,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 2),
                                     ),
                                   );
                                 } else {
@@ -124,6 +126,8 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                                     const SnackBar(
                                       content: Text('Režiser uspješno dodan!'),
                                       backgroundColor: Colors.green,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 2),
                                     ),
                                   );
                                 }
@@ -150,7 +154,7 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text('Potvrda'),
+            title: const Text('Potvrda brisanja'),
             content: const Text('Da li želite obrisati ovog režisera?'),
             actions: [
               TextButton(
@@ -165,6 +169,9 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Režiser uspješno obrisan!'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 2),
                       ),
                     );
                     _fetchReziseri();
@@ -201,9 +208,26 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
               children: [
                 Expanded(
                   child: TextField(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Pretraži po imenu ili prezimenu',
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF800020),
+                          width: 1.4,
+                        ),
+                      ),
                     ),
                     onChanged: (value) => searchTerm = value,
                   ),
@@ -214,7 +238,10 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
                   icon: const Icon(Icons.add),
                   label: const Text('Dodaj režisera'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF800000),
+                    backgroundColor: const Color(0xFF800020),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ],
@@ -223,58 +250,72 @@ class _ReziseriScreenState extends State<ReziseriScreen> {
             Expanded(
               child: GridView.builder(
                 itemCount: _reziseri.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 12,
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 250,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 3,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 2.3,
                 ),
                 itemBuilder: (context, index) {
                   final reziser = _reziseri[index];
                   return Card(
+                    color: Colors.white, // potpuno bijela kartica
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Row(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${reziser.ime} ${reziser.prezime}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            child: Center(
+                              child: Text(
+                                '${reziser.ime} ${reziser.prezime}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
-                              ],
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.blue,
-                                ),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.edit, size: 18),
+                                label: const Text('Uredi'),
                                 onPressed:
                                     () => _showReziserDialog(reziser: reziser),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  textStyle: const TextStyle(fontSize: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
+                              ),
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.delete, size: 18),
+                                label: const Text('Obriši'),
                                 onPressed: () => _obrisiRezisera(reziser.id),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  textStyle: const TextStyle(fontSize: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                ),
                               ),
                             ],
                           ),

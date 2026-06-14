@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -19,21 +20,36 @@ export class LoginComponent {
   showPassword = false;
   currentYear = new Date().getFullYear();
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
+  ) {}
 
-  async login() {
+  login() {
     if (this.isLoading) return;
     this.isLoading = true;
     this.showError = false;
 
-    try {
-      await this.authService.login(this.username, this.password);
-      this.router.navigate(['/predstave']);
-    } catch (err: any) {
-      this.errorMessage = err.message || 'Pogrešno korisničko ime ili lozinka!';
-      this.showError = true;
-    } finally {
-      this.isLoading = false;
-    }
+    this.authService
+      .login(this.username, this.password)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.zone.run(() => this.cdr.detectChanges());
+        })
+      )
+      .subscribe({
+        next: () => this.router.navigate(['/predstave']),
+        error: (err: unknown) => {
+          this.errorMessage =
+            err instanceof Error && err.message
+              ? err.message
+              : 'Neuspješna prijava. Pogrešno korisničko ime ili lozinka.';
+          this.showError = true;
+          this.zone.run(() => this.cdr.detectChanges());
+        }
+      });
   }
 }

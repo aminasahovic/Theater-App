@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { RepertoarService } from '../../services/repertoar.service';
 import { IzvedbaService } from '../../services/izvedba-service ';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, Subject, switchMap } from 'rxjs';
+import { forkJoin, Observable, of, Subject, switchMap } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
@@ -36,7 +36,6 @@ export class RepertoarScreen implements OnInit, OnDestroy {
   private readonly reload$ = new Subject<void>();
   private readonly destroy$ = new Subject<void>();
 
-  // Sales report popup
   showReportPopup = false;
   reportLoading = false;
   selectedReport: any = null;
@@ -111,7 +110,7 @@ export class RepertoarScreen implements OnInit, OnDestroy {
     this.repertoarIzvedbe = [];
     this.api.getRepertoarIzvedbe(repertoarId).subscribe({
       next: res => {
-        this.repertoarIzvedbe = res?.resultList || [];
+        this.repertoarIzvedbe = this.resultList(res);
         this.cd.detectChanges();
       },
       error: () => {
@@ -152,12 +151,10 @@ export class RepertoarScreen implements OnInit, OnDestroy {
       krajDatum: ['', Validators.required]
     });
 
-    // enable/disable load button
     this.repertoarForm.statusChanges.subscribe(() => {
       this.canLoadIzvedbe = this.repertoarForm.valid;
     });
 
-    // odmah učitaj izvedbe ako su datumi validni
     const pocetak = this.repertoarForm.get('pocetakDatum')?.value;
     const kraj = this.repertoarForm.get('krajDatum')?.value;
     if (pocetak && kraj) {
@@ -167,9 +164,23 @@ export class RepertoarScreen implements OnInit, OnDestroy {
 
   closeAddPopup() {
     this.showAddPopup = false;
+    this.editingRepertoar = null;
     this.availableIzvedbe = [];
-    this.repertoarForm.reset();
+    if (this.repertoarForm) {
+      this.repertoarForm.reset();
+    }
     this.canLoadIzvedbe = false;
+  }
+
+
+  private refreshAfterSaveSuccess(message: string) {
+    this.closeAddPopup();
+    this.cd.detectChanges();
+    queueMicrotask(() => {
+      this.toast.showSuccess(message);
+      this.reload$.next();
+      this.cd.detectChanges();
+    });
   }
 
   futureDateValidator(control: any) {
@@ -197,69 +208,121 @@ export class RepertoarScreen implements OnInit, OnDestroy {
       });
   }
 
+  private izvedbaId(e: { izvedbaId?: number; IzvedbaId?: number }): number {
+    return e.izvedbaId ?? e.IzvedbaId ?? 0;
+  }
+  private repertoarIzvedbaPovezId(e: {
+    repertoarIzvedbaId?: number;
+    RepertoarIzvedbaId?: number;
+  }): number {
+    return e.repertoarIzvedbaId ?? e.RepertoarIzvedbaId ?? 0;
+  }
+
+  private getRepertoarEntityId(r: { id?: number; Id?: number } | null): number {
+    if (!r) return 0;
+    const v = (r as { id?: number; Id?: number }).id ?? (r as { id?: number; Id?: number }).Id;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  private resultList(izv: any): any[] {
+    if (!izv) return [];
+    return izv.resultList ?? izv.ResultList ?? [];
+  }
+
   saveRepertoar() {
-    if (this.repertoarForm.invalid) return;
+    if (!this.repertoarForm) return;
+    if (this.repertoarForm.invalid) {
+      this.repertoarForm.markAllAsTouched();
+      this.toast.showError('Popunite sva obavezna polja ispravno prije spremanja.');
+      this.cd.detectChanges();
+      return;
+    }
 
     const data = this.repertoarForm.value;
 
     if (this.editingRepertoar) {
-      const repertoarId = this.editingRepertoar.id;
-      console.log(repertoarId);
+      const repertoarId = this.getRepertoarEntityId(this.editingRepertoar);
+      if (!repertoarId) {
+        this.toast.showError('Nije moguće odrediti ID repertoara. Osvježite stranicu i pokušajte ponovo.');
+        return;
+      }
       this.api.updateRepertoar(repertoarId, data).subscribe({
         next: () => {
           this.api.getRepertoarIzvedbe(repertoarId).subscribe({
             next: repertoarIzv => {
-              const existing = repertoarIzv?.resultList || [];
-              const selectedIds = this.availableIzvedbe.filter(i => i.odabrano).map(i => i.izvedbaId);
-              console.log(selectedIds);
+              const existing = this.resultList(repertoarIzv);
+              const selectedIds = this.availableIzvedbe
+                .filter(i => i.odabrano)
+                .map(i => this.izvedbaId(i as { izvedbaId?: number; IzvedbaId?: number }));
 
-              const toAdd = selectedIds.filter(id => !existing.some((e: any) => e.izvedbaId === id));
-              const toRemove = existing
-                .filter((e: any) => !selectedIds.includes(e.izvedbaId)); 
-
-              console.log(toRemove);
-              const removeObservables = toRemove.map((e: any) =>
-                this.api.deleteRepertoarIzvedba(e.repertoarIzvedbaId)
+              const toAdd = selectedIds.filter(
+                id => !existing.some((e: any) => this.izvedbaId(e) === id)
               );
-              console.log(toRemove);
+              const toRemove = existing.filter(
+                (e: any) => !selectedIds.includes(this.izvedbaId(e))
+              );
 
-              const addObservables = toAdd.map(id => this.api.addRepertoarIzvedba({ repertoarId, izvedbaId: id }));
+              const removeObservables = toRemove
+                .map((e: any) => this.repertoarIzvedbaPovezId(e))
+                .filter(id => id > 0)
+                .map(id => this.api.deleteRepertoarIzvedba(id));
+              const addObservables = toAdd.map(id =>
+                this.api.addRepertoarIzvedba({ repertoarId, izvedbaId: id })
+              );
 
-              forkJoin([...addObservables, ...removeObservables]).subscribe({
+             const syncOps = [...addObservables, ...removeObservables];
+const afterSync$: Observable<any> = syncOps.length > 0 ? forkJoin(syncOps) : of(void 0);
+afterSync$.subscribe({
                 next: () => {
-                  this.toast.showSuccess('Repertoar uspješno ažuriran!');
-                  this.refreshAfterAdd();
+                  this.refreshAfterSaveSuccess('Repertoar uspješno ažuriran!');
                 },
-                error: () => this.toast.showError('Greška pri ažuriranju izvedbi!')
+                error: () => {
+                  this.toast.showError('Osnovni podaci repertoara su sačuvani, ali ažuriranje veza s izvedbama nije uspjelo.');
+                  this.refreshAfterSaveSuccess('Repertoar ažuriran. Provjerite povezane izvedbe.');
+                }
               });
             },
-            error: () => this.toast.showError('Greška pri učitavanju izvedbi repertoara!')
+            error: () => {
+              this.refreshAfterSaveSuccess('Repertoar uspješno ažuriran! (Lista izvedbi trenutno nije učitana — osvježite stranicu ako treba).');
+            }
           });
         },
         error: () => this.toast.showError('Greška pri ažuriranju repertoara!')
       });
     } else {
-      // ADD
       this.api.addRepertoar(data).subscribe({
         next: (repertoarObj: any) => {
-          const repertoarId = Number(repertoarObj.id);
+          const o = repertoarObj;
+          const rid =
+            typeof o === 'number' && !Number.isNaN(o)
+              ? o
+              : Number(o && typeof o === 'object' ? (o as any).id ?? (o as any).Id ?? 0 : 0);
+          const repertoarId = Number.isFinite(rid) && rid > 0 ? rid : 0;
           const selectedIzvedbe = this.availableIzvedbe.filter(i => i.odabrano);
 
           if (selectedIzvedbe.length > 0) {
+            if (!repertoarId) {
+              this.toast.showError('Repertoar je kreiran, ali ID nije vraćen. Osvježite stranicu i dodajte izvedbe ručno.');
+              this.refreshAfterSaveSuccess('Repertoar dodan. Provjerite povezivanje izvedbi.');
+              return;
+            }
             const observables = selectedIzvedbe.map(i =>
-              this.api.addRepertoarIzvedba({ repertoarId, izvedbaId: i.izvedbaId })
+              this.api.addRepertoarIzvedba({
+                repertoarId,
+                izvedbaId: this.izvedbaId(i as { izvedbaId?: number; IzvedbaId?: number })
+              })
             );
-
-            forkJoin(observables).subscribe({
-              next: () => {
-                this.toast.showSuccess('Repertoar uspješno dodan!');
-                this.refreshAfterAdd();
-              },
-              error: () => this.toast.showError('Greška pri dodavanju izvedbi!')
+           const after$: Observable<any> = observables.length ? forkJoin(observables) : of(void 0);
+after$.subscribe({
+              next: () => this.refreshAfterSaveSuccess('Repertoar uspješno dodan!'),
+              error: () => {
+                this.toast.showError('Repertoar je kreiran, ali dio izvedbi nije povezan.');
+                this.refreshAfterSaveSuccess('Repertoar dodan, provjerite povezane izvedbe.');
+              }
             });
           } else {
-            this.toast.showSuccess('Repertoar uspješno dodan!');
-            this.refreshAfterAdd();
+            this.refreshAfterSaveSuccess('Repertoar uspješno dodan!');
           }
         },
         error: () => this.toast.showError('Greška pri dodavanju repertoara!')
@@ -267,15 +330,13 @@ export class RepertoarScreen implements OnInit, OnDestroy {
     }
   }
 
-  private refreshAfterAdd() {
-    this.closeAddPopup();
-    setTimeout(() => this.loadRepertoari(), 200);
-  }
 
   private formatForInput(dateStr: string) {
+    if (dateStr == null || String(dateStr).trim() === '') return '';
     const d = new Date(dateStr);
-    const tzOffset = d.getTimezoneOffset() * 60000; // offset in ms
-    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+    if (Number.isNaN(d.getTime())) return '';
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
   }
 
   openEditPopup(r: any) {
@@ -286,7 +347,7 @@ export class RepertoarScreen implements OnInit, OnDestroy {
 
     this.repertoarForm = this.fb.group({
       naziv: [r.naziv, Validators.required],
-      pocetakDatum: [this.formatForInput(r.pocetakDatum), [Validators.required, this.futureDateValidator]],
+      pocetakDatum: [this.formatForInput(r.pocetakDatum), Validators.required],
       krajDatum: [this.formatForInput(r.krajDatum), Validators.required]
     });
 
@@ -300,12 +361,13 @@ export class RepertoarScreen implements OnInit, OnDestroy {
           this.api.getRepertoarIzvedbe(r.id).subscribe({
             next: repertoarIzv => {
               const odabrane = (repertoarIzv?.resultList || []).map((x: any) => ({
-                izvedbaId: x.izvedbaId,
-                repertoarIzvedbaId: x.id
+                izvedbaId: this.izvedbaId(x),
+                repertoarIzvedbaId: this.repertoarIzvedbaPovezId(x)
               }));
 
               this.availableIzvedbe = izvedbe.map(i => {
-                const match = odabrane.find((o: any) => o.izvedbaId === i.izvedbaId);
+                const iid = this.izvedbaId(i as { izvedbaId?: number; IzvedbaId?: number });
+                const match = odabrane.find((o:any) => o.izvedbaId === iid);
                 return {
                   ...i,
                   odabrano: !!match,
@@ -322,7 +384,6 @@ export class RepertoarScreen implements OnInit, OnDestroy {
       });
   }
 
-  // ---- Repertoar actions (delete, details, sales report) ----
 
   deleteRepertoar(r: any) {
     const confirmed = window.confirm('Da li ste sigurni da želite obrisati ovaj repertoar?');
@@ -343,7 +404,6 @@ export class RepertoarScreen implements OnInit, OnDestroy {
   }
 
   openSalesReport(izvedba: any) {
-    // Otvori popup odmah
     this.showReportPopup = true;
     this.reportLoading = true;
     this.selectedReport = null;
