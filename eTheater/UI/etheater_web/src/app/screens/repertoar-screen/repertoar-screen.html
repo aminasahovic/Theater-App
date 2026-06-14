@@ -321,3 +321,34 @@
 
   </div>
 </div>
+<div
+  class="modal-overlay"
+  *ngIf="showDeletePopup"
+  (click)="closeDelete()"
+>
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="delete-icon-wrap">
+      <i class="material-icons">delete_forever</i>
+    </div>
+
+    <h2 class="delete-title">Obriši repertoar</h2>
+
+    <p class="delete-msg">
+      Da li ste sigurni da želite obrisati<br>
+      <strong>{{ repertoarToDelete?.naziv }}</strong>?
+    </p>
+
+    <div class="modal-footer centered">
+      <button class="btn-ghost" (click)="closeDelete()">
+        Otkaži
+      </button>
+
+      <button class="btn-danger" (click)="confirmDelete()">
+        <i class="material-icons">delete</i>
+        Obriši
+      </button>
+    </div>
+
+  </div>
+</div>

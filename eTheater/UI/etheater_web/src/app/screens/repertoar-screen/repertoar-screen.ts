@@ -33,6 +33,8 @@ export class RepertoarScreen implements OnInit, OnDestroy {
   loading = false;
   canLoadIzvedbe = false;
 
+  showDeletePopup = false;
+  repertoarToDelete: any = null;
   private readonly reload$ = new Subject<void>();
   private readonly destroy$ = new Subject<void>();
 
@@ -385,18 +387,28 @@ after$.subscribe({
   }
 
 
-  deleteRepertoar(r: any) {
-    const confirmed = window.confirm('Da li ste sigurni da želite obrisati ovaj repertoar?');
-    if (!confirmed) { return; }
+deleteRepertoar(r: any) {
+  this.repertoarToDelete = r;
+  this.showDeletePopup = true;
+}
+confirmDelete() {
+  if (!this.repertoarToDelete) return;
 
-    this.api.deleteRepertoar(r.id).subscribe({
-      next: () => {
-        this.toast.showSuccess('Repertoar uspješno obrisan!');
-        this.loadRepertoari();
-      },
-      error: () => this.toast.showError('Greška pri brisanju repertoara!')
-    });
-  }
+  this.api.deleteRepertoar(this.repertoarToDelete.id).subscribe({
+    next: () => {
+      this.toast.showSuccess('Repertoar uspješno obrisan!');
+      this.showDeletePopup = false;
+      this.repertoarToDelete = null;
+      this.loadRepertoari();
+    },
+    error: () => {
+      this.toast.showError('Greška pri brisanju repertoara!');
+    }
+  });
+}closeDelete() {
+  this.showDeletePopup = false;
+  this.repertoarToDelete = null;
+}
 
   openPredstavaDetails(izvedba: any) {
     if (!izvedba?.predstavaId) { return; }
