@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class PagedResult<T> {
   final List<T> resultList;
   final int count;
@@ -8,12 +10,18 @@ class PagedResult<T> {
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>) fromJsonT,
   ) {
+    final rawList = (json['resultList'] as List<dynamic>?) ?? [];
+    final parsed = <T>[];
+    for (final item in rawList) {
+      try {
+        parsed.add(fromJsonT(item as Map<String, dynamic>));
+      } catch (e) {
+        debugPrint('PagedResult: preskačem stavku zbog greške: $e\nItem: $item');
+      }
+    }
     return PagedResult(
-      resultList:
-          (json['resultList'] as List<dynamic>)
-              .map((item) => fromJsonT(item))
-              .toList(),
-      count: json['count'],
+      resultList: parsed,
+      count: (json['count'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -43,15 +51,15 @@ class Predstava {
 
   factory Predstava.fromJson(Map<String, dynamic> json) {
     return Predstava(
-      id: json['id'],
-      naziv: json['naziv'],
-      zanrId: json['zanrId'],
-      opis: json['opis'] ?? '',
-      trajanje: json['trajanje'] ?? 0,
-      godina: json['godina'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      naziv: (json['naziv'] as String?) ?? '',
+      zanrId: (json['zanrId'] as num?)?.toInt() ?? 0,
+      opis: (json['opis'] as String?) ?? '',
+      trajanje: (json['trajanje'] as num?)?.toInt() ?? 0,
+      godina: (json['godina'] as num?)?.toInt() ?? 0,
       plakat: json['plakat'] as String?,
-      isActive: json['isActive'] ?? false,
-      reziserId: json['reziserId'],
+      isActive: (json['isActive'] as bool?) ?? false,
+      reziserId: (json['reziserId'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -97,16 +105,16 @@ class PredstavaPreporuka {
 
   factory PredstavaPreporuka.fromJson(Map<String, dynamic> json) {
     return PredstavaPreporuka(
-      id: json['id'],
-      naziv: json['naziv'],
-      zanrId: json['zanrId'],
-      opis: json['opis'] ?? '',
-      trajanje: json['trajanje'] ?? 0,
-      godina: json['godina'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      naziv: (json['naziv'] as String?) ?? '',
+      zanrId: (json['zanrId'] as num?)?.toInt() ?? 0,
+      opis: (json['opis'] as String?) ?? '',
+      trajanje: (json['trajanje'] as num?)?.toInt() ?? 0,
+      godina: (json['godina'] as num?)?.toInt() ?? 0,
       plakat: json['plakat'] as String?,
-      isActive: json['isActive'] ?? false,
-      reziserId: json['reziserId'],
-      izvedbaId: json['izvedbaId'],
+      isActive: (json['isActive'] as bool?) ?? false,
+      reziserId: (json['reziserId'] as num?)?.toInt() ?? 0,
+      izvedbaId: (json['izvedbaId'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -192,10 +200,14 @@ class Repertoar {
 
   factory Repertoar.fromJson(Map<String, dynamic> json) {
     return Repertoar(
-      id: json['id'],
-      pocetakDatum: DateTime.parse(json['pocetakDatum']),
-      krajDatum: DateTime.parse(json['krajDatum']),
-      naziv: json['naziv'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      pocetakDatum: json['pocetakDatum'] != null
+          ? DateTime.parse(json['pocetakDatum'] as String)
+          : DateTime.now(),
+      krajDatum: json['krajDatum'] != null
+          ? DateTime.parse(json['krajDatum'] as String)
+          : DateTime.now(),
+      naziv: (json['naziv'] as String?) ?? '',
     );
   }
 }
@@ -258,10 +270,12 @@ class Izvedba {
   });
 
   factory Izvedba.fromJson(Map<String, dynamic> json) => Izvedba(
-    id: json['id'],
-    predstavaId: json['predstavaId'],
-    datumVrijemeIzvodjenja: DateTime.parse(json['datumVrijeme']),
-    cijenaKarte: json['cijenaKarte'].toDouble(),
+    id: (json['id'] as num?)?.toInt() ?? 0,
+    predstavaId: (json['predstavaId'] as num?)?.toInt() ?? 0,
+    datumVrijemeIzvodjenja: json['datumVrijeme'] != null
+        ? DateTime.parse(json['datumVrijeme'] as String)
+        : DateTime.now(),
+    cijenaKarte: (json['cijenaKarte'] as num?)?.toDouble() ?? 0.0,
   );
 }
 
@@ -282,11 +296,11 @@ class GlumacPredstava {
 
   factory GlumacPredstava.fromJson(Map<String, dynamic> json) {
     return GlumacPredstava(
-      glumacId: json['glumacId'],
-      ime: json['ime'],
-      prezime: json['prezime'],
-      uloga: json['uloga'],
-      slika: json['slika'],
+      glumacId: (json['glumacId'] as num?)?.toInt() ?? 0,
+      ime: (json['ime'] as String?) ?? '',
+      prezime: (json['prezime'] as String?) ?? '',
+      uloga: (json['uloga'] as String?) ?? '',
+      slika: json['slika'] as String?,
     );
   }
 }
@@ -314,21 +328,23 @@ class KomentarPredstava {
 
   factory KomentarPredstava.fromJson(Map<String, dynamic> json) {
     return KomentarPredstava(
-      id: json['id'],
-      korisnikId: json['korisnikId'],
-      predstavaId: json['predstavaId'],
-      ocjena: json['ocjena'],
-      komentar: json['komentar'],
-      imeKorisnika: json['imeKorisnika'],
-      prezimeKorisnika: json['prezimeKorisnika'],
-      datum: DateTime.parse(json['datum']),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      korisnikId: (json['korisnikId'] as num?)?.toInt() ?? 0,
+      predstavaId: (json['predstavaId'] as num?)?.toInt() ?? 0,
+      ocjena: (json['ocjena'] as num?)?.toInt() ?? 0,
+      komentar: (json['komentar'] as String?) ?? '',
+      imeKorisnika: (json['imeKorisnika'] as String?) ?? '',
+      prezimeKorisnika: (json['prezimeKorisnika'] as String?) ?? '',
+      datum: json['datum'] != null
+          ? DateTime.parse(json['datum'] as String)
+          : DateTime.now(),
     );
   }
 }
 
 class Novost {
   final int id;
-  final int korisnikId;
+  final int? korisnikId;
   final String naslov;
   final String sadrzaj;
   final DateTime datumObjave;
@@ -336,7 +352,7 @@ class Novost {
 
   Novost({
     required this.id,
-    required this.korisnikId,
+    this.korisnikId,
     required this.naslov,
     required this.sadrzaj,
     required this.datumObjave,
@@ -345,12 +361,14 @@ class Novost {
 
   factory Novost.fromJson(Map<String, dynamic> json) {
     return Novost(
-      id: json['id'],
-      korisnikId: json['korisnikId'],
-      naslov: json['naslov'],
-      sadrzaj: json['sadrzaj'],
-      datumObjave: DateTime.parse(json['datumObjave']),
-      slika: json['slika'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      korisnikId: (json['korisnikId'] as num?)?.toInt(),
+      naslov: (json['naslov'] as String?) ?? '',
+      sadrzaj: (json['sadrzaj'] as String?) ?? '',
+      datumObjave: json['datumObjave'] != null
+          ? DateTime.parse(json['datumObjave'] as String)
+          : DateTime.now(),
+      slika: json['slika'] as String?,
     );
   }
 }
@@ -362,10 +380,18 @@ class NovostiResponse {
   NovostiResponse({required this.count, required this.resultList});
 
   factory NovostiResponse.fromJson(Map<String, dynamic> json) {
+    final rawList = (json['resultList'] as List<dynamic>?) ?? [];
+    final parsed = <Novost>[];
+    for (final e in rawList) {
+      try {
+        parsed.add(Novost.fromJson(e as Map<String, dynamic>));
+      } catch (err) {
+        debugPrint('NovostiResponse: preskačem stavku zbog greške: $err\nItem: $e');
+      }
+    }
     return NovostiResponse(
-      count: json['count'],
-      resultList:
-          (json['resultList'] as List).map((e) => Novost.fromJson(e)).toList(),
+      count: (json['count'] as num?)?.toInt() ?? 0,
+      resultList: parsed,
     );
   }
 }
@@ -456,13 +482,15 @@ class OdgovorKomentar {
 
   factory OdgovorKomentar.fromJson(Map<String, dynamic> json) {
     return OdgovorKomentar(
-      id: json['id'],
-      komentariObavijestiId: json['komentariObavijestiId'],
-      korisnikId: json['korisnikId'],
-      textOdgovora: json['textOdgovora'],
-      datum: DateTime.parse(json['datum']),
-      imeKorisnika: json['imeKorisnika'],
-      prezimeKorisnika: json['prezimeKorisnika'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      komentariObavijestiId: (json['komentariObavijestiId'] as num?)?.toInt() ?? 0,
+      korisnikId: (json['korisnikId'] as num?)?.toInt() ?? 0,
+      textOdgovora: (json['textOdgovora'] as String?) ?? '',
+      datum: json['datum'] != null
+          ? DateTime.parse(json['datum'] as String)
+          : DateTime.now(),
+      imeKorisnika: (json['imeKorisnika'] as String?) ?? '',
+      prezimeKorisnika: (json['prezimeKorisnika'] as String?) ?? '',
     );
   }
 }
@@ -657,10 +685,10 @@ class IzvedbaSjediste {
 
   factory IzvedbaSjediste.fromJson(Map<String, dynamic> json) {
     return IzvedbaSjediste(
-      id: json['id'],
-      izvedbaId: json['izvedbaId'],
-      sjedisteId: json['sjedisteId'],
-      isSlobodno: json['isSlobodno'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      izvedbaId: (json['izvedbaId'] as num?)?.toInt() ?? 0,
+      sjedisteId: (json['sjedisteId'] as num?)?.toInt() ?? 0,
+      isSlobodno: (json['isSlobodno'] as bool?) ?? false,
     );
   }
 }
@@ -728,15 +756,17 @@ class MojaRezervacija {
 
   factory MojaRezervacija.fromJson(Map<String, dynamic> json) {
     return MojaRezervacija(
-      id: json['id'],
-      predstavaId: json['predstavaId'],
-      naziv: json['naziv'],
-      datumVrijemeIzvedbe: DateTime.parse(json['datumVrijemeIzvedbe']),
-      plakatUrl: json['plakatUrl'],
-      nazivSale: json['nazivSale'],
-      brojKarata: json['brojKarata'],
-      isKupljeno: json['isKupljeno'],
-      isUsedTicket: json['isUsedTicket'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      predstavaId: (json['predstavaId'] as num?)?.toInt() ?? 0,
+      naziv: json['naziv'] as String?,
+      datumVrijemeIzvedbe: json['datumVrijemeIzvedbe'] != null
+          ? DateTime.parse(json['datumVrijemeIzvedbe'] as String)
+          : DateTime.now(),
+      plakatUrl: json['plakatUrl'] as String?,
+      nazivSale: json['nazivSale'] as String?,
+      brojKarata: (json['brojKarata'] as num?)?.toInt() ?? 0,
+      isKupljeno: json['isKupljeno'] as bool? ?? false,
+      isUsedTicket: json['isUsedTicket'] as bool? ?? false,
     );
   }
 }

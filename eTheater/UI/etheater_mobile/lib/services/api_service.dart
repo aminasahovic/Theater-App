@@ -170,9 +170,15 @@ class ApiService {
     int page = 1,
     int pageSize = 5,
   }) async {
+    final queryParams = <String, String>{
+      'Page': page.toString(),
+      'PageSize': pageSize.toString(),
+      if (naslov != null && naslov.isNotEmpty) 'Naslov': naslov,
+    };
+
     final uri = Uri.parse(
-      '${ApiKonstante.baseUrl}/Obavijest?Naslov=${naslov ?? ''}&Page=$page&PageSize=$pageSize',
-    );
+      '${ApiKonstante.baseUrl}/Obavijest',
+    ).replace(queryParameters: queryParams);
 
     final response = await http.get(uri, headers: AuthProvider.authHeaders);
 

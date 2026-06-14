@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:etheater_mobile/screens/master_screen.dart';
 import 'package:etheater_mobile/screens/moje_rezervacije_screen.dart';
+import 'package:etheater_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:etheater_mobile/models/model.dart';
 import 'package:etheater_mobile/providers/auth_provider.dart';
 import 'package:etheater_mobile/services/api_service.dart';
-import 'package:etheater_mobile/theme/app_theme.dart';
 import 'package:flutter_paypal/flutter_paypal.dart';
+import 'package:intl/intl.dart';
 
 class PregledKupovineScreen extends StatefulWidget {
   final Predstava predstava;
@@ -26,199 +27,242 @@ class PregledKupovineScreen extends StatefulWidget {
 }
 
 class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
-  String _nacinPlacanja = "Gotovina";
+  String _nacinPlacanja = 'Gotovina';
   bool _loading = false;
   String? _paypalPaymentId;
 
   Future<void> _rezervisi() async {
-    if (_nacinPlacanja == "PayPal") {
-      final success = await startPayPalPayment();
+    if (_nacinPlacanja == 'PayPal') {
+      final success = await _startPayPalPayment();
       if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PayPal plaćanje nije uspjelo.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PayPal plaćanje nije uspjelo.'),
+              backgroundColor: AppTheme.danger,
+            ),
+          );
+        }
         return;
       }
     }
+
     await ApiService.posaljiPotvrdu(
       korisnikId: AuthProvider.userId,
       nazivPredstave: widget.predstava.naziv,
       datumPrikazivanja: widget.izvedba.datumVrijemeIzvodjenja,
-      sala: "Velika sala",
+      sala: 'Velika sala',
       brojKarata: widget.odabranaSjedista.length,
-      ukupnaCijena:
-          (widget.odabranaSjedista.length * widget.izvedba.cijenaKarte),
-      isRezervacija: _nacinPlacanja == "Gotovina",
+      ukupnaCijena: widget.odabranaSjedista.length * widget.izvedba.cijenaKarte,
+      isRezervacija: _nacinPlacanja == 'Gotovina',
     );
 
     setState(() => _loading = true);
-    final korisnikId = AuthProvider.userId!;
-    final odabranaSjedista = widget.odabranaSjedista;
 
     final request = RezervacijaRequest(
-      korisnikId: korisnikId,
+      korisnikId: AuthProvider.userId!,
       izvedbaId: widget.izvedba.id,
-      brojKarata: odabranaSjedista.length,
-      odabranaSjedista: odabranaSjedista,
+      brojKarata: widget.odabranaSjedista.length,
+      odabranaSjedista: widget.odabranaSjedista,
       isUsedTicket: false,
       paymentId: _paypalPaymentId,
     );
 
     try {
       await ApiService.rezervisiKupovinu(request);
-
       if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MojeRezervacijeScreen()),
+        MaterialPageRoute(builder: (_) => const MojeRezervacijeScreen()),
       );
 
       Future.delayed(const Duration(milliseconds: 300), () {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Uspješno ste rezervisali vaše karte i možete ih pronaći u sekciji Moje rezervacije.',
+              'Uspješno ste rezervisali karte! Pronađite ih u "Moje rezervacije".',
             ),
+            backgroundColor: AppTheme.success,
           ),
         );
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Greška: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Greška: $e'),
+            backgroundColor: AppTheme.danger,
+          ),
+        );
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ukupnaCijena =
-        widget.izvedba.cijenaKarte * widget.odabranaSjedista.length;
+    final count = widget.odabranaSjedista.length;
+    final ukupno = widget.izvedba.cijenaKarte * count;
 
     return MasterScreen(
-      "Pregled kupovine",
-      Stack(
+      'Pregled kupovine',
+      Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 70),
+          Expanded(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Poster
                   if (widget.predstava.plakat != null)
-                    SizedBox(
-                      height: 250,
-                      width: double.infinity,
-                      child: ClipRRect(
-                        child: Image.memory(
+                    Stack(
+                      children: [
+                        Image.memory(
                           base64Decode(widget.predstava.plakat!),
+                          width: double.infinity,
+                          height: 220,
                           fit: BoxFit.cover,
                         ),
-                      ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 80,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  AppTheme.pageBackground.withOpacity(0.95),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
-                  const SizedBox(height: 24),
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Show name
                         Text(
                           widget.predstava.naziv,
                           style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          DateFormat(
+                            'dd.MM.yyyy. HH:mm',
+                          ).format(widget.izvedba.datumVrijemeIzvodjenja),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textMuted,
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
 
-                        _buildDetailRow(
-                          "Cijena karte:",
-                          "${widget.izvedba.cijenaKarte.toStringAsFixed(2)} KM",
+                        // Summary card
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: AppTheme.cardShadow,
+                          ),
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            children: [
+                              _DetailRow(
+                                label: 'Cijena po karti',
+                                value:
+                                    '${widget.izvedba.cijenaKarte.toStringAsFixed(2)} KM',
+                              ),
+                              const SizedBox(height: 10),
+                              _DetailRow(label: 'Broj karata', value: '$count'),
+                              const SizedBox(height: 10),
+                              _DetailRow(
+                                label: 'Sjedišta',
+                                value: widget.odabranaSjedista
+                                    .map((s) => '#${s.sjedisteId}')
+                                    .join(', '),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                child: Divider(height: 1),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Ukupno',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${ukupno.toStringAsFixed(2)} KM',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        _buildDetailRow(
-                          "Broj karata:",
-                          widget.odabranaSjedista.length.toString(),
-                        ),
-                        _buildDetailRow(
-                          "Odabrana sjedista:",
-                          widget.odabranaSjedista
-                              .map((s) => "(${s.sjedisteId})")
-                              .join(", "),
-                        ),
 
-                        const Divider(height: 32, thickness: 1),
+                        const SizedBox(height: 20),
 
-                        _buildDetailRow(
-                          "Ukupna cijena:",
-                          "${ukupnaCijena.toStringAsFixed(2)} KM",
-                          isBold: true,
-                          fontSize: 18,
-                        ),
-
-                        const SizedBox(height: 24),
-
+                        // Payment method
                         const Text(
-                          "Način plaćanja:",
+                          'NAČIN PLAĆANJA',
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textMuted,
+                            letterSpacing: 1.2,
                           ),
                         ),
+                        const SizedBox(height: 10),
 
-                        const SizedBox(height: 12),
-
-                        RadioListTile<String>(
-                          value: "Gotovina",
+                        _PaymentOption(
+                          value: 'Gotovina',
                           groupValue: _nacinPlacanja,
-                          title: Row(
-                            children: const [
-                              Icon(Icons.money, color: Colors.green),
-                              SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  "Gotovina",
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _nacinPlacanja = value!;
-                            });
-                          },
+                          icon: Icons.payments_outlined,
+                          iconColor: AppTheme.success,
+                          label: 'Gotovina na blagajni',
+                          description: 'Platite pri preuzimanju karata',
+                          onChanged: (v) => setState(() => _nacinPlacanja = v!),
                         ),
-                        RadioListTile<String>(
-                          value: "PayPal",
+                        const SizedBox(height: 8),
+                        _PaymentOption(
+                          value: 'PayPal',
                           groupValue: _nacinPlacanja,
-                          title: Row(
-                            children: const [
-                              Icon(
-                                Icons.account_balance_wallet,
-                                color: Colors.blue,
-                              ),
-                              SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  "PayPal",
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _nacinPlacanja = value!;
-                            });
-                          },
+                          icon: Icons.account_balance_wallet_outlined,
+                          iconColor: const Color(0xFF0070BA),
+                          label: 'PayPal',
+                          description: 'Sigurno online plaćanje',
+                          onChanged: (v) => setState(() => _nacinPlacanja = v!),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -227,43 +271,65 @@ class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
             ),
           ),
 
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
+          // Bottom CTA
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+            decoration: BoxDecoration(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _rezervisi,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, -3),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _rezervisi,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child:
-                        _loading
-                            ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : Text(
-                              _nacinPlacanja == "PayPal"
-                                  ? "Plati"
-                                  : "Rezerviši",
-                              style: const TextStyle(fontSize: 18),
-                            ),
+                    elevation: 0,
                   ),
+                  child:
+                      _loading
+                          ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                          : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _nacinPlacanja == 'PayPal'
+                                    ? Icons.payment_outlined
+                                    : Icons.check_circle_outline,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _nacinPlacanja == 'PayPal'
+                                    ? 'Plati putem PayPal-a'
+                                    : 'Potvrdi rezervaciju',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                 ),
               ),
             ),
@@ -273,94 +339,57 @@ class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
     );
   }
 
-  Widget _buildDetailRow(
-    String label,
-    String value, {
-    bool isBold = false,
-    double fontSize = 16,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                fontSize: fontSize,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                fontSize: fontSize,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool> startPayPalPayment() async {
+  Future<bool> _startPayPalPayment() async {
     String? paymentId;
     bool cancel = false;
-    var completer = Completer<bool>();
+    final completer = Completer<bool>();
 
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder:
-            (BuildContext context) => UsePaypal(
+            (_) => UsePaypal(
               sandboxMode: true,
               clientId:
-                  "AWwW3Fuc0nmtIMp4pDMuZk5jBT-bw5xRHHKF8pgipgSp_89Tz97GLMSDwohCVDOHvglzOmLAQ2c7j-N-",
+                  'AWwW3Fuc0nmtIMp4pDMuZk5jBT-bw5xRHHKF8pgipgSp_89Tz97GLMSDwohCVDOHvglzOmLAQ2c7j-N-',
               secretKey:
-                  "EBIHrq8vvGtHPUNtvV0VQchBEXLApqQ32GWbed50JwqAjgg5wANsR7pejsI-zINuvRRsATHhbeySz9fv",
-              returnURL: "https://samplesite.com/return",
-              cancelURL: "https://samplesite.com/cancel",
+                  'EBIHrq8vvGtHPUNtvV0VQchBEXLApqQ32GWbed50JwqAjgg5wANsR7pejsI-zINuvRRsATHhbeySz9fv',
+              returnURL: 'https://samplesite.com/return',
+              cancelURL: 'https://samplesite.com/cancel',
               transactions: [
                 {
-                  "amount": {
-                    "total": double.parse(
-                      ((widget.izvedba.cijenaKarte *
+                  'amount': {
+                    'total': double.parse(
+                      (widget.izvedba.cijenaKarte *
                               0.55 *
-                              widget.odabranaSjedista.length))
+                              widget.odabranaSjedista.length)
                           .toStringAsFixed(2),
                     ),
-                    "currency": "USD",
+                    'currency': 'USD',
                   },
-                  "description": "Plaćanje za rezervaciju predstave.",
-                  "item_list": {
-                    "items": [
+                  'description': 'Plaćanje za rezervaciju predstave.',
+                  'item_list': {
+                    'items': [
                       {
-                        "name": widget.predstava.naziv,
-                        "quantity": widget.odabranaSjedista.length,
-                        "price": double.parse(
+                        'name': widget.predstava.naziv,
+                        'quantity': widget.odabranaSjedista.length,
+                        'price': double.parse(
                           (widget.izvedba.cijenaKarte * 0.55).toStringAsFixed(
                             2,
                           ),
                         ),
-                        "currency": "USD",
+                        'currency': 'USD',
                       },
                     ],
                   },
                 },
               ],
-              note: "Kontaktirajte nas za dodatne informacije.",
+              note: 'Kontaktirajte nas za dodatne informacije.',
               onSuccess: (Map params) {
                 paymentId = params['paymentId'];
                 completer.complete(true);
               },
-              onError: (error) {
-                completer.complete(false);
-              },
-              onCancel: (params) {
+              onError: (_) => completer.complete(false),
+              onCancel: (_) {
                 cancel = true;
               },
             ),
@@ -368,13 +397,127 @@ class _PregledKupovineScreenState extends State<PregledKupovineScreen> {
     );
 
     final result = await completer.future;
-
     if (cancel || !result) return false;
 
-    setState(() {
-      _paypalPaymentId = paymentId;
-    });
-
+    setState(() => _paypalPaymentId = paymentId);
     return true;
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 130,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentOption extends StatelessWidget {
+  final String value;
+  final String groupValue;
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String description;
+  final ValueChanged<String?> onChanged;
+
+  const _PaymentOption({
+    required this.value,
+    required this.groupValue,
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.description,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = value == groupValue;
+    return GestureDetector(
+      onTap: () => onChanged(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.accentTint : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppTheme.primary : const Color(0xFFe8e8e8),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? AppTheme.primary : AppTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Radio<String>(
+              value: value,
+              groupValue: groupValue,
+              onChanged: onChanged,
+              activeColor: AppTheme.primary,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

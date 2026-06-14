@@ -1,6 +1,7 @@
 import 'package:etheater_mobile/models/model.dart';
 import 'package:etheater_mobile/screens/izvedba_predstava_screen.dart';
 import 'package:etheater_mobile/screens/master_screen.dart';
+import 'package:etheater_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api_service.dart';
@@ -40,17 +41,13 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
   }
 
   Future<void> _loadRepertoar({bool append = false}) async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
       final result = await ApiService.getRepertoar(
         page: _currentPage,
         pageSize: _pageSize,
         naziv: _searchNaziv,
       );
-      print(result.count);
       setState(() {
         _totalCount = result.count;
         if (append) {
@@ -62,9 +59,7 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
     } catch (e) {
       debugPrint('Error loading repertoar: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -81,9 +76,8 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
     super.dispose();
   }
 
-  String _formatDate(DateTime dt) {
-    return DateFormat('dd.MM.yyyy.').format(dt);
-  }
+  String _formatDate(DateTime dt) =>
+      DateFormat('dd.MM.yyyy.').format(dt);
 
   @override
   Widget build(BuildContext context) {
@@ -91,93 +85,173 @@ class _RepertoarScreenState extends State<RepertoarScreen> {
       'Repertoar',
       Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          // Search bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             child: TextField(
               controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Pretraži po nazivu predstave',
+              decoration: const InputDecoration(
+                hintText: 'Pretraži repertoar...',
+                prefixIcon: Icon(Icons.search, size: 20),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-              onChanged: (value) {
-                _onSearchChanged();
-              },
+              onChanged: (_) => _onSearchChanged(),
             ),
           ),
+
+          // List
           Expanded(
             child: RefreshIndicator(
+              color: AppTheme.primary,
               onRefresh: () async {
                 _currentPage = 1;
                 await _loadRepertoar();
               },
-              child: ListView.separated(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                itemCount: _repertoari.length + (_isLoading ? 1 : 0),
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  if (index == _repertoari.length) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-
-                  final r = _repertoari[index];
-
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
-                    color: Colors.grey.shade50,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      leading: const Icon(
-                        Icons.theater_comedy,
-                        color: Color(0xFF800000),
-                      ),
-                      title: Text(
-                        r.naziv,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Početak: ${_formatDate(r.pocetakDatum)} - Kraj: ${_formatDate(r.krajDatum)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        color: Color(0xFF800000),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (_) =>
-                                    IzvedbaPredstavaScreen(repertoarId: r.id),
-                          ),
-                        );
+              child: _repertoari.isEmpty && _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppTheme.primary),
+                    )
+                  : _repertoari.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      itemCount: _repertoari.length + (_isLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _repertoari.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.primary,
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          );
+                        }
+                        return _buildRepertoarCard(_repertoari[index]);
                       },
                     ),
-                  );
-                },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRepertoarCard(Repertoar r) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => IzvedbaPredstavaScreen(repertoarId: r.id),
+        ),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icon badge
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFfde0e8), Color(0xFFf5c2d0)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.theater_comedy,
+                  color: AppTheme.primary,
+                  size: 24,
+                ),
               ),
+              const SizedBox(width: 14),
+
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.naziv,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_formatDate(r.pocetakDatum)} – ${_formatDate(r.krajDatum)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Arrow
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentTint,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.primary,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.theaters_outlined, size: 56, color: Colors.grey.shade300),
+          const SizedBox(height: 12),
+          Text(
+            'Nema repertoara',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

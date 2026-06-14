@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:etheater_mobile/screens/master_screen.dart';
 import 'package:etheater_mobile/screens/predstave_screen.dart';
+import 'package:etheater_mobile/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/model.dart';
@@ -51,17 +52,17 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
       setState(() => _izvedbe = rezultat.resultList);
     } catch (e) {
       debugPrint('Greška pri učitavanju izvedbi: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Greška pri učitavanju izvedbi')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Greška pri učitavanju izvedbi')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  String _formatDate(DateTime dt) {
-    return DateFormat('dd.MM.yyyy. HH:mm').format(dt);
-  }
+  String _formatDate(DateTime dt) => DateFormat('dd.MM.yyyy. HH:mm').format(dt);
 
   void _applyFilter() {
     _nazivFilter = _nazivController.text.trim();
@@ -73,184 +74,242 @@ class _IzvedbaPredstavaScreenState extends State<IzvedbaPredstavaScreen> {
     return MasterScreen(
       'Izvedbe predstava',
       Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-            child: TextField(
-              controller: _nazivController,
-              decoration: const InputDecoration(
-                labelText: 'Pretraga po nazivu predstave',
-                isDense: true,
-              ),
-              onChanged: (value) {
-                _applyFilter();
-              },
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
-            child: Row(
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Column(
               children: [
-                const Text(
-                  'Izvedbe:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                TextField(
+                  controller: _nazivController,
+                  decoration: const InputDecoration(
+                    hintText: 'Pretraži po nazivu...',
+                    prefixIcon: Icon(Icons.search, size: 20),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  onChanged: (_) => _applyFilter(),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<int>(
-                    value: _zanrId,
-                    items: [
-                      const DropdownMenuItem<int>(
-                        value: null,
-                        child: Text('Svi žanrovi'),
-                      ),
-                      ..._zanrovi.map(
-                        (z) => DropdownMenuItem<int>(
-                          value: z.id,
-                          child: Text(z.naziv),
-                        ),
-                      ),
-                    ],
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                const SizedBox(height: 10),
+
+                // Genre dropdown
+                DropdownButtonFormField<int>(
+                  value: _zanrId,
+                  decoration: const InputDecoration(
+                    hintText: 'Svi žanrovi',
+                    prefixIcon: Icon(Icons.category_outlined, size: 20),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: [
+                    const DropdownMenuItem<int>(
+                      value: null,
+                      child: Text('Svi žanrovi'),
+                    ),
+                    ..._zanrovi.map(
+                      (z) => DropdownMenuItem<int>(
+                        value: z.id,
+                        child: Text(z.naziv),
                       ),
                     ),
-                    onChanged: (value) {
-                      setState(() => _zanrId = value);
-                      _applyFilter();
-                    },
-                  ),
+                  ],
+                  onChanged: (value) {
+                    setState(() => _zanrId = value);
+                    _applyFilter();
+                  },
                 ),
               ],
             ),
           ),
 
+          // Grid
           Expanded(
             child:
                 _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _izvedbe.isEmpty
                     ? const Center(
-                      child: Text('Nema izvedbi za ovaj repertoar'),
+                      child: CircularProgressIndicator(color: AppTheme.primary),
                     )
+                    : _izvedbe.isEmpty
+                    ? _buildEmptyState()
                     : RefreshIndicator(
+                      color: AppTheme.primary,
                       onRefresh: _loadIzvedbe,
                       child: GridView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         gridDelegate:
                             const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 250,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.6,
+                              maxCrossAxisExtent: 220,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                              childAspectRatio: 0.62,
                             ),
                         itemCount: _izvedbe.length,
-                        itemBuilder: (context, index) {
-                          final izvedba = _izvedbe[index];
-                          Widget plakatWidget;
-
-                          if (izvedba.plakat != null &&
-                              izvedba.plakat!.isNotEmpty) {
-                            try {
-                              final bytes = base64Decode(izvedba.plakat!);
-                              plakatWidget = Image.memory(
-                                bytes,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              );
-                            } catch (_) {
-                              plakatWidget = Container(
-                                color: Colors.grey.shade300,
-                                height: 180,
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                ),
-                              );
-                            }
-                          } else {
-                            plakatWidget = Container(
-                              color: Colors.grey.shade300,
-                              height: 180,
-                              child: const Icon(Icons.image, size: 50),
-                            );
-                          }
-
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => PredstavaScreen(
-                                        predstavaId: izvedba.predstavaId,
-                                        izvedbaId: izvedba.izvedbaId,
-                                      ),
-                                ),
-                              );
-                            },
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: 180,
-                                    width: double.infinity,
-                                    child: plakatWidget,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      12,
-                                      12,
-                                      12,
-                                      12,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          izvedba.nazivPredstave,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.brown.shade700,
-                                            height: 1.2,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          _formatDate(
-                                            izvedba.datumVrijemeIzvedbe,
-                                          ),
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                        itemBuilder:
+                            (context, index) =>
+                                _buildIzvedbaCard(_izvedbe[index]),
                       ),
                     ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIzvedbaCard(IzvedbaPredstava izvedba) {
+    Widget plakatWidget;
+
+    if (izvedba.plakat != null && izvedba.plakat!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(izvedba.plakat!);
+        plakatWidget = Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        );
+      } catch (_) {
+        plakatWidget = _posterPlaceholder();
+      }
+    } else {
+      plakatWidget = _posterPlaceholder();
+    }
+
+    return GestureDetector(
+      onTap:
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => PredstavaScreen(
+                    predstavaId: izvedba.predstavaId,
+                    izvedbaId: izvedba.izvedbaId,
+                  ),
+            ),
+          ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Poster
+            Expanded(
+              flex: 5,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  plakatWidget,
+                  // Date badge overlay
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.65),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.access_time,
+                            color: Colors.white70,
+                            size: 11,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDate(izvedba.datumVrijemeIzvedbe),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Title
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      izvedba.nazivPredstave,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _posterPlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(gradient: AppTheme.placeholderGradient),
+      child: const Center(
+        child: Icon(Icons.movie_outlined, size: 40, color: Colors.white24),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.event_busy_outlined,
+            size: 56,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Nema izvedbi za ovaj repertoar',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
